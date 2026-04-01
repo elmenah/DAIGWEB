@@ -92,7 +92,14 @@ function Gallery() {
         <div className="gallery-grid">
           {filtered.map((item, index) => (
             <div className="gallery-item" key={index}>
-              <img src={item.src} alt={item.alt} loading="lazy" />
+              {item.type === 'video' ? (
+                <video src={item.src} muted loop playsInline
+                  onMouseEnter={(e) => e.target.play()}
+                  onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0 }}
+                />
+              ) : (
+                <img src={item.src} alt={item.alt} loading="lazy" />
+              )}
               <div className="gallery-overlay">
                 <h4>{item.title}</h4>
               </div>

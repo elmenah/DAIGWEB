@@ -25,6 +25,7 @@ export async function fetchGalleryItems() {
     alt: row.alt_text || row.title,
     category: row.category,
     title: row.title,
+    type: row.media_type || 'image',
   }))
 }
 
@@ -48,11 +49,15 @@ function GalleryManager() {
     setItems(data)
   }
 
+  const isVideo = (f) => f && f.type.startsWith('video/')
+  const isVideoUrl = (url) => /\.(mp4|webm|ogg|mov)$/i.test(url)
+
   const handleFileChange = (e) => {
     const selected = e.target.files[0]
     if (!selected) return
-    if (selected.size > 5 * 1024 * 1024) {
-      setMessage('La imagen no debe superar 5MB')
+    const maxSize = selected.type.startsWith('video/') ? 50 * 1024 * 1024 : 5 * 1024 * 1024
+    if (selected.size > maxSize) {
+      setMessage(selected.type.startsWith('video/') ? 'El video no debe superar 50MB' : 'La imagen no debe superar 5MB')
       return
     }
     setFile(selected)
@@ -79,12 +84,12 @@ function GalleryManager() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.title || !form.category) {
-      setMessage('Completa título y categoría')
+    if (!form.category) {
+      setMessage('Selecciona una categoría')
       return
     }
     if (!editItem && !file) {
-      setMessage('Selecciona una imagen')
+      setMessage('Selecciona una imagen o video')
       return
     }
 
@@ -106,10 +111,11 @@ function GalleryManager() {
             alt_text: form.alt || form.title,
             category: form.category,
             image_url: imageUrl,
+            media_type: file ? (isVideo(file) ? 'video' : 'image') : undefined,
           })
           .eq('id', editItem.id)
         if (error) throw error
-        setMessage('Imagen actualizada correctamente')
+        setMessage('Actualizado correctamente')
       } else {
         const { error } = await supabase
           .from('gallery_items')
@@ -118,9 +124,10 @@ function GalleryManager() {
             alt_text: form.alt || form.title,
             category: form.category,
             image_url: imageUrl,
+            media_type: isVideo(file) ? 'video' : 'image',
           })
         if (error) throw error
-        setMessage('Imagen agregada correctamente')
+        setMessage('Agregado correctamente')
       }
 
       await loadItems()
@@ -156,7 +163,7 @@ function GalleryManager() {
         .delete()
         .eq('id', item.id)
       if (error) throw error
-      setMessage('Imagen eliminada')
+      setMessage('Eliminado')
       await loadItems()
     } catch (err) {
       setMessage('Error al eliminar: ' + err.message)
@@ -171,7 +178,7 @@ function GalleryManager() {
           className="admin-btn-primary"
           onClick={() => { resetForm(); setShowForm(!showForm) }}
         >
-          {showForm ? 'Cancelar' : '+ Agregar Imagen'}
+          {showForm ? 'Cancelar' : '+ Agregar Imagen/Video'}
         </button>
       </div>
 
@@ -186,13 +193,12 @@ function GalleryManager() {
         <form onSubmit={handleSubmit} className="admin-form">
           <div className="admin-form-grid">
             <div className="admin-field">
-              <label>Título *</label>
+              <label>Título</label>
               <input
                 type="text"
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                 placeholder="Ej: Soldadura de piping"
-                required
               />
             </div>
             <div className="admin-field">
@@ -218,17 +224,21 @@ function GalleryManager() {
               />
             </div>
             <div className="admin-field">
-              <label>Imagen {editItem ? '(opcional)' : '*'} (máx 5MB)</label>
+              <label>Archivo {editItem ? '(opcional)' : '*'} (imágenes máx 5MB, videos máx 50MB)</label>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*"
                 onChange={handleFileChange}
               />
             </div>
           </div>
           {preview && (
             <div className="admin-preview">
-              <img src={preview} alt="Vista previa" />
+              {(file && isVideo(file)) || (!file && editItem && isVideoUrl(preview)) ? (
+                <video src={preview} controls style={{ maxWidth: '100%', maxHeight: '200px' }} />
+              ) : (
+                <img src={preview} alt="Vista previa" />
+              )}
             </div>
           )}
           <button type="submit" className="admin-btn-primary" disabled={uploading}>
@@ -244,7 +254,11 @@ function GalleryManager() {
         {items.map((item) => (
           <div className="admin-gallery-card" key={item.id}>
             <div className="admin-gallery-img">
-              <img src={item.src} alt={item.alt} />
+              {item.type === 'video' ? (
+                <video src={item.src} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <img src={item.src} alt={item.alt} />
+              )}
             </div>
             <div className="admin-gallery-info">
               <strong>{item.title}</strong>
