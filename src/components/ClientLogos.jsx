@@ -2,11 +2,7 @@ import React from 'react'
 
 const clients = [
   { name: 'Puertos Ventanas', logo: '/Imagenes/Empresas/pvsa.png' },
-  { name: 'Diseños MK', logo: '/Imagenes/Empresas/disenos-mk.png' },
-  { name: 'Industrias del Sur', logo: '/Imagenes/Empresas/industrias-del-sur.png' },
-  { name: 'Grupo Técnico', logo: '/Imagenes/Empresas/grupo-tecnico.png' },
-  { name: 'Soluciones Pro', logo: '/Imagenes/Empresas/soluciones-pro.png' },
-  { name: 'MetalCorp', logo: '/Imagenes/Empresas/metalcorp.png' },
+  
 ]
 
 function ClientLogos() {

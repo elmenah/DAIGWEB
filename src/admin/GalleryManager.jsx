@@ -5,6 +5,7 @@ const BUCKET = 'gallery'
 
 const defaultCategories = [
   { key: 'piping', label: 'Piping' },
+  { key: 'mantencion-de-correas', label: 'Mantención de Correas' },
   { key: 'estructuras', label: 'Estructuras' },
   { key: 'obras', label: 'Obras Civiles' },
   { key: 'proteccion', label: 'Protección' },
