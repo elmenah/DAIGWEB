@@ -2,42 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { fetchGalleryItems } from '../admin/GalleryManager'
 
 const defaultGalleryItems = [
-  {
-    src: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=600&h=400&fit=crop',
-    alt: 'Soldadura de piping industrial',
-    category: 'piping',
-    title: 'Soldadura de Piping',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=600&h=400&fit=crop',
-    alt: 'Fabricación de estructuras metálicas',
-    category: 'estructuras',
-    title: 'Estructuras Metálicas',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=600&h=400&fit=crop',
-    alt: 'Obra civil en planta industrial',
-    category: 'obras',
-    title: 'Obras Civiles',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=600&h=400&fit=crop',
-    alt: 'Instalación de tuberías industriales',
-    category: 'piping',
-    title: 'Instalación de Tuberías',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&h=400&fit=crop',
-    alt: 'Montaje de estructura metálica',
-    category: 'estructuras',
-    title: 'Montaje Estructural',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=400&fit=crop',
-    alt: 'Protección y recubrimiento de tuberías',
-    category: 'proteccion',
-    title: 'Protección de Tuberías',
-  },
+  
 ]
 
 const defaultCategories = [
@@ -93,14 +58,18 @@ function Gallery() {
           {filtered.map((item, index) => (
             <div className="gallery-item" key={index}>
               {item.type === 'video' ? (
-                <video src={item.src} muted loop playsInline
-                  onMouseEnter={(e) => e.target.play()}
-                  onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0 }}
-                />
+                <div className="gallery-video-wrapper">
+                  <video
+                    src={item.src}
+                    controls
+                    preload="metadata"
+                    playsInline
+                  />
+                </div>
               ) : (
                 <img src={item.src} alt={item.alt} loading="lazy" />
               )}
-              <div className="gallery-overlay">
+              <div className={`gallery-overlay ${item.type === 'video' ? 'gallery-overlay--video' : ''}`}>
                 <h4>{item.title}</h4>
               </div>
             </div>
