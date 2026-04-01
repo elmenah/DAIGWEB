@@ -1,12 +1,12 @@
 import React from 'react'
 
 const clients = [
-  'Constructora Alfa',
-  'Diseños MK',
-  'Industrias del Sur',
-  'Grupo Técnico',
-  'Soluciones Pro',
-  'MetalCorp',
+  { name: 'Puertos Ventanas', logo: '/Imagenes/Empresas/pvsa.png' },
+  { name: 'Diseños MK', logo: '/Imagenes/Empresas/disenos-mk.png' },
+  { name: 'Industrias del Sur', logo: '/Imagenes/Empresas/industrias-del-sur.png' },
+  { name: 'Grupo Técnico', logo: '/Imagenes/Empresas/grupo-tecnico.png' },
+  { name: 'Soluciones Pro', logo: '/Imagenes/Empresas/soluciones-pro.png' },
+  { name: 'MetalCorp', logo: '/Imagenes/Empresas/metalcorp.png' },
 ]
 
 function ClientLogos() {
@@ -17,7 +17,7 @@ function ClientLogos() {
         <div className="clients-grid">
           {clients.map((client, index) => (
             <div className="client-logo-card" key={index}>
-              <span>{client}</span>
+              <img src={client.logo} alt={client.name} className="client-logo-img" />
             </div>
           ))}
         </div>

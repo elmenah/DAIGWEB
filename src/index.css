@@ -1124,6 +1124,12 @@ img {
   letter-spacing: 0.5px;
 }
 
+.client-logo-img {
+  max-width: 100%;
+  max-height: 60px;
+  object-fit: contain;
+}
+
 /* ======= CNC Services ======= */
 .cnc-services {
   background: var(--dark-bg);
