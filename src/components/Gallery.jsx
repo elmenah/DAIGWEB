@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { fetchGalleryItems } from '../admin/GalleryManager'
 
 const defaultGalleryItems = [
@@ -6,7 +6,6 @@ const defaultGalleryItems = [
 ]
 
 const defaultCategories = [
-  { key: 'all', label: 'Todos' },
   { key: 'piping', label: 'Piping' },
   { key: 'mantencion-de-correas', label: 'Mantención de Correas' },
   { key: 'estructuras', label: 'Estructuras' },
@@ -17,9 +16,10 @@ const defaultCategories = [
 ]
 
 function Gallery() {
-  const [activeCategory, setActiveCategory] = useState('all')
+  const [activeCategory, setActiveCategory] = useState('piping')
   const [galleryItems, setGalleryItems] = useState(defaultGalleryItems)
   const [categories] = useState(defaultCategories)
+  const [lightbox, setLightbox] = useState(null)
 
   useEffect(() => {
     fetchGalleryItems().then((supabaseItems) => {
@@ -29,9 +29,22 @@ function Gallery() {
     })
   }, [])
 
-  const filtered = activeCategory === 'all'
-    ? galleryItems
-    : galleryItems.filter(item => item.category === activeCategory)
+  const filtered = galleryItems.filter(item => item.category === activeCategory)
+
+  const closeLightbox = useCallback((e) => {
+    if (e.key === 'Escape') setLightbox(null)
+  }, [])
+
+  useEffect(() => {
+    if (lightbox) {
+      document.addEventListener('keydown', closeLightbox)
+      document.body.style.overflow = 'hidden'
+    }
+    return () => {
+      document.removeEventListener('keydown', closeLightbox)
+      document.body.style.overflow = ''
+    }
+  }, [lightbox, closeLightbox])
 
   return (
     <section className="section gallery" id="portafolio">
@@ -48,6 +61,7 @@ function Gallery() {
               key={cat.key}
               className={`gallery-filter-btn ${activeCategory === cat.key ? 'active' : ''}`}
               onClick={() => setActiveCategory(cat.key)}
+              aria-pressed={activeCategory === cat.key}
             >
               {cat.label}
             </button>
@@ -55,8 +69,18 @@ function Gallery() {
         </div>
 
         <div className="gallery-grid">
+          {filtered.length === 0 && (
+            <p className="gallery-empty">No hay elementos en esta categoría aún.</p>
+          )}
           {filtered.map((item, index) => (
-            <div className="gallery-item" key={index}>
+            <div
+              className="gallery-item"
+              key={index}
+              onClick={() => item.type !== 'video' && setLightbox(item)}
+              role={item.type !== 'video' ? 'button' : undefined}
+              tabIndex={item.type !== 'video' ? 0 : undefined}
+              onKeyDown={(e) => e.key === 'Enter' && item.type !== 'video' && setLightbox(item)}
+            >
               {item.type === 'video' ? (
                 <div className="gallery-video-wrapper">
                   <video
@@ -76,6 +100,17 @@ function Gallery() {
           ))}
         </div>
       </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div className="lightbox-overlay" onClick={() => setLightbox(null)}>
+          <button className="lightbox-close" onClick={() => setLightbox(null)} aria-label="Cerrar">&times;</button>
+          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+            <img src={lightbox.src} alt={lightbox.alt} />
+            {lightbox.title && <p className="lightbox-caption">{lightbox.title}</p>}
+          </div>
+        </div>
+      )}
     </section>
   )
 }

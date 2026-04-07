@@ -1,4 +1,6 @@
 import React from 'react'
+import { BlurIn } from './magicui/BlurIn'
+import { BorderBeam } from './magicui/BorderBeam'
 
 const services = [
   {
@@ -61,20 +63,23 @@ function Services() {
   return (
     <section className="section services" id="servicios">
       <div className="container">
-        <div className="section-header">
-          <h2>Nuestros Servicios</h2>
-          <div className="accent-line"></div>
-          <p>Soluciones integrales de ingeniería industrial, piping, estructuras y obras civiles</p>
-        </div>
+        <BlurIn>
+          <div className="section-header">
+            <h2>Nuestros Servicios</h2>
+            <div className="accent-line"></div>
+            <p>Soluciones integrales de ingeniería industrial, piping, estructuras y obras civiles</p>
+          </div>
+        </BlurIn>
 
         <div className="services-grid">
           {services.map((service, index) => (
-            <div className="service-card" key={index}>
+            <div className="service-card" key={index} style={{ position: 'relative', overflow: 'hidden' }}>
               <div className="service-icon">
                 {service.icon}
               </div>
               <h3>{service.title}</h3>
               <p>{service.description}</p>
+              <BorderBeam size={150} duration={12} delay={index * 2} />
             </div>
           ))}
         </div>

@@ -1,14 +1,17 @@
 import React from 'react'
+import { BlurIn } from './magicui/BlurIn'
 
 function AboutUs() {
   return (
     <section className="section about-us" id="nosotros">
       <div className="container">
-        <div className="section-header">
-          <h2>Sobre Nosotros</h2>
-          <div className="accent-line"></div>
-          <p>Conoce a DAIG Chile SPA y nuestro compromiso con la industria</p>
-        </div>
+        <BlurIn>
+          <div className="section-header">
+            <h2>Sobre Nosotros</h2>
+            <div className="accent-line"></div>
+            <p>Conoce a DAIG Chile SPA y nuestro compromiso con la industria</p>
+          </div>
+        </BlurIn>
 
         <div className="about-grid">
           <div className="about-content">

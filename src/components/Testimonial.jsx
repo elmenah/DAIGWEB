@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 const testimonials = [
   {
@@ -12,22 +12,26 @@ const testimonials = [
 
 function Testimonial() {
   const [current, setCurrent] = useState(0)
+  const [paused, setPaused] = useState(false)
+  const timerRef = useRef(null)
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    if (paused || testimonials.length <= 1) return
+    timerRef.current = setInterval(() => {
       setCurrent((prev) => (prev + 1) % testimonials.length)
     }, 5000)
-    return () => clearInterval(timer)
-  }, [])
+    return () => clearInterval(timerRef.current)
+  }, [paused])
 
   return (
-    <section className="testimonial-banner">
+    <section className="testimonial-banner" aria-roledescription="carrusel" aria-label="Testimonios de clientes">
       <div className="container">
-        <div className="testimonial-carousel">
+        <div className="testimonial-carousel" aria-live={paused ? 'polite' : 'off'}>
           {testimonials.map((t, i) => (
             <blockquote
               key={i}
               className={`testimonial-slide ${i === current ? 'active' : ''}`}
+              aria-hidden={i !== current}
             >
               <img src={t.photo} alt={t.author} className="testimonial-photo" />
               {t.text}
@@ -37,15 +41,26 @@ function Testimonial() {
             </blockquote>
           ))}
         </div>
-        <div className="testimonial-dots">
-          {testimonials.map((_, i) => (
+        <div className="testimonial-controls">
+          {testimonials.length > 1 && (
             <button
-              key={i}
-              className={`testimonial-dot ${i === current ? 'active' : ''}`}
-              onClick={() => setCurrent(i)}
-              aria-label={`Testimonio ${i + 1}`}
-            />
-          ))}
+              className="testimonial-pause"
+              onClick={() => setPaused(!paused)}
+              aria-label={paused ? 'Reproducir testimonios' : 'Pausar testimonios'}
+            >
+              {paused ? '▶' : '❚❚'}
+            </button>
+          )}
+          <div className="testimonial-dots">
+            {testimonials.map((_, i) => (
+              <button
+                key={i}
+                className={`testimonial-dot ${i === current ? 'active' : ''}`}
+                onClick={() => setCurrent(i)}
+                aria-label={`Testimonio ${i + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>

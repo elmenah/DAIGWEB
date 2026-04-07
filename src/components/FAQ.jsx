@@ -49,7 +49,7 @@ function FAQ() {
               className={`faq-item ${openIndex === index ? 'open' : ''}`}
               key={index}
             >
-              <button className="faq-question" onClick={() => toggle(index)}>
+              <button className="faq-question" onClick={() => toggle(index)} aria-expanded={openIndex === index}>
                 <span>{faq.question}</span>
                 <svg
                   className="faq-chevron"

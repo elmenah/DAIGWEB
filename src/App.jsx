@@ -10,6 +10,7 @@ import Gallery from './components/Gallery'
 import CncServices from './components/CncServices'
 import DesignServices from './components/DesignServices'
 import Products from './components/Products'
+import WorkProcess from './components/WorkProcess'
 import FAQ from './components/FAQ'
 import CtaSection from './components/CtaSection'
 import Contact from './components/Contact'
@@ -26,12 +27,10 @@ function App() {
       <Header />
       <Hero />
       <ClientLogos />
-      <Testimonial />
+      
       <AboutUs />
       <Stats />
-      <div className="fade-in">
-        <Services />
-      </div>
+      
       <div className="fade-in">
         <Gallery />
       </div>
@@ -41,7 +40,12 @@ function App() {
       <div className="fade-in">
         <DesignServices />
       </div>
-      
+      <div className="fade-in">
+        <Products />
+      </div>
+      <div className="fade-in">
+        <WorkProcess />
+      </div>
       <div className="fade-in">
         <FAQ />
       </div>

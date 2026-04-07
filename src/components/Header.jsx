@@ -61,7 +61,9 @@ function Header() {
           <button
             className="menu-toggle"
             onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
+            aria-label="Menú de navegación"
+            aria-expanded={menuOpen}
+            aria-controls="main-nav"
           >
             <span></span>
             <span></span>
@@ -71,9 +73,9 @@ function Header() {
       </nav>
 
       {/* Nav Menu */}
-      <div className="nav-menu">
+      <div className="nav-menu" role="navigation" aria-label="Navegación principal">
         <div className="container">
-          <ul className={menuOpen ? 'open' : ''}>
+          <ul id="main-nav" className={menuOpen ? 'open' : ''}>
             {navItems.map((item) => (
               <li key={item.label}>
                 <a
