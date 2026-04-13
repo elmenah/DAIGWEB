@@ -36,6 +36,7 @@ function CncServices() {
     <section className="section cnc-services" id="cnc">
       <div className="container">
         <div className="section-header">
+          <span className="section-eyebrow">Tecnología CNC</span>
           <h2>CNC Router & Láser</h2>
           <div className="accent-line"></div>
           <p>

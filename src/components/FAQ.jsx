@@ -38,6 +38,7 @@ function FAQ() {
     <section className="section faq" id="faq">
       <div className="container">
         <div className="section-header">
+          <span className="section-eyebrow">Soporte</span>
           <h2>Preguntas Frecuentes</h2>
           <div className="accent-line"></div>
           <p>Resolvemos tus dudas más comunes</p>

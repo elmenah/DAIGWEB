@@ -50,6 +50,7 @@ function Gallery() {
     <section className="section gallery" id="portafolio">
       <div className="container">
         <div className="section-header">
+          <span className="section-eyebrow">Trabajo Realizado</span>
           <h2>Nuestro Portafolio</h2>
           <div className="accent-line"></div>
           <p>Una muestra de los proyectos que hemos realizado</p>

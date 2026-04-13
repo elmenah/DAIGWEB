@@ -62,6 +62,7 @@ function Products() {
     <section className="section products" id="servicios-detallados">
       <div className="container">
         <div className="section-header">
+          <span className="section-eyebrow">Catálogo Completo</span>
           <h2>Nuestros Servicios en Detalle</h2>
           <div className="accent-line"></div>
           <p>Soluciones especializadas para la industria en piping, estructuras, obras civiles y más</p>

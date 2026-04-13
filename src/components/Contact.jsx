@@ -52,6 +52,7 @@ function Contact() {
     <section className="section contact" id="contacto">
       <div className="container">
         <div className="section-header">
+          <span className="section-eyebrow">Hablemos</span>
           <h2>Contacto</h2>
           <div className="accent-line"></div>
           <p>¿Tienes un proyecto en mente? Escríbenos y te ayudamos a hacerlo realidad</p>
@@ -187,7 +188,6 @@ function Contact() {
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d25000!2d-71.45905303468572!3d-32.738271092446944!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9689d62b4dd7af8f%3A0x5044781d611f996!2sPuchuncav%C3%AD%2C%20Valpara%C3%ADso%2C%20Chile!5e0!3m2!1ses!2scl!4v1"
             width="100%"
             height="350"
-            style={{ border: 0, borderRadius: '4px' }}
             allowFullScreen=""
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"

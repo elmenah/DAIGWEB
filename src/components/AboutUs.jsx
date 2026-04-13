@@ -7,6 +7,7 @@ function AboutUs() {
       <div className="container">
         <BlurIn>
           <div className="section-header">
+            <span className="section-eyebrow">Quiénes Somos</span>
             <h2>Sobre Nosotros</h2>
             <div className="accent-line"></div>
             <p>Conoce a DAIG Chile SPA y nuestro compromiso con la industria</p>

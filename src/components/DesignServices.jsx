@@ -36,6 +36,7 @@ function DesignServices() {
     <section className="section design-services" id="diseno">
       <div className="container">
         <div className="section-header">
+          <span className="section-eyebrow">Ingeniería Digital</span>
           <h2>Diseño 3D & Mecánico</h2>
           <div className="accent-line"></div>
           <p>

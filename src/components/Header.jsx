@@ -1,22 +1,29 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import logoImg from '../assets/logo.jpeg'
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const navItems = [
-    { label: 'Inicio', href: '#inicio', active: true },
+    { label: 'Inicio', href: '#inicio' },
     { label: 'Nosotros', href: '#nosotros' },
     { label: 'Portafolio', href: '#portafolio' },
     { label: 'CNC', href: '#cnc' },
     { label: 'Diseño', href: '#diseno' },
-    { label: 'Servicios Detallados', href: '#servicios' },
+    { label: 'Servicios', href: '#servicios' },
     { label: 'FAQ', href: '#faq' },
     { label: 'Contacto', href: '#contacto' },
   ]
 
   return (
-    <header>
+    <header className={scrolled ? 'scrolled' : ''}>
       {/* Top Bar */}
       <div className="top-bar">
         <div className="container">
@@ -27,6 +34,9 @@ function Header() {
             <span>Puchuncaví, Valparaíso, Chile</span>
           </div>
           <div className="top-bar-right">
+            <svg viewBox="0 0 24 24" fill="white" style={{width:'14px',height:'14px'}}>
+              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+            </svg>
             <span>Precisión y Calidad en cada proyecto</span>
           </div>
         </div>
@@ -40,26 +50,32 @@ function Header() {
           </a>
 
           <div className="navbar-contact">
-            <div className="navbar-contact-item">
+            <a href="tel:+56988689400" className="navbar-contact-item">
               <div className="icon-circle">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
                 </svg>
               </div>
-              <span>+569 88689400</span>
-            </div>
-            <div className="navbar-contact-item">
+              <div className="navbar-contact-text">
+                <span className="contact-label">Llámanos</span>
+                <span className="contact-value">+569 88689400</span>
+              </div>
+            </a>
+            <a href="mailto:cotizaciones.daig@serviciosdaig.com" className="navbar-contact-item">
               <div className="icon-circle">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                 </svg>
               </div>
-              <span>cotizaciones.daig@serviciosdaig.com</span>
-            </div>
+              <div className="navbar-contact-text">
+                <span className="contact-label">Escríbenos</span>
+                <span className="contact-value">cotizaciones.daig@serviciosdaig.com</span>
+              </div>
+            </a>
           </div>
 
           <button
-            className="menu-toggle"
+            className={`menu-toggle ${menuOpen ? 'open' : ''}`}
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Menú de navegación"
             aria-expanded={menuOpen}
@@ -73,14 +89,13 @@ function Header() {
       </nav>
 
       {/* Nav Menu */}
-      <div className="nav-menu" role="navigation" aria-label="Navegación principal">
+      <div className={`nav-menu ${menuOpen ? 'mobile-open' : ''}`} role="navigation" aria-label="Navegación principal">
         <div className="container">
-          <ul id="main-nav" className={menuOpen ? 'open' : ''}>
+          <ul id="main-nav">
             {navItems.map((item) => (
               <li key={item.label}>
                 <a
                   href={item.href}
-                  className={item.active ? 'active' : ''}
                   onClick={() => setMenuOpen(false)}
                 >
                   {item.label}

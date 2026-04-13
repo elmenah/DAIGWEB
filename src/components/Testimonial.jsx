@@ -33,7 +33,6 @@ function Testimonial() {
               className={`testimonial-slide ${i === current ? 'active' : ''}`}
               aria-hidden={i !== current}
             >
-              <img src={t.photo} alt={t.author} className="testimonial-photo" />
               {t.text}
               <cite className="author">
                 — {t.author}, <span className="company">{t.company}</span>
