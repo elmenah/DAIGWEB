@@ -381,7 +381,7 @@ header.scrolled .navbar {
 .hero .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 120px 20px 100px;
+  padding: 95px 20px 100px;
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
   gap: 60px;
@@ -2561,7 +2561,7 @@ header.scrolled .navbar {
     text-align: center;
     width: 100%;
     margin: 0 auto;
-    padding-top: 100px;
+    padding-top: 76px;
     padding-bottom: 120px;
     gap: 36px;
     align-items: start;
@@ -2647,7 +2647,7 @@ header.scrolled .navbar {
 
 @media (max-width: 768px) {
   .hero .container {
-    padding-top: 32px;
+    padding-top: 20px;
     padding-bottom: 72px;
     gap: 24px;
   }

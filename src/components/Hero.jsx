@@ -69,7 +69,7 @@ function Hero() {
         <div className="hero-images">
           <div className="hero-image-card hero-image-main">
             <img
-              src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=600&h=400&fit=crop"
+              src="src\assets\piping.jpeg"
               alt="Soldadura industrial DAIG"
               loading="lazy"
             />
@@ -77,9 +77,9 @@ function Hero() {
               <span>Piping Industrial</span>
             </div>
           </div>
-          <div className="hero-image-card hero-image-secondary">
+          <div className="hero-image-card hero-image-main">
             <img
-              src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=600&h=300&fit=crop"
+              src="src\assets\estructuras-metalicas.webp"
               alt="Estructuras metálicas DAIG"
               loading="lazy"
             />
