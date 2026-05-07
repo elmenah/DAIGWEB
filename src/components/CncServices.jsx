@@ -2,18 +2,17 @@ import React from 'react'
 
 const cncMachines = [
   {
-    title: 'CNC Router',
+    title: 'E-CUT CNC Router',
     description:
-      'Máquina CNC Router para cortes de alta precisión en madera, acrílico, MDF, PVC, aluminio y más. Ideal para señalética, piezas decorativas, prototipos y componentes industriales.',
+      'Máquina E-CUT CNC Router para cortes de alta precisión en madera, acrílico, MDF, PVC, aluminio y más. Ideal para señalética, piezas decorativas, prototipos y componentes industriales.',
     features: [
       'Corte y grabado en múltiples materiales',
       'Alta precisión y repetibilidad',
       'Piezas decorativas e industriales',
       'Señalética y letras corporativas',
     ],
-    image:
-      'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&h=400&fit=crop',
-    imageAlt: 'Máquina CNC Router en operación',
+    image: '/Imagenes/CNC/ecut-router.jpg',
+    imageAlt: 'Máquina E-CUT CNC Router',
   },
   {
     title: 'CNC Láser',
@@ -25,9 +24,8 @@ const cncMachines = [
       'Marcado industrial y trazabilidad',
       'Logos, textos y diseños artísticos',
     ],
-    image:
-      'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=400&fit=crop',
-    imageAlt: 'Máquina CNC Láser en operación',
+    image: '/Imagenes/CNC/cnc-laser.jpg',
+    imageAlt: 'Máquina CNC Láser',
   },
 ]
 
@@ -37,7 +35,7 @@ function CncServices() {
       <div className="container">
         <div className="section-header">
           <span className="section-eyebrow">Tecnología CNC</span>
-          <h2>CNC Router & Láser</h2>
+          <h2>E-CUT Router & CNC Láser</h2>
           <div className="accent-line"></div>
           <p>
             Cortes y grabados de alta precisión con tecnología CNC de última

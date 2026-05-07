@@ -11,9 +11,8 @@ const designServices = [
       'Renders fotorrealistas de proyectos',
       'Recorridos virtuales de instalaciones',
     ],
-    image:
-      'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=600&h=400&fit=crop',
-    imageAlt: 'Modelamiento 3D industrial',
+    image: '/Imagenes/Diseno/diseno-3d-industrial.jpg',
+    imageAlt: 'Ingeniero trabajando con software CAD y renderizado 3D industrial',
   },
   {
     title: 'Diseño Mecánico',
@@ -25,9 +24,8 @@ const designServices = [
       'Diseño de piezas y ensamblajes',
       'Documentación técnica completa',
     ],
-    image:
-      'https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?w=600&h=400&fit=crop',
-    imageAlt: 'Diseño mecánico y planos técnicos',
+    image: '/Imagenes/Diseno/diseno-mecanico.jpg',
+    imageAlt: 'Ingeniero modelando una pieza mecánica en software 3D',
   },
 ]
 

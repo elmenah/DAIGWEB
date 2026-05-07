@@ -333,8 +333,11 @@ header.scrolled .navbar {
   left: 0;
   width: 100%;
   height: 100%;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(232,150,46,0.06)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+  background-image:
+    linear-gradient(rgba(232,150,46,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232,150,46,0.06) 1px, transparent 1px);
   background-size: 60px 60px;
+  background-position: center;
 }
 
 .hero-background::before {
@@ -708,10 +711,32 @@ header.scrolled .navbar {
   letter-spacing: -0.5px;
 }
 
+.section-header h2:not(.no-gradient) {
+  background: linear-gradient(135deg, #ffffff 30%, var(--primary-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .section-header .accent-line {
   width: 50px;
   height: 3px;
   background: linear-gradient(90deg, var(--primary), var(--primary-accent));
+  margin: 16px auto 0;
+  border-radius: 2px;
+}
+
+@keyframes accent-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.section-header .accent-line {
+  width: 70px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-dark), var(--primary-accent), var(--primary-light), var(--primary-dark));
+  background-size: 300% auto;
+  animation: accent-shimmer 3s linear infinite;
   margin: 16px auto 0;
   border-radius: 2px;
 }
@@ -945,8 +970,9 @@ header.scrolled .navbar {
   left: 0;
   width: 100%;
   height: 100%;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
-  background-size: 30px 30px;
+  background-image: radial-gradient(rgba(255,255,255,0.16) 1.1px, transparent 1.1px);
+  background-size: 28px 28px;
+  background-position: center;
 }
 
 .cta-section .container {
@@ -1048,6 +1074,63 @@ header.scrolled .navbar {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.22);
+}
+
+.contact-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.contact-form-header h3 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.contact-form-header p {
+  color: var(--gray-text);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  max-width: 460px;
+}
+
+.contact-channel-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  border: 1px solid rgba(232,150,46,0.22);
+  background: rgba(232,150,46,0.08);
+  color: var(--primary-light);
+  white-space: nowrap;
+}
+
+.contact-channel-badge::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 12px currentColor;
+}
+
+.contact-channel-badge--fallback {
+  color: #7ef0b5;
+  border-color: rgba(37, 211, 102, 0.28);
+  background: rgba(37, 211, 102, 0.1);
 }
 
 .form-group {
@@ -1085,6 +1168,13 @@ header.scrolled .navbar {
 .form-group textarea {
   resize: vertical;
   min-height: 120px;
+}
+
+.contact-form-note {
+  margin-top: -4px;
+  color: rgba(255,255,255,0.58);
+  font-size: 0.82rem;
+  line-height: 1.6;
 }
 
 /* ======= Footer ======= */
@@ -1586,19 +1676,22 @@ header.scrolled .navbar {
 
 .cnc-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 12px 40px rgba(232, 150, 46, 0.15);
+  border-color: rgba(232, 150, 46, 0.4);
+  box-shadow: 0 16px 50px rgba(232, 150, 46, 0.22), 0 0 0 1px rgba(232, 150, 46, 0.15);
 }
 
 .cnc-card-image {
   width: 100%;
-  height: 280px;
+  aspect-ratio: 16 / 10;
   overflow: hidden;
+  background: linear-gradient(135deg, rgba(232,150,46,0.08), rgba(255,255,255,0.02));
 }
 
 .cnc-card-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   transition: transform 0.4s ease;
 }
 
@@ -1653,7 +1746,7 @@ header.scrolled .navbar {
   }
 
   .cnc-card-image {
-    height: 220px;
+    aspect-ratio: 16 / 10;
   }
 }
 
@@ -1681,7 +1774,8 @@ header.scrolled .navbar {
 
 .design-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(232, 150, 46, 0.12);
+  border-color: rgba(232, 150, 46, 0.4);
+  box-shadow: 0 16px 50px rgba(232, 150, 46, 0.2), 0 0 0 1px rgba(232, 150, 46, 0.15);
 }
 
 .design-card--reverse .design-card-image {
@@ -1696,13 +1790,16 @@ header.scrolled .navbar {
   width: 100%;
   height: 100%;
   min-height: 320px;
+  aspect-ratio: 16 / 10;
   overflow: hidden;
+  background: linear-gradient(135deg, rgba(232,150,46,0.08), rgba(255,255,255,0.02));
 }
 
 .design-card-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   transition: transform 0.4s ease;
 }
 
@@ -1770,6 +1867,7 @@ header.scrolled .navbar {
 
   .design-card-image {
     min-height: 220px;
+    aspect-ratio: 16 / 10;
   }
 
   .design-card-body {
@@ -1860,8 +1958,9 @@ header.scrolled .navbar {
   content: '';
   position: absolute;
   inset: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="0.8" fill="rgba(255,255,255,0.06)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+  background-image: radial-gradient(rgba(255,255,255,0.12) 0.8px, transparent 0.8px);
   background-size: 25px 25px;
+  background-position: center;
 }
 
 .stats-bg-line {
