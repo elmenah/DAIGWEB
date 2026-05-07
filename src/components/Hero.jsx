@@ -1,5 +1,4 @@
 import React from 'react'
-import { Particles } from './magicui/Particles'
 import { BlurIn } from './magicui/BlurIn'
 
 function Hero() {
@@ -15,20 +14,12 @@ function Hero() {
         <source src="/Videos/a3bb27b1-4cc4-451b-be3a-7dbf762c4b48.mp4" type="video/mp4" />
       </video>
       <div className="hero-background"></div>
-      <Particles
-        quantity={70}
-        color="#E8962E"
-        staticity={25}
-        ease={80}
-        size={0.5}
-        style={{ position: 'absolute', inset: 0, zIndex: 1, width: '100%', height: '100%' }}
-      />
       <div className="container">
         <div className="hero-content">
           <BlurIn duration={1.0} delay={0}>
             <div className="hero-badge">
               <span className="hero-badge-dot"></span>
-              Empresa Certificada · Puchuncaví, Valparaíso
+              Ingeniería Industrial · Puchuncaví, Valparaíso
             </div>
           </BlurIn>
           <BlurIn duration={1.2} delay={0.15}>

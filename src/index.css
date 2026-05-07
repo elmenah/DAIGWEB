@@ -167,6 +167,12 @@ header.scrolled .navbar {
   display: flex;
   align-items: center;
   gap: 25px;
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+.navbar-contact-item {
+  min-width: 0;
 }
 
 .navbar-contact-item {
@@ -201,6 +207,28 @@ header.scrolled .navbar {
   font-size: 0.85rem;
   color: var(--gray-mid);
   font-weight: 500;
+}
+
+@media (min-width: 769px) {
+  .navbar .container {
+    gap: 24px;
+  }
+
+  .navbar-contact {
+    flex: 0 1 auto;
+    max-width: 70%;
+  }
+
+  .navbar-contact-text {
+    min-width: 0;
+  }
+
+  .navbar-contact-item .contact-value {
+    max-width: 230px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .navbar-contact-item .icon-circle {
@@ -293,8 +321,7 @@ header.scrolled .navbar {
 .hero {
   position: relative;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
+  display: block;
   overflow: hidden;
 }
 
@@ -362,6 +389,32 @@ header.scrolled .navbar {
   position: relative;
   z-index: 2;
   width: 100%;
+}
+
+@media (min-width: 993px) {
+  .hero .container {
+    width: min(1200px, 100%);
+    margin-inline: auto;
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 0.9fr);
+    justify-content: center;
+    justify-items: stretch;
+  }
+
+  .hero-content,
+  .hero-images {
+    min-width: 0;
+  }
+
+  .hero-content {
+    max-width: 620px;
+    justify-self: center;
+  }
+
+  .hero-images {
+    width: 100%;
+    max-width: 470px;
+    justify-self: center;
+  }
 }
 
 .hero-content {
@@ -2524,6 +2577,11 @@ header.scrolled .navbar {
   .hero-images {
     width: 100%;
     max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .hero-content > .animate-blur-in {
+    width: 100%;
   }
 
   .hero-content p,
@@ -2535,6 +2593,8 @@ header.scrolled .navbar {
   .hero-badge {
     justify-content: center;
     flex-wrap: wrap;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .hero-cta-group {
@@ -2719,8 +2779,8 @@ header.scrolled .navbar {
   }
 
   .scroll-to-top {
-    bottom: 80px;
-    right: 24px;
+    bottom: 96px;
+    right: 20px;
     width: 40px;
     height: 40px;
   }
@@ -2960,6 +3020,23 @@ header.scrolled .navbar {
   font-size: 0.875rem;
   color: var(--gray-text);
   line-height: 1.75;
+}
+
+/* Keep this override below base .ventajas-grid rules to win cascade on mobile */
+@media (max-width: 992px) {
+  .ventajas-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .ventajas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ventaja-card {
+    padding: 24px 20px;
+  }
 }
 
 /* ======= Admin Panel ======= */
