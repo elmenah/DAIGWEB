@@ -19,7 +19,7 @@ function Hero() {
           <BlurIn duration={1.0} delay={0}>
             <div className="hero-badge">
               <span className="hero-badge-dot"></span>
-              Ingeniería Industrial · Puchuncaví, Valparaíso
+              Ingeniería Industrial
             </div>
           </BlurIn>
           <BlurIn duration={1.2} delay={0.15}>
@@ -69,7 +69,7 @@ function Hero() {
         <div className="hero-images">
           <div className="hero-image-card hero-image-main">
             <img
-              src="src\assets\piping.jpeg"
+              src="Imagenes\piping.jpeg"
               alt="Soldadura industrial DAIG"
               loading="lazy"
             />
@@ -79,7 +79,7 @@ function Hero() {
           </div>
           <div className="hero-image-card hero-image-main">
             <img
-              src="src\assets\estructuras-metalicas.webp"
+              src="Imagenes\estructuras-metalicas.webp"
               alt="Estructuras metálicas DAIG"
               loading="lazy"
             />
