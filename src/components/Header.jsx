@@ -18,6 +18,7 @@ function Header() {
     { label: 'CNC', href: '#cnc' },
     { label: 'Diseño', href: '#diseno' },
     { label: 'Servicios', href: '#servicios' },
+    { label: 'Digital', href: '#digital' },
     { label: 'FAQ', href: '#faq' },
     { label: 'Contacto', href: '#contacto' },
   ]

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 
 function Contact() {
   const [formData, setFormData] = useState({
@@ -9,11 +9,8 @@ function Contact() {
   })
   const [sending, setSending] = useState(false)
   const [status, setStatus] = useState(null)
-  const formRef = useRef(null)
-  const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID
-  const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID
-  const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
-  const isEmailConfigured = Boolean(serviceId && templateId && publicKey)
+  const [website, setWebsite] = useState('')
+  const [formStartedAt, setFormStartedAt] = useState(() => Date.now())
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -31,18 +28,27 @@ function Contact() {
     setSending(true)
     setStatus(null)
 
-    if (serviceId && templateId && publicKey) {
-      try {
-        const { default: emailjs } = await import('@emailjs/browser')
-        await emailjs.sendForm(serviceId, templateId, formRef.current, publicKey)
+    try {
+      const res = await fetch('/.netlify/functions/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          source: 'main',
+          website,
+          formStartedAt,
+        }),
+      })
+      if (res.ok) {
         setStatus('success')
         setFormData({ name: '', email: '', phone: '', message: '' })
-      } catch {
+        setWebsite('')
+        setFormStartedAt(Date.now())
+      } else {
         setStatus('error')
       }
-    } else {
-      sendViaWhatsApp()
-      setStatus('whatsapp')
+    } catch {
+      setStatus('error')
     }
     setSending(false)
   }
@@ -102,19 +108,22 @@ function Contact() {
             </div>
           </div>
 
-          <form className="contact-form" onSubmit={handleSubmit} ref={formRef}>
+          <form className="contact-form" onSubmit={handleSubmit}>
+            <input
+              type="text"
+              name="website"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              className="form-honeypot"
+              tabIndex="-1"
+              autoComplete="off"
+              aria-hidden="true"
+            />
             <div className="contact-form-header">
               <div>
                 <h3>Solicita tu cotización</h3>
-                <p>
-                  Completa tus datos y te respondemos por correo o te derivamos de inmediato a WhatsApp.
-                </p>
+                <p>Completa tus datos y te respondemos en menos de 24 horas.</p>
               </div>
-              <span
-                className={`contact-channel-badge ${isEmailConfigured ? '' : 'contact-channel-badge--fallback'}`}
-              >
-                {isEmailConfigured ? 'Email activo' : 'WhatsApp activo'}
-              </span>
             </div>
             {status === 'success' && (
               <div className="form-status form-status--success">
@@ -124,11 +133,6 @@ function Contact() {
             {status === 'error' && (
               <div className="form-status form-status--error">
                 Error al enviar. Intenta por WhatsApp o llámanos directamente.
-              </div>
-            )}
-            {status === 'whatsapp' && (
-              <div className="form-status form-status--info">
-                Redirigido a WhatsApp. Si no se abrió, escríbenos al +569 88689400.
               </div>
             )}
             <div className="form-group">
@@ -182,7 +186,7 @@ function Contact() {
             </div>
             <div className="contact-form-actions">
               <button type="submit" className="btn-primary" disabled={sending}>
-                {sending ? 'Enviando...' : isEmailConfigured ? 'Enviar cotización' : 'Enviar cotización por WhatsApp'}
+                {sending ? 'Enviando...' : 'Enviar cotización'}
               </button>
               <button type="button" className="btn-whatsapp-alt" onClick={sendViaWhatsApp}>
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
@@ -191,11 +195,7 @@ function Contact() {
                 Hablar por WhatsApp
               </button>
             </div>
-            <p className="contact-form-note">
-              {isEmailConfigured
-                ? 'El formulario enviara tu solicitud directamente al correo configurado en EmailJS.'
-                : 'EmailJS aun no esta configurado en este proyecto, por eso este formulario redirige a WhatsApp como canal activo.'}
-            </p>
+
           </form>
         </div>
 

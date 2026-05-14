@@ -5,6 +5,7 @@ import ClientLogos from './components/ClientLogos'
 import AboutUs from './components/AboutUs'
 import Stats from './components/Stats'
 import Services from './components/Services'
+import DigitalHighlight from './components/DigitalHighlight'
 import Ventajas from './components/Ventajas'
 import Gallery from './components/Gallery'
 import CncServices from './components/CncServices'
@@ -33,6 +34,9 @@ function App() {
 
       <div className="fade-in">
         <Services />
+      </div>
+      <div className="fade-in">
+        <DigitalHighlight />
       </div>
       <div className="fade-in">
         <Ventajas />

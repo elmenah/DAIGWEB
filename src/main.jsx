@@ -8,6 +8,7 @@ import './index.css'
 const AdminLogin = lazy(() => import('./admin/AdminLogin'))
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'))
 const AuthGuard = lazy(() => import('./admin/AuthGuard'))
+const DigitalPage = lazy(() => import('./pages/DigitalPage'))
 
 const AdminLoader = () => (
   <div className="admin-loading"><div className="admin-spinner"></div></div>
@@ -19,6 +20,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <Routes>
           <Route path="/" element={<App />} />
+          <Route path="/digital" element={
+            <Suspense fallback={<AdminLoader />}>
+              <DigitalPage />
+            </Suspense>
+          } />
           <Route path="/admin" element={
             <Suspense fallback={<AdminLoader />}>
               <AdminLogin />
