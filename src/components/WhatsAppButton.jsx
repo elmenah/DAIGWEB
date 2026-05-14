@@ -3,7 +3,7 @@ import React from 'react'
 function WhatsAppButton() {
   return (
     <a
-      href="https://wa.me/56988689400?text=Hola%20DAIG!%20Me%20gustar%C3%ADa%20cotizar%20un%20proyecto."
+      href="https://wa.me/?text=Hola%20DAIG!%20Me%20gustar%C3%ADa%20cotizar%20un%20proyecto."
       className="whatsapp-float"
       target="_blank"
       rel="noopener noreferrer"

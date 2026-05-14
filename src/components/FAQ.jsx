@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     question: '¿Cómo puedo solicitar una cotización?',
-    answer: 'Puedes contactarnos por WhatsApp al +569 88689400, por email a cotizaciones.daig@serviciosdaig.com o a través del formulario de contacto en esta página. Te entregamos una cotización sin compromiso.',
+    answer: 'Puedes contactarnos por WhatsApp, por email a cotizaciones.daig@serviciosdaig.com o a través del formulario de contacto en esta página. Te entregamos una cotización sin compromiso.',
   },
   {
     question: '¿Qué tipo de estructuras metálicas fabrican?',

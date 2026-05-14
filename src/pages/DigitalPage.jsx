@@ -302,7 +302,7 @@ function DigitalPage() {
                 </div>
                 <div>
                   <strong>WhatsApp</strong>
-                  <a href="https://wa.me/56988689400?text=Hola%20DAIG%2C%20me%20interesa%20una%20solución%20digital" target="_blank" rel="noopener noreferrer">+56 9 8868 9400</a>
+                  <a href="https://wa.me/?text=Hola%20DAIG%2C%20me%20interesa%20una%20solución%20digital" target="_blank" rel="noopener noreferrer">WhatsApp directo</a>
                 </div>
               </div>
               <div className="digital-contact-item">
@@ -390,7 +390,7 @@ function DigitalPage() {
                 {sending ? 'Enviando...' : 'Enviar consulta'}
               </button>
               <a
-                href="https://wa.me/56988689400?text=Hola%20DAIG%2C%20me%20interesa%20una%20solución%20digital%20para%20mi%20empresa"
+                href="https://wa.me/?text=Hola%20DAIG%2C%20me%20interesa%20una%20solución%20digital%20para%20mi%20empresa"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-whatsapp-alt"
