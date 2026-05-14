@@ -28,12 +28,7 @@ function Header() {
       {/* Top Bar */}
       <div className="top-bar">
         <div className="container">
-          <div className="top-bar-left">
-            <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-            </svg>
-            <span>Puchuncaví, Valparaíso, Chile</span>
-          </div>
+          
           <div className="top-bar-right">
             <svg viewBox="0 0 24 24" fill="white" style={{width:'14px',height:'14px'}}>
               <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
