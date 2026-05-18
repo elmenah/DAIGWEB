@@ -14,7 +14,6 @@ import WorkProcess from './components/WorkProcess'
 import FAQ from './components/FAQ'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
-import WhatsAppButton from './components/WhatsAppButton'
 import ScrollToTop from './components/ScrollToTop'
 import useScrollAnimation from './hooks/useScrollAnimation'
 
@@ -62,7 +61,6 @@ function App() {
         <Contact />
       </div>
       <Footer />
-      <WhatsAppButton />
       <ScrollToTop />
     </>
   )

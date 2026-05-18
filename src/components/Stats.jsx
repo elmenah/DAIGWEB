@@ -13,9 +13,9 @@ const stats = [
     ),
   },
   {
-    number: 1,
+    number: 5,
     suffix: '+',
-    label: 'Año de Experiencia',
+    label: 'Años de Experiencia',
     icon: (
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L11 13V7h1.5v5.25l4.5 2.67-1.26 2.08z"/>

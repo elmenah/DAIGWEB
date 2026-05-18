@@ -3,6 +3,8 @@ const { Resend } = require('resend')
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 const DEST_EMAIL = process.env.RESEND_TO_EMAIL || 'cotizaciones@daigchile.cl'
+const SITE_DOMAIN = process.env.SITE_DOMAIN || 'daigchile.cl'
+const EMAIL_LOGO_URL = process.env.EMAIL_LOGO_URL || `https://${SITE_DOMAIN}/logo.jpeg`
 const MIN_FORM_FILL_TIME_MS = 3000
 const MAX_MESSAGE_LENGTH = 3000
 const MAX_NAME_LENGTH = 120
@@ -11,6 +13,8 @@ const MAX_COMPANY_LENGTH = 140
 const MAX_SERVICE_LENGTH = 120
 
 const ALLOWED_ORIGINS = [
+  'https://daigchile.cl',
+  'https://www.daigchile.cl',
   'https://serviciosdaig.com',
   'https://www.serviciosdaig.com',
   'http://localhost:5173',
@@ -118,7 +122,7 @@ exports.handler = async (event) => {
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#08080F;color:#fff;padding:32px;border-radius:12px;border:1px solid rgba(232,150,46,0.2)">
       <div style="margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid rgba(232,150,46,0.2)">
-        <img src="https://serviciosdaig.com/Imagenes/logo.jpeg" alt="DAIG" style="height:48px" />
+        <img src="${EMAIL_LOGO_URL}" alt="DAIG" style="height:48px" />
         <h2 style="color:#E8962E;margin:12px 0 4px;font-size:1.1rem">
           ${isDigital ? 'Nueva consulta — DAIG Digital' : 'Nueva cotización — DAIG Web'}
         </h2>
@@ -135,10 +139,27 @@ exports.handler = async (event) => {
         <p style="margin:0;line-height:1.7;white-space:pre-wrap">${escapeHtml(cleanMessage)}</p>
       </div>
       <p style="margin-top:24px;font-size:0.75rem;color:#9a9ab0;text-align:center">
-        Enviado desde ${isDigital ? 'serviciosdaig.com/digital' : 'serviciosdaig.com'}
+        Enviado desde ${SITE_DOMAIN}
       </p>
     </div>
   `
+
+  const internalText = [
+    isDigital ? 'Nueva consulta - DAIG Digital' : 'Nueva cotizacion - DAIG Web',
+    '',
+    `Nombre: ${cleanName}`,
+    `Email: ${cleanEmail}`,
+    cleanPhone ? `Telefono: ${cleanPhone}` : '',
+    cleanCompany ? `Empresa: ${cleanCompany}` : '',
+    cleanService ? `Servicio: ${cleanService}` : '',
+    '',
+    'Mensaje:',
+    cleanMessage,
+    '',
+    `Enviado desde ${SITE_DOMAIN}`,
+  ]
+    .filter(Boolean)
+    .join('\n')
 
   const autoReplyHtml = `
     <div style="font-family:sans-serif;max-width:620px;margin:0 auto;background:#08080F;color:#fff;padding:28px;border-radius:12px;border:1px solid rgba(232,150,46,0.2)">
@@ -153,6 +174,18 @@ exports.handler = async (event) => {
     </div>
   `
 
+  const autoReplyText = [
+    'Recibimos tu solicitud',
+    '',
+    `Hola ${cleanName}, gracias por contactarnos.`,
+    'Tu solicitud fue registrada correctamente y el equipo de DAIG te respondera dentro de las proximas 24 horas habiles.',
+    '',
+    'Resumen enviado:',
+    cleanMessage,
+    '',
+    'Si necesitas respuesta inmediata, escribenos por WhatsApp: +56 9 8868 9400.',
+  ].join('\n')
+
   try {
     await resend.emails.send({
       from: fromEmail,
@@ -160,6 +193,7 @@ exports.handler = async (event) => {
       reply_to: cleanEmail,
       subject: internalSubject,
       html,
+      text: internalText,
     })
 
     // No bloquea la entrega principal si falla la autorespuesta.
@@ -169,6 +203,7 @@ exports.handler = async (event) => {
         to: cleanEmail,
         subject: 'Hemos recibido tu solicitud - DAIG',
         html: autoReplyHtml,
+        text: autoReplyText,
       })
     } catch (autoReplyError) {
       console.error('Auto-reply error:', autoReplyError)
