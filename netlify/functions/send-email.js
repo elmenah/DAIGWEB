@@ -2,8 +2,7 @@ const { Resend } = require('resend')
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const DEST_EMAIL = 'cotizaciones.daig@serviciosdaig.com'
-const FROM_EMAIL = 'DAIG Web <contacto@serviciosdaig.com>'
+const DEST_EMAIL = process.env.RESEND_TO_EMAIL || 'cotizaciones@daigchile.cl'
 const MIN_FORM_FILL_TIME_MS = 3000
 const MAX_MESSAGE_LENGTH = 3000
 const MAX_NAME_LENGTH = 120
@@ -19,6 +18,19 @@ const ALLOWED_ORIGINS = [
 ]
 
 exports.handler = async (event) => {
+  let fromEmail
+
+  try {
+    fromEmail = getFromEmail()
+  } catch (configError) {
+    console.error('Resend config error:', configError)
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: 'Falta configurar el remitente verificado de Resend' }),
+    }
+  }
+
   const origin = event.headers.origin || ''
   const corsOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
 
@@ -143,7 +155,7 @@ exports.handler = async (event) => {
 
   try {
     await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromEmail,
       to: DEST_EMAIL,
       reply_to: cleanEmail,
       subject: internalSubject,
@@ -153,7 +165,7 @@ exports.handler = async (event) => {
     // No bloquea la entrega principal si falla la autorespuesta.
     try {
       await resend.emails.send({
-        from: FROM_EMAIL,
+        from: fromEmail,
         to: cleanEmail,
         subject: 'Hemos recibido tu solicitud - DAIG',
         html: autoReplyHtml,
@@ -175,6 +187,23 @@ exports.handler = async (event) => {
       body: JSON.stringify({ error: 'Error al enviar el correo' }),
     }
   }
+}
+
+function getFromEmail() {
+  const configuredAddress = process.env.RESEND_FROM_EMAIL
+  const fallbackAddress = process.env.NODE_ENV !== 'production' ? 'onboarding@resend.dev' : ''
+  const address = configuredAddress || fallbackAddress
+
+  if (!address) {
+    throw new Error('RESEND_FROM_EMAIL no configurado')
+  }
+
+  if (address.includes('<') || address.includes('>')) {
+    return address
+  }
+
+  const name = process.env.RESEND_FROM_NAME || 'DAIG Web'
+  return `${name} <${address}>`
 }
 
 function escapeHtml(str) {
