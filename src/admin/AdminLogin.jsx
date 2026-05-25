@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from './AuthContext'
 import logoImg from '../assets/logo.jpeg'
@@ -8,14 +8,24 @@ function AdminLogin() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login, isAuthenticated } = useAuth()
+  const { login, isAuthenticated, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const from = location.state?.from || '/admin/dashboard'
 
-  if (isAuthenticated) {
-    navigate(from, { replace: true })
-    return null
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      navigate(from, { replace: true })
+    }
+  }, [isAuthenticated, authLoading])
+
+  // Mostrar spinner mientras se verifica sesión existente
+  if (authLoading) {
+    return (
+      <div className="admin-loading">
+        <div className="admin-spinner"></div>
+      </div>
+    )
   }
 
   const handleSubmit = async (e) => {

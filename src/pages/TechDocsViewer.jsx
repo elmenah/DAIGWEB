@@ -18,6 +18,15 @@ function TechDocsViewer() {
     return <Navigate to="/admin" state={{ from: '/tecnico' }} replace />
   }
 
+  // Role todavía no cargó — esperar sin redirigir
+  if (role === null) {
+    return (
+      <div className="admin-loading">
+        <div className="admin-spinner"></div>
+      </div>
+    )
+  }
+
   if (!['admin', 'tecnico'].includes(role)) {
     return <Navigate to="/" replace />
   }

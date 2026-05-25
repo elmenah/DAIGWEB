@@ -19,18 +19,28 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      const u = session?.user ?? null
-      setUser(u)
-      await fetchRole(u?.id)
-      setLoading(false)
-    })
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        // Token refresh: solo actualizar usuario, sin re-fetch de rol
+        if (event === 'TOKEN_REFRESHED') {
+          setUser(session?.user ?? null)
+          return
+        }
+
         const u = session?.user ?? null
         setUser(u)
-        await fetchRole(u?.id)
+
+        if (!u) {
+          setRole(null)
+          setLoading(false)
+          return
+        }
+
+        try {
+          await fetchRole(u.id)
+        } finally {
+          setLoading(false)
+        }
       }
     )
 
