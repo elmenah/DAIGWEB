@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from './AuthContext'
 import logoImg from '../assets/logo.jpeg'
 
@@ -10,9 +10,11 @@ function AdminLogin() {
   const [loading, setLoading] = useState(false)
   const { login, isAuthenticated } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const from = location.state?.from || '/admin/dashboard'
 
   if (isAuthenticated) {
-    navigate('/admin/dashboard', { replace: true })
+    navigate(from, { replace: true })
     return null
   }
 
@@ -25,7 +27,7 @@ function AdminLogin() {
     setLoading(false)
 
     if (result.success) {
-      navigate('/admin/dashboard', { replace: true })
+      navigate(from, { replace: true })
     } else {
       setError(result.error || 'Credenciales incorrectas')
     }

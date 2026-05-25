@@ -138,6 +138,11 @@ exports.handler = async (event) => {
         <p style="color:#9a9ab0;margin:0 0 8px;font-size:0.85rem">Mensaje</p>
         <p style="margin:0;line-height:1.7;white-space:pre-wrap">${escapeHtml(cleanMessage)}</p>
       </div>
+      <div style="margin-top:20px;text-align:center">
+        <a href="mailto:${escapeHtml(cleanEmail)}?subject=Re: ${encodeURIComponent(cleanService || internalSubject)}" style="display:inline-block;background:#E8962E;color:#000;font-weight:700;font-size:0.9rem;padding:12px 28px;border-radius:8px;text-decoration:none">
+          ✉ Responder a ${escapeHtml(cleanName)}
+        </a>
+      </div>
       <p style="margin-top:24px;font-size:0.75rem;color:#9a9ab0;text-align:center">
         Enviado desde ${SITE_DOMAIN}
       </p>

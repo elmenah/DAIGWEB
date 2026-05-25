@@ -59,6 +59,7 @@ function Footer() {
                 <li><a href="#proceso">Nuestro Proceso</a></li>
                 <li><a href="#faq">Preguntas Frecuentes</a></li>
                 <li><a href="#contacto">Cotizar</a></li>
+                <li><a href="/tecnico">Portal Técnico</a></li>
               </ul>
             </div>
 

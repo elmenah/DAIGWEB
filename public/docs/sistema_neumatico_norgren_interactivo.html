@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#0f1419">
+<title>Sistema Neumático Norgren · Bucher CityFant 6000 · DAIG SpA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Bebas+Neue&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1419;
+    --bg-2:#1a2028;
+    --panel:#161c24;
+    --panel-2:#1c2330;
+    --line:#2a3441;
+    --ink:#e8eef5;
+    --ink-dim:#8a9bb0;
+    --ink-faint:#5a6675;
+    --accent:#5dd39e;     /* verde para DOC-0046 (neumática) */
+    --accent-2:#5ab9ff;
+    --ok:#5dd39e;
+    --warn:#ffb84d;
+    --danger:#ff4e3a;
+    --info:#5ab9ff;
+    --grid:#1f2731;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px;background-position:-1px -1px}
+  .wrap{max-width:1200px;margin:0 auto;padding:14px 12px 100px}
+
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(15,20,25,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);margin:-14px -12px 14px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;color:var(--ink)}
+  .logo span{color:var(--accent)}
+  .topbar-info{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-dim);text-align:right;line-height:1.3}
+  .topbar-info b{color:var(--ok)}
+
+  .tabs{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);background:var(--panel);margin-bottom:14px;overflow:hidden}
+  .tab{padding:12px 8px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);cursor:pointer;border:none;background:transparent;border-right:1px solid var(--line);transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+  .tab:last-child{border-right:none}
+  .tab:hover{background:var(--panel-2);color:var(--ink)}
+  .tab.active{background:var(--panel-2);color:var(--accent)}
+  .tab.active::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent)}
+  .tab svg{width:18px;height:18px}
+  .tab-badge{position:absolute;top:6px;right:8px;font-size:9px;background:var(--accent);color:#0a1610;padding:1px 5px;border-radius:8px;font-family:'IBM Plex Sans',sans-serif;font-weight:700;display:none}
+  .tab-badge.show{display:block}
+
+  .panel{border:1px solid var(--line);background:var(--panel);position:relative;margin-bottom:14px}
+  .panel-h{padding:10px 14px;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;color:var(--ink-dim);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+  .panel-h b{color:var(--accent)}
+  .corner{position:absolute;width:8px;height:8px;border:1px solid var(--accent);pointer-events:none}
+  .corner.tl{top:-1px;left:-1px;border-right:none;border-bottom:none}
+  .corner.tr{top:-1px;right:-1px;border-left:none;border-bottom:none}
+  .corner.bl{bottom:-1px;left:-1px;border-right:none;border-top:none}
+  .corner.br{bottom:-1px;right:-1px;border-left:none;border-top:none}
+
+  header.intro{padding:16px 16px 14px;background:linear-gradient(180deg,#1a2028 0%,#11161d 100%);border:1px solid var(--line);margin-bottom:14px;position:relative;overflow:hidden}
+  header.intro::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent) 0%,var(--accent) 33%,var(--accent-2) 33%,var(--accent-2) 66%,var(--warn) 66%,var(--warn) 100%)}
+  .tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.08em;padding:3px 7px;border:1px solid var(--line);color:var(--ink-dim);text-transform:uppercase}
+  .tag.hot{border-color:var(--accent);color:var(--accent)}
+  .tag.ok{border-color:var(--ok);color:var(--ok)}
+  h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(24px,5.5vw,38px);letter-spacing:.02em;line-height:1.05;margin-bottom:4px}
+  h1 .sub{color:var(--accent)}
+  .lead{color:var(--ink-dim);font-size:13px;line-height:1.5;max-width:680px}
+  .meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}
+  .meta span b{color:var(--ink);font-weight:500}
+
+  .stage-wrap{border:1px solid var(--line);background:radial-gradient(ellipse at 50% 40%,#1d2530 0%,#0d1218 70%);position:relative;margin-bottom:14px;overflow:hidden}
+  .stage-bar{padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:var(--ink-dim)}
+  .stage-bar .live{display:flex;align-items:center;gap:6px;color:var(--accent)}
+  .stage-bar .live::before{content:"";width:6px;height:6px;background:var(--accent);border-radius:50%;animation:blink 2s infinite}
+  @keyframes blink{50%{opacity:.3}}
+  .zoom-ctrl{display:flex;gap:4px}
+  .zoom-ctrl button{width:26px;height:22px;border:1px solid var(--line);background:transparent;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s}
+  .zoom-ctrl button:hover{border-color:var(--accent);color:var(--accent)}
+  .stage{padding:10px 6px 6px;overflow:auto;max-height:65vh;-webkit-overflow-scrolling:touch}
+  svg.diagram{width:100%;height:auto;display:block;min-width:720px;touch-action:manipulation}
+
+  .hot-circle{fill:rgba(93,211,158,.2);stroke:var(--accent);stroke-width:2;cursor:pointer;transition:all .2s}
+  .hot-circle:hover,.hot-circle.active{fill:rgba(93,211,158,.5);stroke:#fff;filter:drop-shadow(0 0 10px var(--accent))}
+  .hot-circle.checked{fill:rgba(93,211,158,.45);stroke:#fff}
+  .hot-num{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;fill:#0a1610;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+  .lead-line{stroke:var(--accent);stroke-width:1;stroke-dasharray:3 3;opacity:.55}
+  .lead-line.checked{stroke:#fff}
+
+  .grid-2{display:grid;grid-template-columns:1fr;gap:14px}
+  @media(min-width:880px){.grid-2{grid-template-columns:1fr 1fr}}
+
+  .item{padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;gap:12px;align-items:flex-start;transition:background .15s;position:relative}
+  .item:last-child{border-bottom:none}
+  .item:hover{background:var(--panel-2)}
+  .item.active{background:#1f2a38}
+  .item.active::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+  .num{flex-shrink:0;width:30px;height:30px;border:1px solid var(--accent);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .item.active .num{background:var(--accent);color:#0a1610}
+  .item.checked .num{background:var(--accent);color:#0a1610}
+  .it-body{flex:1;min-width:0}
+  .it-title{font-size:14px;font-weight:500;margin-bottom:2px;display:flex;align-items:center;gap:6px}
+  .it-title .chk-mark{color:var(--ok);font-size:14px;display:none}
+  .item.checked .chk-mark{display:inline}
+  .it-sub{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-dim)}
+  .it-arrow{color:var(--ink-faint);font-size:18px;align-self:center}
+
+  .detail{border:1px solid var(--line);background:var(--panel);padding:16px;position:relative}
+  @media(min-width:880px){.detail{position:sticky;top:80px;align-self:start;max-height:calc(100vh - 100px);overflow-y:auto}}
+  .detail-empty{color:var(--ink-dim);font-size:13px;text-align:center;padding:30px 10px}
+  .detail-empty svg{width:40px;height:40px;opacity:.4;margin-bottom:10px}
+  .d-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .d-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border:1px solid var(--accent);color:var(--accent);letter-spacing:.08em}
+  .d-check-btn{border:1px solid var(--line);background:transparent;color:var(--ink-dim);padding:7px 11px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;text-transform:uppercase}
+  .d-check-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .d-check-btn.checked{border-color:var(--ok);color:var(--ok);background:rgba(93,211,158,.08)}
+  .d-check-btn svg{width:14px;height:14px}
+  .d-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.02em;line-height:1.05;margin-bottom:4px}
+  .d-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent-2);margin-bottom:12px}
+  .d-section{margin-top:14px}
+  .d-section h4{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+  .d-section h4::before{content:"";width:10px;height:1px;background:var(--accent)}
+  .d-section p{font-size:13.5px;line-height:1.55;color:var(--ink)}
+  .d-section ul{font-size:13px;line-height:1.55;padding-left:18px}
+  .d-section li{margin-bottom:4px}
+  .d-section li::marker{color:var(--accent)}
+
+  .specs{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);margin-top:4px}
+  .specs div{background:var(--panel);padding:9px 10px}
+  .specs .k{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--ink-dim);letter-spacing:.08em;text-transform:uppercase}
+  .specs .v{font-size:13px;font-weight:500;margin-top:2px}
+
+  .diag-table{width:100%;border-collapse:collapse;margin-top:4px;font-size:12.5px}
+  .diag-table th{background:var(--panel-2);text-align:left;padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);border-bottom:1px solid var(--line)}
+  .diag-table td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+  .diag-table tr:last-child td{border-bottom:none}
+  .sev{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:2px 6px;letter-spacing:.06em;border:1px solid}
+  .sev.A{color:var(--danger);border-color:var(--danger)}
+  .sev.M{color:var(--warn);border-color:var(--warn)}
+  .sev.B{color:var(--ok);border-color:var(--ok)}
+
+  .parts-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:10px 12px;border:1px solid var(--line);background:var(--panel-2);margin-bottom:6px;align-items:center}
+  .parts-row .pn{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:500}
+  .parts-row .desc{font-size:12.5px;line-height:1.4}
+  .parts-row .stock{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 6px;border:1px solid;letter-spacing:.05em}
+  .stock.s-ok{color:var(--ok);border-color:var(--ok)}
+  .stock.s-low{color:var(--warn);border-color:var(--warn)}
+  .stock.s-no{color:var(--danger);border-color:var(--danger)}
+
+  .progress-bar{width:100%;height:6px;background:var(--bg-2);border:1px solid var(--line);margin:10px 0 6px;position:relative;overflow:hidden}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent-2),var(--accent));width:0%;transition:width .4s}
+  .progress-meta{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-dim);letter-spacing:.06em}
+  .progress-meta b{color:var(--accent)}
+
+  .check-actions{display:flex;gap:8px;margin:10px 0 14px;flex-wrap:wrap}
+  .btn{border:1px solid var(--line);background:transparent;color:var(--ink-dim);padding:9px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;cursor:pointer;transition:all .15s;text-transform:uppercase;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{border-color:var(--accent);color:var(--accent);background:rgba(93,211,158,.05)}
+  .btn.primary:hover{background:var(--accent);color:#0a1610}
+  .btn.ghost{color:var(--ink-faint)}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .form-grid.full{grid-template-columns:1fr}
+  .form-grid label{display:block;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--ink-dim);letter-spacing:.08em;margin-bottom:4px;text-transform:uppercase}
+  .form-grid input,.form-grid select,.form-grid textarea{width:100%;background:var(--bg-2);border:1px solid var(--line);color:var(--ink);padding:9px 11px;font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;transition:border .15s}
+  .form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus{outline:none;border-color:var(--accent)}
+  .form-grid textarea{resize:vertical;min-height:60px}
+
+  /* Color codes panel */
+  .colorcode-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;padding:14px 16px}
+  .cc-box{border:1px solid var(--line);background:var(--bg-2);padding:10px 12px;display:flex;gap:10px;align-items:center}
+  .cc-swatch{width:32px;height:32px;flex-shrink:0;border:1px solid var(--line)}
+  .cc-body{flex:1}
+  .cc-name{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink);font-weight:600}
+  .cc-desc{font-size:11.5px;color:var(--ink-dim);line-height:1.4;margin-top:2px}
+
+  footer{margin-top:18px;padding:14px;border:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-dim);letter-spacing:.04em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  footer b{color:var(--accent)}
+
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ok);color:#0a1610;padding:10px 18px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;z-index:100;transition:transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:520px){
+    .tab{padding:10px 4px;font-size:9.5px}
+    .tab svg{width:16px;height:16px}
+    .specs{grid-template-columns:1fr}
+    .parts-row{grid-template-columns:1fr;gap:4px}
+    .parts-row .stock{justify-self:start}
+    .form-grid{grid-template-columns:1fr}
+    h1{font-size:24px}
+    .meta{font-size:10px}
+    .diag-table th,.diag-table td{padding:7px 6px;font-size:11.5px}
+    .diag-table th{font-size:9px}
+    .colorcode-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <a href="HUB_consolidado_camion_barredor.html" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(93,211,158,.15);color:#5dd39e;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid #5dd39e;border-radius:3px;margin-right:10px">← HUB</a><div class="logo">DAIG<span>·</span>MNT</div>
+    <div class="topbar-info">
+      <div>DOC-TEC / DAIG-MNT-0046</div>
+      <div><b>● EN LÍNEA</b> · v1.0</div>
+    </div>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="info">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+      INFO
+    </button>
+    <button class="tab" data-tab="diagrama">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 3v18"/></svg>
+      DIAGRAMA
+    </button>
+    <button class="tab" data-tab="checklist">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      CHECKLIST
+      <span class="tab-badge" id="badge-check">0</span>
+    </button>
+    <button class="tab" data-tab="repuestos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      REPUESTOS
+    </button>
+  </nav>
+
+  <!-- ============ INFO ============ -->
+  <section class="tab-content active" data-tab="info">
+    <header class="intro">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="tag-row">
+        <span class="tag hot">● EN SERVICIO</span>
+        <span class="tag">CRÍTICO</span>
+        <span class="tag ok">REV. 1 — 23·MAY·2026</span>
+      </div>
+      <h1>SISTEMA NEUMÁTICO <span class="sub">/ NORGREN CANopen</span></h1>
+      <p class="lead">
+        Circuito de aire comprimido del implemento: toma desde calderín del Atego, preparación (FRL), distribución por manifold CANopen y mangueras codificadas por color hasta los actuadores neumáticos y válvulas piloto.
+      </p>
+      <div class="meta">
+        <span>EQUIPO · <b>Bucher CityFant 6000</b></span>
+        <span>MARCA PRINCIPAL · <b>IMI Norgren</b></span>
+        <span>BUS · <b>CANopen</b></span>
+        <span>ORIGEN MÓDULOS · <b>0522CZ (Chequia)</b></span>
+        <span>P. NOMINAL · <b>6 bar regulado</b></span>
+        <span>CRITICIDAD · <b style="color:var(--accent)">ALTA</b></span>
+      </div>
+    </header>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>FUNCIONAMIENTO GENERAL</span><b>CADENA NEUMÁTICA</b></div>
+      <div style="padding:14px 16px">
+        <p style="font-size:13.5px;line-height:1.6;color:var(--ink);margin-bottom:10px">
+          El aire comprimido es generado por el <b style="color:var(--accent)">compresor del Atego</b> y almacenado en su calderín principal (8–10 bar). De ahí se deriva una toma hacia el implemento Bucher, donde pasa primero por una <b style="color:var(--accent)">válvula manual de corte rápido</b> (latón) y luego por el <b style="color:var(--accent)">filtro-regulador AIRY</b> que lo limpia, deshumidifica y reduce la presión a 6 bar de control.
+        </p>
+        <p style="font-size:13.5px;line-height:1.6;color:var(--ink);margin-bottom:10px">
+          Desde el regulador, el aire entra al <b style="color:var(--accent-2)">manifold IMI Norgren CANopen</b>, compuesto por múltiples módulos modulares (NA6U, NB6U, NC6U, NG6U) que se conmutan por bus CAN desde el PLC Jetter. Cada módulo dirige aire hacia funciones específicas: válvulas piloto de bloques hidráulicos, sacudido de filtros de mangas, accionamiento de compuerta y otros actuadores.
+        </p>
+        <p style="font-size:13.5px;line-height:1.6;color:var(--ink)">
+          Las mangueras <b style="color:var(--accent)">Norgren PA2 (poliamida)</b> distribuyen el aire en código de colores: <b style="color:#5ab9ff">azul</b> = aire principal de trabajo, <b style="color:#ff4e3a">rojo</b> = aire piloto/señal, <b style="color:var(--ink)">blanco/gris</b> = funciones auxiliares. Toda la trazabilidad permite diagnóstico rápido.
+        </p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>CÓDIGO DE COLORES MANGUERAS</span><b>NORGREN PA2</b></div>
+      <div class="colorcode-grid">
+        <div class="cc-box">
+          <div class="cc-swatch" style="background:#5ab9ff"></div>
+          <div class="cc-body">
+            <div class="cc-name">AZUL · Aire principal</div>
+            <div class="cc-desc">Aire de trabajo regulado a 6 bar hacia actuadores y manifolds.</div>
+          </div>
+        </div>
+        <div class="cc-box">
+          <div class="cc-swatch" style="background:#ff4e3a"></div>
+          <div class="cc-body">
+            <div class="cc-name">ROJO · Aire piloto</div>
+            <div class="cc-desc">Señal piloto que comanda apertura de válvulas hidráulicas.</div>
+          </div>
+        </div>
+        <div class="cc-box">
+          <div class="cc-swatch" style="background:#e8eef5"></div>
+          <div class="cc-body">
+            <div class="cc-name">BLANCO · Agua/funciones auxiliares</div>
+            <div class="cc-desc">Líneas de riego antipolvo o servicios menores.</div>
+          </div>
+        </div>
+        <div class="cc-box">
+          <div class="cc-swatch" style="background:#8a8f96"></div>
+          <div class="cc-body">
+            <div class="cc-name">GRIS · Drenaje / retorno</div>
+            <div class="cc-desc">Drenajes de condensado y purgas de circuito.</div>
+          </div>
+        </div>
+        <div class="cc-box">
+          <div class="cc-swatch" style="background:#e8e0a0"></div>
+          <div class="cc-body">
+            <div class="cc-name">AMARILLO · Servicios eléctricos</div>
+            <div class="cc-desc">Cables o mangueras de señalización auxiliar.</div>
+          </div>
+        </div>
+        <div class="cc-box">
+          <div class="cc-swatch" style="background:#1a1f26"></div>
+          <div class="cc-body">
+            <div class="cc-name">NEGRO · Cableado eléctrico</div>
+            <div class="cc-desc">Mazo eléctrico general dentro de corrugado.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>PARÁMETROS CRÍTICOS</span><b>VALORES NOMINALES</b></div>
+      <div class="specs" style="margin:0">
+        <div><div class="k">Presión entrada</div><div class="v">8 – 10 bar (Atego)</div></div>
+        <div><div class="k">Presión regulada</div><div class="v">6 bar</div></div>
+        <div><div class="k">Presión piloto</div><div class="v">3 – 4 bar</div></div>
+        <div><div class="k">Caudal nominal</div><div class="v">500 NL/min</div></div>
+        <div><div class="k">Filtración</div><div class="v">5 µm absoluto</div></div>
+        <div><div class="k">Punto rocío</div><div class="v">-20 °C (recom.)</div></div>
+        <div><div class="k">Manguera tipo</div><div class="v">Norgren PA2 Ø8 mm</div></div>
+        <div><div class="k">Frec. mant.</div><div class="v">250 h / trimestral</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>⚠ ADVERTENCIAS DE SEGURIDAD</span><b>OBLIGATORIO LEER</b></div>
+      <div style="padding:14px 16px">
+        <ul style="font-size:13px;line-height:1.65;padding-left:20px">
+          <li style="margin-bottom:6px"><b style="color:var(--danger)">Despresurizar el circuito</b> antes de cualquier intervención. Usar válvula manual de corte + activar funciones 3 veces para drenar.</li>
+          <li style="margin-bottom:6px"><b style="color:var(--danger)">NO desconectar push-in con presión</b> — el racor o manguera puede salir disparado. Riesgo de impacto.</li>
+          <li style="margin-bottom:6px"><b style="color:var(--warn)">EPP obligatorio:</b> lentes de seguridad (protección de impacto), guantes, calzado.</li>
+          <li style="margin-bottom:6px"><b style="color:var(--warn)">No usar lubricantes</b> en racores push-in — destruyen los O-rings internos.</li>
+          <li style="margin-bottom:6px"><b style="color:var(--warn)">Aire a presión NUNCA dirigido</b> a piel, ojos u oídos. Inyección causa lesiones graves.</li>
+          <li><b style="color:var(--info)">Vaciado de bowl</b> del filtro: hacer en zona de drenaje autorizada, el condensado puede contener aceite del compresor del Atego.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DIAGRAMA ============ -->
+  <section class="tab-content" data-tab="diagrama">
+    <div class="stage-wrap">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="stage-bar">
+        <span class="live">FLUJO DE AIRE · ENTRADA A SALIDA</span>
+        <div class="zoom-ctrl">
+          <button id="zoom-out" title="Alejar">−</button>
+          <button id="zoom-reset" title="Reset">⊙</button>
+          <button id="zoom-in" title="Acercar">+</button>
+        </div>
+      </div>
+      <div class="stage" id="stageScroll">
+        <svg viewBox="0 0 1100 600" xmlns="http://www.w3.org/2000/svg" id="diagram" class="diagram">
+          <defs>
+            <linearGradient id="boxG" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3a4654"/>
+              <stop offset="100%" stop-color="#1e2731"/>
+            </linearGradient>
+            <linearGradient id="brassG" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#d4a55a"/>
+              <stop offset="100%" stop-color="#8a6f3a"/>
+            </linearGradient>
+            <linearGradient id="filterBowl" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3a4250"/>
+              <stop offset="100%" stop-color="#1a1f26"/>
+            </linearGradient>
+            <marker id="arrowAir" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#5dd39e"/>
+            </marker>
+            <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#ff4e3a"/>
+            </marker>
+            <marker id="arrowBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#5ab9ff"/>
+            </marker>
+          </defs>
+
+          <!-- Background -->
+          <rect x="0" y="0" width="1100" height="600" fill="#0d1218"/>
+
+          <!-- Title -->
+          <text x="550" y="35" font-family="Bebas Neue" font-size="20" fill="#5a6675" text-anchor="middle" letter-spacing="3">FLUJO NEUMÁTICO · BUCHER CITYFANT</text>
+
+          <!-- Stage: 1 - Calderín Atego (extreme left) -->
+          <g id="calderin">
+            <rect x="40" y="200" width="100" height="180" rx="50" fill="url(#boxG)" stroke="#1a1f26" stroke-width="1.5"/>
+            <text x="90" y="240" font-family="JetBrains Mono" font-size="9" fill="#5dd39e" text-anchor="middle">CALDERÍN</text>
+            <text x="90" y="255" font-family="JetBrains Mono" font-size="8" fill="#8a9bb0" text-anchor="middle">MB ATEGO</text>
+            <text x="90" y="305" font-family="Bebas Neue" font-size="24" fill="#fff" text-anchor="middle">8-10</text>
+            <text x="90" y="325" font-family="JetBrains Mono" font-size="9" fill="#8a9bb0" text-anchor="middle">bar</text>
+          </g>
+
+          <!-- Arrow to manual valve -->
+          <path d="M 140 290 L 195 290" stroke="#5dd39e" stroke-width="3" fill="none" marker-end="url(#arrowAir)"/>
+
+          <!-- Stage: 2 - Manual valve (brass) -->
+          <g id="valvula">
+            <rect x="200" y="265" width="60" height="50" fill="url(#brassG)" stroke="#1a1f26" stroke-width="1.5" rx="3"/>
+            <!-- knob -->
+            <rect x="220" y="245" width="20" height="22" fill="#8a6f3a" stroke="#1a1f26"/>
+            <circle cx="230" cy="245" r="10" fill="#d4a55a" stroke="#1a1f26"/>
+            <line x1="230" y1="238" x2="230" y2="252" stroke="#1a1f26" stroke-width="2"/>
+            <text x="230" y="335" font-family="JetBrains Mono" font-size="9" fill="#5dd39e" text-anchor="middle">CORTE</text>
+            <text x="230" y="348" font-family="JetBrains Mono" font-size="8" fill="#8a9bb0" text-anchor="middle">MANUAL</text>
+          </g>
+
+          <!-- Arrow to AIRY -->
+          <path d="M 260 290 L 315 290" stroke="#5dd39e" stroke-width="3" fill="none" marker-end="url(#arrowAir)"/>
+
+          <!-- Stage: 3 - AIRY filter regulator -->
+          <g id="airy">
+            <!-- knob -->
+            <rect x="350" y="180" width="30" height="22" fill="#1a1f26" stroke="#3a4654"/>
+            <rect x="345" y="200" width="40" height="10" fill="#3a4654"/>
+            <!-- body -->
+            <rect x="320" y="210" width="90" height="90" fill="url(#boxG)" stroke="#1a1f26" stroke-width="1.5"/>
+            <text x="365" y="230" font-family="JetBrains Mono" font-size="10" fill="#5dd39e" text-anchor="middle" font-weight="bold">AIRY</text>
+            <text x="365" y="245" font-family="JetBrains Mono" font-size="7" fill="#8a9bb0" text-anchor="middle">FILTER · REG.</text>
+            <!-- pressure gauge -->
+            <circle cx="365" cy="270" r="14" fill="#0d1218" stroke="#5dd39e" stroke-width="1.5"/>
+            <text x="365" y="270" font-family="JetBrains Mono" font-size="7" fill="#5dd39e" text-anchor="middle">6 bar</text>
+            <line x1="365" y1="270" x2="372" y2="262" stroke="#ffb84d" stroke-width="1.5"/>
+            <!-- bowl -->
+            <ellipse cx="365" cy="320" rx="22" ry="28" fill="url(#filterBowl)" stroke="#3a4654"/>
+            <!-- water level -->
+            <ellipse cx="365" cy="335" rx="18" ry="6" fill="#3478b8" opacity=".6"/>
+            <text x="365" y="360" font-family="JetBrains Mono" font-size="8" fill="#8a9bb0" text-anchor="middle">bowl</text>
+          </g>
+
+          <!-- Arrow to Norgren manifold (regulated air goes green = blue thereafter, but keep flow visual consistency) -->
+          <path d="M 410 270 L 470 270" stroke="#5ab9ff" stroke-width="3" fill="none" marker-end="url(#arrowBlue)"/>
+          <text x="440" y="262" font-family="JetBrains Mono" font-size="8" fill="#5ab9ff" text-anchor="middle">6 bar</text>
+
+          <!-- Stage: 4 - Norgren CANopen manifold -->
+          <g id="manifold">
+            <rect x="475" y="180" width="240" height="170" fill="#9aa0a8" stroke="#1a1f26" stroke-width="1.5"/>
+            <!-- red top bar -->
+            <rect x="475" y="180" width="240" height="18" fill="#c43a2a"/>
+            <text x="595" y="192" font-family="JetBrains Mono" font-size="9" fill="#fff" text-anchor="middle" letter-spacing="1">IMI NORGREN · CANopen</text>
+
+            <!-- module ports grid -->
+            <g fill="#3a4250">
+              <circle cx="495" cy="220" r="4"/><circle cx="515" cy="220" r="4"/><circle cx="535" cy="220" r="4"/><circle cx="555" cy="220" r="4"/>
+              <circle cx="575" cy="220" r="4"/><circle cx="595" cy="220" r="4"/><circle cx="615" cy="220" r="4"/><circle cx="635" cy="220" r="4"/>
+              <circle cx="655" cy="220" r="4"/><circle cx="675" cy="220" r="4"/><circle cx="695" cy="220" r="4"/>
+
+              <circle cx="495" cy="245" r="4"/><circle cx="515" cy="245" r="4"/><circle cx="535" cy="245" r="4"/><circle cx="555" cy="245" r="4"/>
+              <circle cx="575" cy="245" r="4"/><circle cx="595" cy="245" r="4"/><circle cx="615" cy="245" r="4"/><circle cx="635" cy="245" r="4"/>
+              <circle cx="655" cy="245" r="4"/><circle cx="675" cy="245" r="4"/><circle cx="695" cy="245" r="4"/>
+            </g>
+            <text x="485" y="222" font-family="JetBrains Mono" font-size="6" fill="#c43a2a" text-anchor="end">14</text>
+            <text x="485" y="247" font-family="JetBrains Mono" font-size="6" fill="#c43a2a" text-anchor="end">12</text>
+
+            <!-- module labels at bottom -->
+            <rect x="475" y="260" width="240" height="40" fill="#d4d8de" stroke="#1a1f26"/>
+            <rect x="475" y="260" width="240" height="4" fill="#c43a2a"/>
+            <g font-family="JetBrains Mono" font-size="7" fill="#2a3441">
+              <text x="495" y="280" text-anchor="middle">NA6U</text>
+              <text x="525" y="280" text-anchor="middle">NB6U</text>
+              <text x="555" y="280" text-anchor="middle">NC6U</text>
+              <text x="585" y="280" text-anchor="middle">NC6U</text>
+              <text x="615" y="280" text-anchor="middle">NA6U</text>
+              <text x="645" y="280" text-anchor="middle">NG6U</text>
+              <text x="675" y="280" text-anchor="middle">NG6U</text>
+              <text x="700" y="280" text-anchor="middle">B000</text>
+            </g>
+            <text x="595" y="294" font-family="JetBrains Mono" font-size="6" fill="#8a9bb0" text-anchor="middle">0522CZ</text>
+
+            <!-- CAN bus arrow from top -->
+            <rect x="595" y="155" width="14" height="25" fill="#a78bfa" stroke="#1a1f26"/>
+            <text x="630" y="170" font-family="JetBrains Mono" font-size="8" fill="#a78bfa">CAN ← PLC</text>
+
+            <text x="595" y="335" font-family="JetBrains Mono" font-size="11" fill="#5dd39e" text-anchor="middle" font-weight="bold">MANIFOLD CANopen</text>
+          </g>
+
+          <!-- Output hoses to actuators (right side) -->
+          <!-- Blue air hose - high flow -->
+          <path d="M 715 215 L 800 215 L 820 240 L 920 240" stroke="#5ab9ff" stroke-width="4" fill="none"/>
+          <path d="M 715 215 L 800 215 L 820 240 L 920 240" stroke="#3478b8" stroke-width="1" fill="none"/>
+
+          <!-- Red pilot hose -->
+          <path d="M 715 240 L 780 240 L 800 280 L 920 280" stroke="#ff4e3a" stroke-width="3" fill="none"/>
+
+          <!-- White auxiliary hose -->
+          <path d="M 715 265 L 760 265 L 780 320 L 920 320" stroke="#e8eef5" stroke-width="2.5" fill="none"/>
+
+          <!-- Stage: 5 - Actuators (right side) -->
+          <g id="actuators">
+            <!-- Air actuator block - hopper -->
+            <rect x="920" y="220" width="140" height="50" fill="url(#boxG)" stroke="#1a1f26"/>
+            <text x="990" y="240" font-family="JetBrains Mono" font-size="9" fill="#5ab9ff" text-anchor="middle">SACUDIDO</text>
+            <text x="990" y="255" font-family="JetBrains Mono" font-size="9" fill="#5ab9ff" text-anchor="middle">FILTROS</text>
+
+            <!-- Pilot to hydraulic -->
+            <rect x="920" y="280" width="140" height="50" fill="url(#boxG)" stroke="#1a1f26"/>
+            <text x="990" y="300" font-family="JetBrains Mono" font-size="9" fill="#ff4e3a" text-anchor="middle">VÁLVULAS</text>
+            <text x="990" y="315" font-family="JetBrains Mono" font-size="9" fill="#ff4e3a" text-anchor="middle">PILOTO HID.</text>
+
+            <!-- Auxiliary -->
+            <rect x="920" y="340" width="140" height="50" fill="url(#boxG)" stroke="#1a1f26"/>
+            <text x="990" y="360" font-family="JetBrains Mono" font-size="9" fill="#e8eef5" text-anchor="middle">FUNCIONES</text>
+            <text x="990" y="375" font-family="JetBrains Mono" font-size="9" fill="#e8eef5" text-anchor="middle">AUX.</text>
+          </g>
+
+          <!-- Push-in connectors (decorative) -->
+          <g>
+            <rect x="715" y="210" width="14" height="14" fill="#9aa0a8" stroke="#1a1f26"/>
+            <rect x="715" y="235" width="14" height="14" fill="#9aa0a8" stroke="#1a1f26"/>
+            <rect x="715" y="260" width="14" height="14" fill="#9aa0a8" stroke="#1a1f26"/>
+          </g>
+
+          <!-- Drain / condensate at bottom of AIRY -->
+          <path d="M 365 348 L 365 410" stroke="#8a8f96" stroke-width="2" fill="none" stroke-dasharray="3 3"/>
+          <text x="375" y="395" font-family="JetBrains Mono" font-size="8" fill="#8a8f96">drenaje</text>
+
+          <!-- Pressure sensor (Norgren) -->
+          <g>
+            <circle cx="800" cy="430" r="22" fill="#0d1218" stroke="#5dd39e" stroke-width="2"/>
+            <text x="800" y="425" font-family="JetBrains Mono" font-size="7" fill="#5dd39e" text-anchor="middle">SENSOR</text>
+            <text x="800" y="438" font-family="JetBrains Mono" font-size="7" fill="#5dd39e" text-anchor="middle">P</text>
+            <line x1="800" y1="408" x2="800" y2="350" stroke="#5dd39e" stroke-width="1" stroke-dasharray="2 2"/>
+          </g>
+
+          <!-- Bottom labels -->
+          <rect x="0" y="540" width="1100" height="60" fill="#0d1218"/>
+          <line x1="0" y1="540" x2="1100" y2="540" stroke="#3a4654" stroke-width="1"/>
+          <g font-family="JetBrains Mono" font-size="9" fill="#5a6675">
+            <text x="90" y="560" text-anchor="middle">ENTRADA</text>
+            <text x="90" y="575" text-anchor="middle">CHASIS MB</text>
+            <text x="230" y="560" text-anchor="middle">CORTE</text>
+            <text x="230" y="575" text-anchor="middle">MANUAL</text>
+            <text x="365" y="560" text-anchor="middle">PREPARACIÓN</text>
+            <text x="365" y="575" text-anchor="middle">AIR-FRL</text>
+            <text x="595" y="560" text-anchor="middle">DISTRIBUCIÓN</text>
+            <text x="595" y="575" text-anchor="middle">DIGITAL CANopen</text>
+            <text x="990" y="560" text-anchor="middle">ACTUACIÓN</text>
+            <text x="990" y="575" text-anchor="middle">ACTUADORES</text>
+          </g>
+
+          <!-- HOTSPOTS -->
+          <g id="hotspots"></g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel" style="margin-bottom:0">
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <span class="corner bl"></span><span class="corner br"></span>
+        <div class="panel-h"><span>COMPONENTES</span><b id="comp-count">10 PUNTOS</b></div>
+        <div id="items"></div>
+      </div>
+
+      <div class="detail" id="detail">
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <span class="corner bl"></span><span class="corner br"></span>
+        <div class="detail-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>
+          </svg>
+          <div>Toca un número en el diagrama o un componente del listado para ver su ficha técnica.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CHECKLIST ============ -->
+  <section class="tab-content" data-tab="checklist">
+    <header class="intro">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <h1 style="font-size:28px">INSPECCIÓN <span class="sub">/ CHECKLIST</span></h1>
+      <p class="lead">Lista de verificación del sistema neumático. Los cambios se guardan automáticamente.</p>
+
+      <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+      <div class="progress-meta">
+        <span>PROGRESO</span>
+        <span><b id="progCount">0</b> / <span id="progTotal">10</span> · <span id="progPct">0%</span></span>
+      </div>
+
+      <div class="check-actions">
+        <button class="btn primary" id="btn-export">📋 Exportar reporte</button>
+        <button class="btn ghost" id="btn-reset">↻ Limpiar todo</button>
+      </div>
+    </header>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>DATOS DE LA INSPECCIÓN</span><b>OBLIGATORIO</b></div>
+      <div style="padding:14px 16px">
+        <div class="form-grid">
+          <div>
+            <label>Patente</label>
+            <select id="f-patente">
+              <option value="">— Seleccionar —</option>
+              <option value="SR·XF·37">SR·XF·37</option>
+              <option value="RR·KH·97">RR·KH·97</option>
+            </select>
+          </div>
+          <div>
+            <label>Fecha</label>
+            <input type="date" id="f-fecha"/>
+          </div>
+          <div>
+            <label>Operador / Mecánico</label>
+            <input type="text" id="f-operador" placeholder="Nombre completo"/>
+          </div>
+          <div>
+            <label>Horómetro (h)</label>
+            <input type="number" id="f-horometro" placeholder="0000"/>
+          </div>
+          <div>
+            <label>P. entrada calderín (bar)</label>
+            <input type="number" step="0.1" id="f-p-in" placeholder="9.0"/>
+          </div>
+          <div>
+            <label>P. regulada AIRY (bar)</label>
+            <input type="number" step="0.1" id="f-p-reg" placeholder="6.0"/>
+          </div>
+        </div>
+        <div class="form-grid full">
+          <div>
+            <label>Observaciones generales</label>
+            <textarea id="f-obs" placeholder="Fugas audibles, condensado en bowl, función específica con falla..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>VERIFICACIONES POR COMPONENTE</span><b>MARCAR AL COMPLETAR</b></div>
+      <div id="check-items"></div>
+    </div>
+  </section>
+
+  <!-- ============ REPUESTOS ============ -->
+  <section class="tab-content" data-tab="repuestos">
+    <header class="intro">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <h1 style="font-size:28px">CATÁLOGO <span class="sub">/ REPUESTOS</span></h1>
+      <p class="lead">Repuestos del sistema neumático Norgren. Códigos OEM. Importación directa o proveedor autorizado.</p>
+    </header>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>PREPARACIÓN DE AIRE</span><b>AIRY · VÁLVULAS</b></div>
+      <div style="padding:10px 12px" id="parts-prep"></div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>MANIFOLD Y MÓDULOS</span><b>IMI NORGREN CANopen</b></div>
+      <div style="padding:10px 12px" id="parts-mani"></div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>MANGUERAS Y ACOPLES</span><b>PA2 · PUSH-IN</b></div>
+      <div style="padding:10px 12px" id="parts-mang"></div>
+    </div>
+
+    <div class="panel" style="background:rgba(93,211,158,.05);border-color:var(--accent)">
+      <div class="panel-h" style="color:var(--accent)"><span>⚠ NOTA</span><b>PROCEDIMIENTO</b></div>
+      <div style="padding:14px 16px;font-size:13px;line-height:1.55">
+        Las mangueras Norgren PA2 se cortan a medida con cortador de tubo plástico (no usar cuchillo). El corte debe ser perpendicular y sin rebabas para que el racor push-in selle correctamente. Mantener stock permanente de 20 m por color y 10-15 racores Ø8 mm. Contacto compras: <b style="color:var(--ink)">daniel.mena@serviciosdaig.com</b>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>DAIG SpA · <b>RUT 77.702.886-3</b> · Puchuncaví</span>
+    <span>USO INTERNO · DOC-TEC v1.0</span>
+  </footer>
+</div>
+
+<div class="toast" id="toast">Guardado</div>
+
+<script>
+const DATA = {
+  1: {
+    tag:"INTAKE",
+    title:"Toma de aire desde calderín",
+    sub:"Salida del compresor MB Atego",
+    func:"Toma derivada del calderín principal del Atego 1729 hacia el implemento Bucher. Suministra aire a 8-10 bar generado por el compresor del motor diesel. Es el punto de transición entre el sistema neumático del camión (regido por MB) y el del implemento (regido por Bucher).",
+    inspect:[
+      "Verificar presión del calderín del Atego con manómetro.",
+      "Estado del racor de derivación (sin fugas).",
+      "Sin condensado excesivo en la línea.",
+      "Sello firme en la conexión al chasis."
+    ],
+    diag:[
+      ["Sin presión","Compresor del Atego defectuoso","A","Diagnóstico MB · revisar compresor"],
+      ["Presión baja","Fuga en línea / calderín con leak","M","Localizar fuga · revisar calderín"],
+      ["Mucho condensado","Secador del Atego saturado","M","Mantención secador MB"],
+      ["Fuga en racor","Sello vencido","B","Reapretar · cambiar sello si persiste"]
+    ],
+    specs:[["ORIGEN","Compresor MB Atego"],["PRESIÓN","8 – 10 bar"],["CAUDAL","≈ 500 NL/min"],["RACOR","Latón estándar"]]
+  },
+  2: {
+    tag:"VAL-MAN",
+    title:"Válvula manual de corte",
+    sub:"Latón · bypass rápido",
+    func:"Válvula esférica de latón de accionamiento manual ubicada después de la toma del calderín. Permite cortar el suministro de aire al implemento de forma rápida para intervenciones de mantención o emergencias. Posición: perilla paralela = abierta; perilla perpendicular = cerrada.",
+    inspect:[
+      "Verificar accionamiento suave (sin trabarse).",
+      "Sin fugas en racores de entrada y salida.",
+      "Sello en posición cerrada (despresurizar y verificar).",
+      "Manija sin daño."
+    ],
+    diag:[
+      ["Trabada","Suciedad interna / corrosión","M","Desmontar · limpiar · si persiste reemplazar"],
+      ["No cierra completo","Bola interna dañada","M","Reemplazar válvula"],
+      ["Fuga continua","Sello vencido","B","Reemplazar O-rings (kit)"],
+      ["Manija floja","Tornillo central suelto","B","Reapretar"]
+    ],
+    specs:[["MATERIAL","Latón cromado"],["TIPO","Bola 2 vías"],["Ø","1/4\" BSP"],["P. MÁX","16 bar"],["TEMP. MÁX","100 °C"]]
+  },
+  3: {
+    tag:"AIRY",
+    title:"Filtro-regulador AIRY",
+    sub:"FRL · 6 bar regulado · bowl manual",
+    func:"Unidad de preparación de aire AIRY tipo FRL (Filter-Regulator-Lubricator sin lubricación). Combina filtración por elemento poroso (5 µm) con regulación de presión ajustable (6 bar nominal). El bowl inferior acumula condensado y partículas que deben drenarse manualmente. La perilla negra superior ajusta la presión de salida.",
+    inspect:[
+      "Drenar bowl de condensados al inicio de cada faena.",
+      "Verificar presión regulada (6 bar ±0.2).",
+      "Cambiar elemento filtrante anualmente o cuando indique caída de presión.",
+      "Ajustar perilla negra solo si hay deriva (NO sobreajustar)."
+    ],
+    diag:[
+      ["Bowl con mucha agua","Compresor MB sin secador","A","Mantención secador Atego"],
+      ["Presión inestable","Diafragma del regulador roto","M","Reemplazar regulador"],
+      ["Caudal bajo","Filtro saturado","M","Reemplazar elemento 5 µm"],
+      ["Fuga por bowl","Junta del bowl vencida","B","Reemplazar junta"],
+      ["Perilla suelta","Tope mecánico fallido","M","Reemplazar mecanismo / regulador"]
+    ],
+    specs:[["MARCA","AIRY"],["P. SALIDA","6 bar"],["FILTRACIÓN","5 µm absoluto"],["BOWL","Manual"],["AJUSTE","Perilla negra"],["MANÓMETRO","Integrado"]]
+  },
+  4: {
+    tag:"NORGREN",
+    title:"Manifold IMI Norgren CANopen",
+    sub:"Módulos NA6U/NB6U/NC6U/NG6U",
+    func:"Manifold neumático modular IMI Norgren con bus CANopen integrado. Compuesto por múltiples módulos electroválvula montados sobre una base común. Cada módulo (NA6U, NB6U, NC6U, NG6U, B000) tiene un canal de salida programable desde el PLC Jetter. Origen: 0522CZ (República Checa). Permite diagnóstico digital de cada válvula.",
+    inspect:[
+      "Verificar todos los LEDs de estado (verde fijo = OK).",
+      "Limpieza externa con aire seco.",
+      "Conector M12 CANopen firme.",
+      "Identificar cualquier módulo silenciado/sin respuesta.",
+      "Etiquetas legibles en cada módulo."
+    ],
+    diag:[
+      ["LED rojo en módulo","Falla interna","A","Diagnóstico CAN · reemplazar módulo"],
+      ["Sin respuesta CAN","Conector flojo / cable","A","Verificar bus CAN principal"],
+      ["Salida sin aire","Válvula trabada interna","M","Limpieza · si persiste reemplazo"],
+      ["Fuga audible","Sello interno vencido","M","Reemplazar módulo (no reparable)"],
+      ["Todos los módulos sin respuesta","Falla bus o PLC","A","Verificar PLC Jetter · cable CAN"]
+    ],
+    specs:[["MARCA","IMI Norgren"],["BUS","CANopen"],["MÓDULOS","NA6U/NB6U/NC6U/NG6U/B000"],["P. ALIM.","6 bar"],["TENSIÓN","24 VDC"],["ORIGEN","0522CZ (CZ)"]]
+  },
+  5: {
+    tag:"HOSE-BLU",
+    title:"Mangueras AZULES (PA2)",
+    sub:"Aire principal · trabajo 6 bar",
+    func:"Mangueras Norgren PA2 de poliamida color azul, identificadas con código NORGREN PA2_010s1059. Distribuyen el aire principal regulado (6 bar) desde el manifold hasta los actuadores neumáticos de trabajo y sacudido de filtros. Ø nominal 8 mm. Resistentes a hidrocarburos y rayos UV.",
+    inspect:[
+      "Inspección visual completa (sin cortes ni dobleces marcados).",
+      "Sin roces con elementos metálicos.",
+      "Push-in firmes en ambos extremos.",
+      "Identificación visible cuando sea posible."
+    ],
+    diag:[
+      ["Fuga audible","Manguera perforada / cortada","A","Reemplazar tramo · proteger zona"],
+      ["Manguera doblada permanente","Radio de curvatura excedido","M","Reemplazar (memoria plástica)"],
+      ["Push-in suelto","Manguera mal cortada / racor dañado","M","Recortar perpendicular · cambiar racor"],
+      ["Coloración amarillenta","UV / envejecimiento","B","Programar reemplazo en próxima mantención"]
+    ],
+    specs:[["MARCA","Norgren PA2"],["COLOR","Azul"],["Ø","8 × 1 mm"],["P. TRAB.","10 bar"],["P. EXP.","30 bar"],["TEMP.","-20 a +80 °C"]]
+  },
+  6: {
+    tag:"HOSE-RED",
+    title:"Mangueras ROJAS (PA2)",
+    sub:"Aire piloto · señal hidráulica",
+    func:"Mangueras Norgren PA2 color rojo, código NORGREN PA2_01081059. Son las líneas de AIRE PILOTO que comandan la apertura de las válvulas piloto-operadas de los bloques hidráulicos. Trabajan a presión más baja (3-4 bar). Misma construcción que las azules pero diferenciadas por color para facilitar el diagnóstico.",
+    inspect:[
+      "Sin cortes ni perforaciones.",
+      "Verificar señal de presión al activar cada función.",
+      "Push-in firmes.",
+      "Sin contacto directo con superficies calientes."
+    ],
+    diag:[
+      ["Función hidráulica no responde","Sin aire piloto en línea","A","Verificar manifold · presión piloto"],
+      ["Función débil","Caudal piloto insuficiente","M","Verificar manguera obstruida"],
+      ["Fuga audible","Perforación","A","Reemplazar tramo"],
+      ["Endurecida","Envejecimiento","M","Reemplazar"]
+    ],
+    specs:[["MARCA","Norgren PA2"],["COLOR","Rojo"],["Ø","8 × 1 mm"],["P. TRAB.","10 bar"],["FUNCIÓN","Piloto"],["CÓDIGO","PA2_01081059"]]
+  },
+  7: {
+    tag:"PUSH-IN",
+    title:"Racores push-in Norgren",
+    sub:"Conexión rápida sin herramienta",
+    func:"Racores de conexión rápida tipo push-in (también llamados push-to-connect). Permiten conectar las mangueras sin herramientas: empujar para conectar, presionar el anillo y tirar para desconectar. Sello mediante O-ring interno y mordaza de acero inoxidable. Disponibles en codo 90°, T, Y, recto.",
+    inspect:[
+      "Verificar firmeza al tirar suavemente de la manguera.",
+      "Sin fugas alrededor del cuerpo del racor.",
+      "Anillo de liberación libre (no atascado).",
+      "Cuerpo sin corrosión."
+    ],
+    diag:[
+      ["Manguera se sale","Mordaza interna desgastada","M","Reemplazar racor (no reparable)"],
+      ["Fuga alrededor","O-ring interno dañado","M","Reemplazar racor"],
+      ["Anillo trabado","Suciedad / corrosión","B","Limpiar con desengrasante · WD-40"],
+      ["Difícil insertar","Manguera mal cortada","B","Recortar perpendicular sin rebabas"]
+    ],
+    specs:[["MARCA","Norgren / Festo"],["TIPO","Push-in"],["Ø MANG.","8 mm"],["ROSCA","BSP 1/8\" – 1/4\""],["MATERIAL","Latón niquel + acero inox"],["P. MÁX","16 bar"]]
+  },
+  8: {
+    tag:"SENS-P",
+    title:"Sensor de presión Norgren",
+    sub:"Diagnóstico digital del circuito",
+    func:"Sensor electrónico de presión Norgren instalado en el circuito de aire para retroalimentar al PLC el valor real de presión. Permite detectar caídas de presión, fallas en el regulador o consumo excesivo. Salida digital al bus CAN o salida 0-10 V analógica según modelo.",
+    inspect:[
+      "Verificar lectura coherente con manómetro mecánico.",
+      "Conector eléctrico firme.",
+      "Sin daño físico al cuerpo.",
+      "Calibración periódica anual (taller central)."
+    ],
+    diag:[
+      ["Lectura errática","Sensor defectuoso","M","Reemplazar"],
+      ["Sin lectura","Cable eléctrico cortado","M","Verificar continuidad cable"],
+      ["Lectura fija","Sensor congelado / falla interna","M","Reemplazar"],
+      ["Discrepancia con manómetro","Descalibrado","B","Recalibrar / reemplazar"]
+    ],
+    specs:[["MARCA","Norgren"],["RANGO","0 – 10 bar"],["SALIDA","Digital / 0-10 V"],["TENSIÓN","24 VDC"],["PRECISIÓN","±1% FS"]]
+  },
+  9: {
+    tag:"AUX",
+    title:"Líneas auxiliares (blancas)",
+    sub:"Funciones secundarias / agua",
+    func:"Mangueras transparentes/blancas usadas para funciones auxiliares como suministro de agua de riego, drenajes, líneas de servicio y diagnóstico. NO confundir con las mangueras de aire principal (azul) o piloto (rojo). Pueden usar el mismo Ø 8 mm.",
+    inspect:[
+      "Identificar correctamente cada línea blanca por función.",
+      "Sin obstrucciones internas (importante en líneas de agua).",
+      "Push-in firmes.",
+      "Etiquetar si la identificación de fábrica se pierde."
+    ],
+    diag:[
+      ["Agua no llega a boquilla","Línea obstruida","M","Soplar línea · limpiar boquilla"],
+      ["Fuga en línea blanca","Roce / corte","M","Reemplazar tramo"],
+      ["Mezcla con aire","Conexión incorrecta","A","Verificar mapa y corregir"]
+    ],
+    specs:[["MATERIAL","PA / PU"],["COLOR","Blanco/transparente"],["Ø","8 × 1 mm / 6 × 1 mm"],["FUNCIÓN","Auxiliar"],["P. TRAB.","6 – 8 bar"]]
+  },
+  10: {
+    tag:"DRAIN",
+    title:"Drenaje de condensados",
+    sub:"Bowl + línea de descarga",
+    func:"Sistema de evacuación del condensado acumulado en el bowl del filtro AIRY. Puede ser manual (tornillo de purga lateral) o automático (válvula con flotador). El condensado contiene agua, aceite del compresor del Atego y partículas finas — debe evacuarse a zona de drenaje autorizada por norma ambiental PVSA.",
+    inspect:[
+      "Verificar nivel del bowl al inicio de cada faena.",
+      "Drenar a recipiente — NO al suelo.",
+      "Tornillo de purga sin trabar.",
+      "Si es automático: verificar accionamiento del flotador."
+    ],
+    diag:[
+      ["Bowl saturado constantemente","Compresor del Atego sin secador / mucha humedad","A","Mantención secador MB · revisar"],
+      ["Tornillo de purga atascado","Suciedad / corrosión","M","Limpiar con desengrasante"],
+      ["Drenaje automático no funciona","Flotador roto","M","Reemplazar mecanismo"],
+      ["Fuga continua por drenaje","Sello vencido","B","Reemplazar O-ring"]
+    ],
+    specs:[["TIPO","Manual / automático"],["UBICACIÓN","Base del bowl"],["DESCARGA","Recipiente externo"],["FREC. MIN.","Inicio de cada faena"]]
+  }
+};
+
+const PARTS = {
+  prep:[
+    ["NOR-AIRY-REG","Regulador-filtro AIRY completo","s-low","1 ud."],
+    ["NOR-AIRY-FILT","Elemento filtrante 5 µm AIRY","s-ok","4 ud."],
+    ["NOR-AIRY-BOWL","Bowl de policarbonato con junta","s-low","1 ud."],
+    ["NOR-AIRY-JUNTA","Kit O-rings AIRY","s-ok","3 kits"],
+    ["VAL-MAN-LAT-14","Válvula manual latón 1/4\" BSP","s-ok","2 ud."]
+  ],
+  mani:[
+    ["NOR-CAN-BASE","Base manifold Norgren CANopen","s-no","0 ud."],
+    ["NOR-CAN-NA6U","Módulo Norgren NA6U","s-no","0 ud."],
+    ["NOR-CAN-NB6U","Módulo Norgren NB6U","s-no","0 ud."],
+    ["NOR-CAN-NC6U","Módulo Norgren NC6U","s-no","0 ud."],
+    ["NOR-CAN-NG6U","Módulo Norgren NG6U","s-no","0 ud."],
+    ["NOR-CAN-B000","Módulo Norgren B000 (final)","s-low","1 ud."],
+    ["NOR-CAN-CABLE","Cable bus CAN M12 (m)","s-low","8 m"],
+    ["NOR-SENS-P10","Sensor presión Norgren 0-10 bar","s-low","2 ud."]
+  ],
+  mang:[
+    ["NOR-PA2-BLU","Manguera Norgren PA2 azul 8mm (m)","s-ok","20 m"],
+    ["NOR-PA2-RED","Manguera Norgren PA2 roja 8mm (m)","s-ok","20 m"],
+    ["NOR-PA2-WHT","Manguera Norgren PA2 blanca 8mm (m)","s-ok","15 m"],
+    ["NOR-PUSH-RT8","Racor push-in recto Ø8 1/4\"","s-ok","15 ud."],
+    ["NOR-PUSH-90-8","Racor push-in codo 90° Ø8","s-ok","12 ud."],
+    ["NOR-PUSH-T8","Racor push-in en T Ø8","s-ok","6 ud."],
+    ["NOR-PUSH-Y8","Racor push-in en Y Ø8","s-ok","4 ud."],
+    ["NOR-CUTTER","Cortador de tubo plástico Norgren","s-ok","2 ud."]
+  ]
+};
+
+const STORAGE_KEY = 'daig-mnt-0046';
+let state = { checks:{}, form:{} };
+
+async function loadState(){
+  try{
+    const r = await window.storage.get(STORAGE_KEY);
+    if(r && r.value) state = JSON.parse(r.value);
+  }catch(e){}
+}
+async function saveState(){
+  try{ await window.storage.set(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+const itemsEl = document.getElementById('items');
+const detailEl = document.getElementById('detail');
+const ORDER = [1,2,3,4,5,6,7,8,9,10];
+
+function renderItems(){
+  itemsEl.innerHTML = '';
+  ORDER.forEach(id=>{
+    const d = DATA[id];
+    const el = document.createElement('div');
+    el.className = 'item' + (state.checks[id]?' checked':'');
+    el.dataset.id = id;
+    el.innerHTML = `
+      <div class="num">${String(id).padStart(2,'0')}</div>
+      <div class="it-body">
+        <div class="it-title">${d.title} <span class="chk-mark">✓</span></div>
+        <div class="it-sub">${d.sub}</div>
+      </div>
+      <div class="it-arrow">›</div>`;
+    el.addEventListener('click',()=>select(id));
+    itemsEl.appendChild(el);
+  });
+}
+
+function select(id){
+  document.querySelectorAll('.item').forEach(el=>{
+    el.classList.toggle('active', el.dataset.id==String(id));
+  });
+  document.querySelectorAll('.hot-group').forEach(g=>{
+    g.querySelector('.hot-circle').classList.toggle('active', g.dataset.id==String(id));
+  });
+  renderDetail(id);
+}
+
+function renderDetail(id){
+  const d = DATA[id];
+  const isChecked = !!state.checks[id];
+  detailEl.innerHTML = `
+    <span class="corner tl"></span><span class="corner tr"></span>
+    <span class="corner bl"></span><span class="corner br"></span>
+    <div class="d-head">
+      <span class="d-tag">PUNTO ${String(id).padStart(2,'0')} · ${d.tag}</span>
+      <button class="d-check-btn ${isChecked?'checked':''}" id="detail-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          ${isChecked?'<path d="M5 12l5 5L20 7"/>':'<rect x="4" y="4" width="16" height="16" rx="1"/>'}
+        </svg>
+        ${isChecked?'VERIFICADO':'MARCAR'}
+      </button>
+    </div>
+    <div class="d-title">${d.title}</div>
+    <div class="d-sub">${d.sub}</div>
+
+    <div class="d-section">
+      <h4>Función</h4>
+      <p>${d.func}</p>
+    </div>
+
+    <div class="d-section">
+      <h4>Inspección / Mantención</h4>
+      <ul>${d.inspect.map(x=>`<li>${x}</li>`).join('')}</ul>
+    </div>
+
+    <div class="d-section">
+      <h4>Diagnóstico de fallas</h4>
+      <table class="diag-table">
+        <thead><tr><th>Síntoma</th><th>Causa probable</th><th>Sev.</th><th>Acción</th></tr></thead>
+        <tbody>
+          ${d.diag.map(([s,c,sev,a])=>`
+            <tr>
+              <td><b>${s}</b></td>
+              <td>${c}</td>
+              <td><span class="sev ${sev}">${sev}</span></td>
+              <td>${a}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="d-section">
+      <h4>Especificación técnica</h4>
+      <div class="specs">
+        ${d.specs.map(([k,v])=>`<div><div class="k">${k}</div><div class="v">${v}</div></div>`).join('')}
+      </div>
+    </div>
+  `;
+  document.getElementById('detail-check').addEventListener('click',()=>toggleCheck(id));
+}
+
+const hotspotsCfg = [
+  {id:1, lead:[90,200,90,90], cx:90, cy:75, r:18},
+  {id:2, lead:[230,245,230,150], cx:230, cy:135, r:18},
+  {id:3, lead:[365,210,365,120], cx:365, cy:105, r:18},
+  {id:4, lead:[595,180,595,90], cx:595, cy:75, r:18},
+  {id:5, lead:[870,220,870,130], cx:870, cy:115, r:18},
+  {id:6, lead:[820,280,820,400], cx:820, cy:415, r:18},
+  {id:7, lead:[722,235,755,430], cx:765, cy:445, r:16},
+  {id:8, lead:[800,408,720,475], cx:705, cy:485, r:16},
+  {id:9, lead:[840,320,950,460], cx:965, cy:475, r:16},
+  {id:10, lead:[365,378,260,440], cx:245, cy:455, r:16}
+];
+
+function renderHotspots(){
+  const g = document.getElementById('hotspots');
+  g.innerHTML = '';
+  hotspotsCfg.forEach(h=>{
+    const checked = state.checks[h.id];
+    const group = document.createElementNS('http://www.w3.org/2000/svg','g');
+    group.setAttribute('class','hot-group');
+    group.dataset.id = h.id;
+    group.style.cursor = 'pointer';
+    group.innerHTML = `
+      <line class="lead-line ${checked?'checked':''}" x1="${h.lead[0]}" y1="${h.lead[1]}" x2="${h.lead[2]}" y2="${h.lead[3]}"/>
+      <circle class="hot-circle ${checked?'checked':''}" cx="${h.cx}" cy="${h.cy}" r="${h.r}"/>
+      <text class="hot-num" x="${h.cx}" y="${h.cy}">${h.id}</text>
+    `;
+    group.addEventListener('click',()=>select(h.id));
+    g.appendChild(group);
+  });
+}
+
+function renderChecklist(){
+  const el = document.getElementById('check-items');
+  el.innerHTML = '';
+  ORDER.forEach(id=>{
+    const d = DATA[id];
+    const checked = !!state.checks[id];
+    const row = document.createElement('div');
+    row.className = 'item' + (checked?' checked':'');
+    row.dataset.id = id;
+    row.style.cursor = 'pointer';
+    row.innerHTML = `
+      <div class="num">${String(id).padStart(2,'0')}</div>
+      <div class="it-body">
+        <div class="it-title">${d.title} <span class="chk-mark">✓</span></div>
+        <div class="it-sub" style="margin-bottom:6px">${d.sub}</div>
+        <div style="font-size:12px;color:var(--ink-dim);line-height:1.5">
+          ${d.inspect.map(x=>`• ${x}`).join('<br>')}
+        </div>
+      </div>
+      <div class="d-check-btn ${checked?'checked':''}" style="align-self:center">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px">
+          ${checked?'<path d="M5 12l5 5L20 7"/>':'<rect x="4" y="4" width="16" height="16" rx="1"/>'}
+        </svg>
+        ${checked?'OK':'PEND.'}
+      </div>`;
+    row.addEventListener('click',()=>toggleCheck(id));
+    el.appendChild(row);
+  });
+}
+
+async function toggleCheck(id){
+  state.checks[id] = !state.checks[id];
+  await saveState();
+  renderItems();
+  renderHotspots();
+  renderDetail(id);
+  renderChecklist();
+  updateProgress();
+  showToast(state.checks[id]?'Verificado ✓':'Pendiente');
+}
+
+function updateProgress(){
+  const total = ORDER.length;
+  const done = ORDER.filter(id=>state.checks[id]).length;
+  const pct = Math.round(done/total*100);
+  document.getElementById('progFill').style.width = pct+'%';
+  document.getElementById('progCount').textContent = done;
+  document.getElementById('progTotal').textContent = total;
+  document.getElementById('progPct').textContent = pct+'%';
+  const badge = document.getElementById('badge-check');
+  if(done>0){ badge.classList.add('show'); badge.textContent = done; }
+  else badge.classList.remove('show');
+}
+
+function renderParts(){
+  ['prep','mani','mang'].forEach(k=>{
+    const el = document.getElementById('parts-'+k);
+    el.innerHTML = PARTS[k].map(([pn,desc,stock,qty])=>{
+      const label = stock==='s-ok'?'EN STOCK':stock==='s-low'?'BAJO':'AGOTADO';
+      return `
+        <div class="parts-row">
+          <div class="pn">${pn}</div>
+          <div class="desc">${desc}</div>
+          <div class="stock ${stock}">${label} · ${qty}</div>
+        </div>`;
+    }).join('');
+  });
+}
+
+function bindForm(){
+  ['f-patente','f-fecha','f-operador','f-horometro','f-p-in','f-p-reg','f-obs'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(state.form[id]) el.value = state.form[id];
+    el.addEventListener('change',async ()=>{
+      state.form[id] = el.value;
+      await saveState();
+    });
+    el.addEventListener('input',async ()=>{
+      state.form[id] = el.value;
+      await saveState();
+    });
+  });
+}
+
+function exportReport(){
+  const f = state.form;
+  const done = ORDER.filter(id=>state.checks[id]);
+  const pend = ORDER.filter(id=>!state.checks[id]);
+  let txt = `═══════════════════════════════════════\n`;
+  txt += `REPORTE DE INSPECCIÓN · DAIG SpA\n`;
+  txt += `Sistema Neumático Norgren · CityFant 6000\n`;
+  txt += `═══════════════════════════════════════\n\n`;
+  txt += `Patente:        ${f['f-patente']||'—'}\n`;
+  txt += `Fecha:          ${f['f-fecha']||'—'}\n`;
+  txt += `Operador:       ${f['f-operador']||'—'}\n`;
+  txt += `Horómetro:      ${f['f-horometro']||'—'} h\n`;
+  txt += `P. entrada:     ${f['f-p-in']||'—'} bar\n`;
+  txt += `P. regulada:    ${f['f-p-reg']||'—'} bar\n\n`;
+  txt += `─── COMPONENTES VERIFICADOS (${done.length}/${ORDER.length}) ───\n`;
+  done.forEach(id=>{ txt += `  ✓ [${String(id).padStart(2,'0')}] ${DATA[id].title}\n`; });
+  if(pend.length){
+    txt += `\n─── PENDIENTES ───\n`;
+    pend.forEach(id=>{ txt += `  ☐ [${String(id).padStart(2,'0')}] ${DATA[id].title}\n`; });
+  }
+  if(f['f-obs']){
+    txt += `\n─── OBSERVACIONES ───\n${f['f-obs']}\n`;
+  }
+  txt += `\n═══════════════════════════════════════\n`;
+  txt += `Generado: ${new Date().toLocaleString('es-CL')}\n`;
+  txt += `DOC-TEC / DAIG-MNT-0046 v1.0\n`;
+
+  const blob = new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `inspeccion_neumatico_${f['f-patente']||'sin-patente'}_${f['f-fecha']||new Date().toISOString().slice(0,10)}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Reporte exportado');
+}
+
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const target = btn.dataset.tab;
+    document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b===btn));
+    document.querySelectorAll('.tab-content').forEach(c=>{
+      c.classList.toggle('active', c.dataset.tab===target);
+    });
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+let zoom = 1;
+const svg = document.getElementById('diagram');
+function applyZoom(){ svg.style.width = (100*zoom)+'%'; svg.style.minWidth = (720*zoom)+'px'; }
+document.getElementById('zoom-in').addEventListener('click',()=>{ zoom=Math.min(zoom+0.25,2.5); applyZoom(); });
+document.getElementById('zoom-out').addEventListener('click',()=>{ zoom=Math.max(zoom-0.25,0.75); applyZoom(); });
+document.getElementById('zoom-reset').addEventListener('click',()=>{ zoom=1; applyZoom(); });
+
+document.getElementById('btn-export').addEventListener('click',exportReport);
+document.getElementById('btn-reset').addEventListener('click',async ()=>{
+  if(confirm('¿Limpiar todas las verificaciones y datos del formulario?')){
+    state = { checks:{}, form:{} };
+    await saveState();
+    ['f-patente','f-fecha','f-operador','f-horometro','f-p-in','f-p-reg','f-obs'].forEach(id=>document.getElementById(id).value='');
+    renderItems();renderHotspots();renderChecklist();updateProgress();
+    detailEl.innerHTML = `
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="detail-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>
+        </svg>
+        <div>Toca un número en el diagrama o un componente del listado para ver su ficha técnica.</div>
+      </div>`;
+    showToast('Limpiado');
+  }
+});
+
+(async function init(){
+  await loadState();
+  if(!state.form['f-fecha']) state.form['f-fecha'] = new Date().toISOString().slice(0,10);
+  renderItems();
+  renderHotspots();
+  renderChecklist();
+  renderParts();
+  bindForm();
+  updateProgress();
+  select(3);
+})();
+</script>
+</body>
+</html>

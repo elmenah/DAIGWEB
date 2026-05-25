@@ -9,6 +9,7 @@ const AdminLogin = lazy(() => import('./admin/AdminLogin'))
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'))
 const AuthGuard = lazy(() => import('./admin/AuthGuard'))
 const DigitalPage = lazy(() => import('./pages/DigitalPage'))
+const TechDocsViewer = lazy(() => import('./pages/TechDocsViewer'))
 
 const AdminLoader = () => (
   <div className="admin-loading"><div className="admin-spinner"></div></div>
@@ -37,6 +38,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 <AuthGuard>
                   <AdminDashboard />
                 </AuthGuard>
+              </Suspense>
+            }
+          />
+          <Route
+            path="/tecnico"
+            element={
+              <Suspense fallback={<AdminLoader />}>
+                <TechDocsViewer />
               </Suspense>
             }
           />

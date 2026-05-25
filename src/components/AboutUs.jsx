@@ -74,8 +74,8 @@ function AboutUs() {
                 loading="lazy"
               />
               <div className="about-experience-badge">
-                <span className="badge-number">1</span>
-                <span className="badge-text">Año de experiencia</span>
+                <span className="badge-number">5</span>
+                <span className="badge-text">Años de experiencia</span>
               </div>
             </div>
           </div>
