@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#0f1419">
+<title>Plan de Lubricación y Fluidos · Bucher CityFant 6000 + Atego 1729 · DAIG SpA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Bebas+Neue&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1419; --bg-2:#1a2028; --panel:#161c24; --panel-2:#1c2330;
+    --line:#2a3441; --ink:#e8eef5; --ink-dim:#8a9bb0; --ink-faint:#5a6675;
+    --accent:#f97316; --accent-2:#fbbf24;
+    --ok:#5dd39e; --warn:#ffb84d; --danger:#ff4e3a; --info:#5ab9ff;
+    --grid:#1f2731;
+    --motor:#ff4e3a; --hidr:#5ab9ff; --caja:#5dd39e; --refrig:#a78bfa; --adblue:#fbbf24; --freno:#ff8b9a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px;background-position:-1px -1px}
+  .wrap{max-width:1200px;margin:0 auto;padding:14px 12px 100px}
+
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(15,20,25,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);margin:-14px -12px 14px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;color:var(--ink)}
+  .logo span{color:var(--accent)}
+  .topbar-info{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-dim);text-align:right;line-height:1.3}
+  .topbar-info b{color:var(--ok)}
+
+  .doctec{padding:10px 12px;background:var(--panel);border:1px solid var(--line);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+  .doctec-id{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);letter-spacing:.04em}
+  .doctec-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-dim)}
+
+  .tabs{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--line);background:var(--panel);margin-bottom:14px;overflow:hidden}
+  .tab{padding:12px 6px;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);cursor:pointer;border:none;background:transparent;border-right:1px solid var(--line);transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .tab:last-child{border-right:none}
+  .tab:hover{background:var(--panel-2);color:var(--ink)}
+  .tab.active{background:var(--panel-2);color:var(--accent)}
+  .tab.active::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent)}
+  .tab svg{width:18px;height:18px}
+
+  .pane{display:none;animation:fadeIn .25s}
+  .pane.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+  h2.section{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);letter-spacing:.04em;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  h2.section:first-child{margin-top:6px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);padding:14px;margin-bottom:12px}
+  .card-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+  .card-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:.03em;color:var(--ink)}
+  .card-spec{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.05em}
+  .card-body{font-size:13px;color:var(--ink);line-height:1.55}
+  .card-body p{margin:6px 0}
+  .card.motor{border-left-color:var(--motor)} .card.motor .card-title{color:var(--motor)}
+  .card.hidr{border-left-color:var(--hidr)} .card.hidr .card-title{color:var(--hidr)}
+  .card.caja{border-left-color:var(--caja)} .card.caja .card-title{color:var(--caja)}
+  .card.refrig{border-left-color:var(--refrig)} .card.refrig .card-title{color:var(--refrig)}
+  .card.adblue{border-left-color:var(--adblue)} .card.adblue .card-title{color:var(--adblue)}
+  .card.freno{border-left-color:var(--freno)} .card.freno .card-title{color:var(--freno)}
+
+  table{width:100%;border-collapse:collapse;font-size:11.5px;margin:8px 0}
+  th{text-align:left;padding:8px 6px;background:var(--panel-2);color:var(--ink-dim);font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--line)}
+  td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+
+  .pill{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:.04em;text-transform:uppercase}
+  .pill.ok{background:rgba(93,211,158,.15);color:var(--ok)}
+  .pill.warn{background:rgba(255,184,77,.15);color:var(--warn)}
+  .pill.danger{background:rgba(255,78,58,.15);color:var(--danger)}
+  .pill.info{background:rgba(90,185,255,.15);color:var(--info)}
+  .pill.accent{background:rgba(249,115,22,.15);color:var(--accent)}
+
+  .kv{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:8px 0}
+  .kv > div{padding:8px;background:var(--bg-2);border:1px solid var(--line)}
+  .kv .k{font-size:9.5px;font-family:'JetBrains Mono',monospace;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.04em}
+  .kv .v{font-size:13px;color:var(--ink);font-weight:500;margin-top:3px}
+
+  .alert{padding:10px 12px;background:rgba(255,184,77,.08);border-left:3px solid var(--warn);color:var(--ink);font-size:12px;margin:10px 0;line-height:1.5}
+  .alert.danger{background:rgba(255,78,58,.08);border-left-color:var(--danger)}
+  .alert.info{background:rgba(90,185,255,.08);border-left-color:var(--info)}
+  .alert b{color:var(--warn)}
+  .alert.danger b{color:var(--danger)}
+  .alert.info b{color:var(--info)}
+
+  .stock-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:8px 0}
+  .stock-item{padding:12px 10px;background:var(--bg-2);border:1px solid var(--line);text-align:center}
+  .stock-qty{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);line-height:1}
+  .stock-desc{font-size:10.5px;color:var(--ink-dim);margin-top:4px;line-height:1.3}
+
+  .footer{padding:14px;text-align:center;color:var(--ink-faint);font-size:10px;font-family:'JetBrains Mono',monospace;border-top:1px solid var(--line);margin-top:24px}
+
+  @media(min-width:768px){
+    .kv{grid-template-columns:repeat(4,1fr)}
+    .tab{font-size:10.5px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="topbar">
+  <a href="HUB_consolidado_camion_barredor.html" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,78,58,.15);color:#ff4e3a;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid #ff4e3a;border-radius:3px;transition:all .15s;margin-right:8px" onmouseover="this.style.background='#ff4e3a';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,78,58,.15)';this.style.color='#ff4e3a'">← HUB</a><span style="color:#5a6675;font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;margin-right:6px">VER TAMBIÉN</span><a href="plano_circuito_hidraulico.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(255,78,58,.10);color:#ff4e3a;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(255,78,58,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0048 HIDR P&amp;ID</a><a href="conjunto_barrido_lateral_interactivo_v1.1.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(255,184,77,.10);color:#ffb84d;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(255,184,77,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0043 BARRIDO</a><div class="logo">DAIG <span>SpA</span></div>
+  <div class="topbar-info">
+    <div>DOC-TEC · DAIG-MNT-0047</div>
+    <div><b>● VIGENTE</b> · v1.0</div>
+  </div>
+</header>
+
+<div class="doctec">
+  <div>
+    <div class="doctec-id">PLAN DE LUBRICACIÓN Y FLUIDOS</div>
+    <div class="doctec-meta">Bucher CityFant 6000 (V Range) · Mercedes-Benz Atego 1729 · Flota PVSA</div>
+  </div>
+  <div class="doctec-meta" style="text-align:right">REV. 1 — 25·MAY·2026</div>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-pane="motor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 17h6m-3-3v6M3 17v.5a1.5 1.5 0 003 0V17M3 17h3m-3 0v-7a3 3 0 013-3h2l2-2h6l2 2h2a3 3 0 013 3v3"/></svg>MOTOR</button>
+  <button class="tab" data-pane="hidr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6M8 8h8l-2 4h-4l-2-4zm2 4v8a2 2 0 002 2h0a2 2 0 002-2v-8"/></svg>HIDRÁULICO</button>
+  <button class="tab" data-pane="trans"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 10v6m11-11h-6M7 12H1"/></svg>TRANSM</button>
+  <button class="tab" data-pane="otros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>OTROS</button>
+  <button class="tab" data-pane="stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a1 1 0 00-1 1v11a1 1 0 001 1h16a1 1 0 001-1V8a1 1 0 00-1-1zM16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>BODEGA</button>
+</nav>
+
+<!-- ═══════════════ PANE MOTOR ═══════════════ -->
+<div class="pane active" id="pane-motor">
+  <h2 class="section">Motor diesel · Mercedes-Benz Atego 1729 (OM 936 LA)</h2>
+
+  <div class="card motor">
+    <div class="card-h">
+      <div class="card-title">Aceite de motor</div>
+      <span class="pill danger">CRÍTICO</span>
+    </div>
+    <div class="card-body">
+      <p><b>Especificación:</b> SAE 10W-40 sintético <b>Low SAPS</b> · normas <b>ACEA E6 / E7 / E9</b> · <b>MB-Approval 228.5</b>.</p>
+      <div class="kv">
+        <div><div class="k">CAPACIDAD CARTER</div><div class="v">~24 L con filtro</div></div>
+        <div><div class="k">INTERVALO OEM</div><div class="v">40.000 km · 600 h · 1 año</div></div>
+        <div><div class="k">INTERVALO PVSA</div><div class="v">20.000 km · 400 h <span class="pill warn">SEVERO</span></div></div>
+        <div><div class="k">MOTOR</div><div class="v">OM 936 LA · 6 cil. · 7.7 L</div></div>
+      </div>
+      <p style="margin-top:10px"><b>Marcas Chile (cualquiera cumple):</b></p>
+      <table>
+        <tr><th>Marca · Producto</th><th>Notas</th></tr>
+        <tr><td><b>Shell Rimula R6 LM 10W-40</b></td><td><span class="pill ok">Más usada en flotas MB en Chile</span></td></tr>
+        <tr><td>Mobil Delvac MX Extra 10W-40</td><td>Premium, larga vida</td></tr>
+        <tr><td>Castrol Vecton Long Drain 10W-40 E6/E9</td><td>Long drain, compatible 228.5</td></tr>
+        <tr><td>Petrobras Lubrax Top Turbo SN 10W-40</td><td><span class="pill info">Alternativa nacional, más económica</span></td></tr>
+      </table>
+      <div class="alert info"><b>Nota:</b> si el Atego es Euro V (sin SCR completo) puede aceptar norma MB 228.3 (10W-40 mineral o semisintético). La 228.5 es siempre compatible hacia atrás.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PANE HIDRÁULICO ═══════════════ -->
+<div class="pane" id="pane-hidr">
+  <h2 class="section">Hidráulico · Implemento Bucher CityFant 6000</h2>
+
+  <div class="card hidr">
+    <div class="card-h">
+      <div class="card-title">Aceite hidráulico Bucher</div>
+      <span class="pill danger">CRÍTICO</span>
+    </div>
+    <div class="card-body">
+      <p><b>Especificación:</b> <b>HLP 46</b> · ISO VG 46 · ISO 11158 HM · DIN 51524 parte 2 HLP.</p>
+      <p>Acciona: bomba, bloques Hydraforce, cilindros, motor WHITE Drive 200, turbina de aspiración.</p>
+      <div class="kv">
+        <div><div class="k">CAPACIDAD ESTANQUE</div><div class="v">80–120 L (Vh) · hasta 150 L</div></div>
+        <div><div class="k">INTERVALO CAMBIO</div><div class="v">1000 h · 2 años</div></div>
+        <div><div class="k">FILTRO RETORNO</div><div class="v">10 µm · 500 h o cambio aceite</div></div>
+        <div><div class="k">P/N BUCHER (REF)</div><div class="v">94-12 (Renolin B46 HVI OEM)</div></div>
+      </div>
+      <p style="margin-top:10px"><b>Marcas Chile equivalentes:</b></p>
+      <table>
+        <tr><th>Marca · Producto</th><th>Notas</th></tr>
+        <tr><td><b>Shell Tellus S2 M 46</b></td><td><span class="pill ok">La más usada y disponible en Chile</span></td></tr>
+        <tr><td>Mobil DTE 25 Ultra · DTE 10 Excel 46</td><td><span class="pill accent">Premium · mejor estabilidad térmica</span></td></tr>
+        <tr><td>Castrol Hyspin AWS 46 · Hyspin HVI 46</td><td>HVI = alta viscosidad índice</td></tr>
+        <tr><td>Petrobras Lubrax Hydra XP 46</td><td><span class="pill info">Alternativa nacional</span></td></tr>
+        <tr><td>Copec Hydraulic AW 46</td><td>Anti-wear</td></tr>
+      </table>
+      <div class="alert"><b>Análisis de aceite cada 500 h:</b> SGS Valparaíso o ALS Chile. Detecta desgaste de bomba, contaminación con agua o partículas antes de daño catastrófico. Mejor inversión preventiva para flotas pequeñas.</div>
+    </div>
+  </div>
+
+  <div class="alert danger"><b>⚠ NUNCA mezclar hidráulico con aceite de motor.</b> El aceite de motor tiene aditivos detergentes que en el sistema hidráulico generan espuma y degradan todo en horas. Etiquetar bidones con colores distintos o cinta de seguridad amarilla.</div>
+</div>
+
+<!-- ═══════════════ PANE TRANSMISIÓN ═══════════════ -->
+<div class="pane" id="pane-trans">
+  <h2 class="section">Transmisión · Atego 1729</h2>
+
+  <div class="card caja">
+    <div class="card-h">
+      <div class="card-title">Caja de cambios (manual o automatizada)</div>
+      <span class="pill warn">240.000 km</span>
+    </div>
+    <div class="card-body">
+      <p><b>Especificación:</b> 75W-90 sintético · norma <b>MB 235.11</b>.</p>
+      <div class="kv">
+        <div><div class="k">CAPACIDAD</div><div class="v">~7–9 L</div></div>
+        <div><div class="k">INTERVALO</div><div class="v">240.000 km</div></div>
+      </div>
+      <p style="margin-top:8px"><b>Marcas:</b> Mobil Mobilube SHC · Shell Spirax S6 GXME 75W-80</p>
+    </div>
+  </div>
+
+  <div class="card caja">
+    <div class="card-h">
+      <div class="card-title">Diferencial trasero</div>
+      <span class="pill warn">240.000 km</span>
+    </div>
+    <div class="card-body">
+      <p><b>Especificación:</b> 80W-90 o 75W-90 · norma <b>MB 235.0</b>.</p>
+      <div class="kv">
+        <div><div class="k">CAPACIDAD</div><div class="v">~12–14 L</div></div>
+        <div><div class="k">INTERVALO</div><div class="v">240.000 km</div></div>
+      </div>
+      <p style="margin-top:8px"><b>Marcas:</b> Shell Spirax S3 AX 80W-90 · Mobil Mobilube HD 80W-90</p>
+    </div>
+  </div>
+
+  <div class="card caja">
+    <div class="card-h">
+      <div class="card-title">Dirección hidráulica</div>
+      <span class="pill info">2 L</span>
+    </div>
+    <div class="card-body">
+      <p><b>Especificación:</b> ATF Dexron III o aceite específico <b>MB 236.3</b> · Capacidad ~2 L</p>
+    </div>
+  </div>
+
+  <div class="alert info"><b>Hidrodrive HGB II (transmisión Bucher Vh):</b> Capacidad 7.5 L · API GL-4/GL-5 · <b>P/N Bucher 94-67</b> · Titan Cytrac HSY 75W-90 (revisar nivel mensual en RUTINA_MENSUAL).</div>
+</div>
+
+<!-- ═══════════════ PANE OTROS ═══════════════ -->
+<div class="pane" id="pane-otros">
+  <h2 class="section">Refrigerante · AdBlue · Frenos</h2>
+
+  <div class="card refrig">
+    <div class="card-h">
+      <div class="card-title">Refrigerante motor Atego</div>
+      <span class="pill info">3 años</span>
+    </div>
+    <div class="card-body">
+      <p><b>Especificación:</b> anticongelante glicol etilénico premezclado al <b>50%</b> · norma <b>MB 325.5</b> (color azul/morado o rojo según fabricante).</p>
+      <div class="kv">
+        <div><div class="k">CAPACIDAD</div><div class="v">~24–28 L</div></div>
+        <div><div class="k">INTERVALO</div><div class="v">3 años</div></div>
+      </div>
+      <p style="margin-top:8px"><b>P/N Bucher (auxiliar):</b> 94-21 Fricofrin HDD (motor auxiliar V Range Vt, no aplica a Vh)</p>
+    </div>
+  </div>
+
+  <div class="card adblue">
+    <div class="card-h">
+      <div class="card-title">AdBlue (DEF)</div>
+      <span class="pill ok">ISO 22241-1</span>
+    </div>
+    <div class="card-body">
+      <p><b>Especificación:</b> ISO 22241-1 · urea al <b>32.5%</b> en agua desmineralizada.</p>
+      <p>Bidón blanco con tapón naranja en panel central (visible en hotspot del DOC-0045).</p>
+      <div class="kv">
+        <div><div class="k">CAPACIDAD ESTANQUE</div><div class="v">~25 L</div></div>
+        <div><div class="k">CONSUMO</div><div class="v">4–6% del diesel</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card freno">
+    <div class="card-h">
+      <div class="card-title">Líquido de frenos</div>
+      <span class="pill warn">2 años</span>
+    </div>
+    <div class="card-body">
+      <p><b>Especificación:</b> DOT 4 plus · norma <b>MB 331.0</b>.</p>
+      <p><b>Intervalo:</b> Cambio cada 2 años (higroscópico — pierde punto de ebullición con humedad).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PANE STOCK BODEGA ═══════════════ -->
+<div class="pane" id="pane-stock">
+  <h2 class="section">Stock mínimo · Bodega Puchuncaví</h2>
+
+  <p style="font-size:12px;color:var(--ink-dim);margin-bottom:12px">Recomendación para mantener autonomía de la flota PVSA (2 camiones SR·XF·37 / RR·KH·97) sin depender de logística externa urgente.</p>
+
+  <div class="stock-grid">
+    <div class="stock-item"><div class="stock-qty">1×</div><div class="stock-desc">Tambor 208 L<br><b>Shell Rimula R6 LM 10W-40</b><br>Motor Atego — cubre 2 cambios</div></div>
+    <div class="stock-item"><div class="stock-qty">1×</div><div class="stock-desc">Tambor 208 L<br><b>Shell Tellus S2 M 46</b><br>Hidráulico Bucher — 2 cambios</div></div>
+    <div class="stock-item"><div class="stock-qty">20 L</div><div class="stock-desc"><b>Mobilube SHC 75W-90</b><br>Caja cambios</div></div>
+    <div class="stock-item"><div class="stock-qty">20 L</div><div class="stock-desc"><b>Shell Spirax S3 80W-90</b><br>Diferencial</div></div>
+    <div class="stock-item"><div class="stock-qty">25 L</div><div class="stock-desc"><b>AdBlue ISO 22241</b><br>1 garrafa</div></div>
+    <div class="stock-item"><div class="stock-qty">5 L</div><div class="stock-desc"><b>DOT 4 plus</b><br>Líquido de frenos</div></div>
+  </div>
+
+  <h2 class="section">Recomendaciones operativas DAIG</h2>
+
+  <div class="alert"><b>1. No mezclar marcas dentro del mismo circuito.</b> Si te quedas sin la marca habitual y debes rellenar con otra, hazlo solo como medida temporal y planifica un cambio completo en el siguiente servicio.</div>
+
+  <div class="alert danger"><b>2. Etiquetado obligatorio de bidones intermedios.</b> Error más común en talleres: rellenar hidráulico Bucher con aceite de motor. Pinta los bidones de colores distintos o etiquétalos con cinta amarilla de seguridad.</div>
+
+  <div class="alert info"><b>3. Análisis de aceite hidráulico cada 500 h.</b> SGS Valparaíso o ALS Chile. Reporte de desgaste (hierro, cobre), partículas > 10 µm, agua, viscosidad real. Información de oro para mantención predictiva.</div>
+
+  <div class="alert"><b>4. Registro de cambios:</b> usar la hoja CONTROL_MAYO_2024 del libro #230 para anotar fecha, km, h, marca, lote, técnico responsable. Mantener trazabilidad ante auditoría PVSA.</div>
+</div>
+
+<footer class="footer">
+  DOC-TEC · DAIG-MNT-0047 · v1.0 · USO INTERNO DAIG SpA · 25-MAY-2026<br>
+  Referencias: Bucher V Range Operator's Guide 01294-1-ES Rev C · MB Atego 1729 Service Manual · ACEA · ISO 22241
+</footer>
+
+</div>
+
+<script>
+const tabs=document.querySelectorAll('.tab');
+const panes=document.querySelectorAll('.pane');
+tabs.forEach(t=>t.addEventListener('click',()=>{
+  tabs.forEach(x=>x.classList.remove('active'));
+  panes.forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  document.getElementById('pane-'+t.dataset.pane).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}));
+</script>
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bloque Hidráulico Bucher CityFant 6000 — DAIG SpA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Bebas+Neue&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1419;
+    --bg-2:#1a2028;
+    --panel:#161c24;
+    --line:#2a3441;
+    --ink:#e8eef5;
+    --ink-dim:#8a9bb0;
+    --accent:#ff4e3a;     /* rojo Bucher / faena */
+    --accent-2:#ffb84d;   /* ámbar / atención */
+    --ok:#5dd39e;
+    --info:#5ab9ff;
+    --grid:#1f2731;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+  body{
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:40px 40px;
+    background-position:-1px -1px;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:24px 16px 80px}
+
+  /* HEADER */
+  header{
+    border:1px solid var(--line);
+    background:linear-gradient(180deg,#1a2028 0%,#11161d 100%);
+    padding:18px 18px 16px;
+    margin-bottom:18px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--accent) 0%,var(--accent) 30%,var(--accent-2) 30%,var(--accent-2) 60%,var(--ok) 60%,var(--ok) 100%);
+  }
+  .tag-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:.08em;
+    padding:3px 8px;border:1px solid var(--line);
+    color:var(--ink-dim);text-transform:uppercase;
+  }
+  .tag.hot{border-color:var(--accent);color:var(--accent)}
+  h1{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(28px,6vw,44px);
+    letter-spacing:.02em;line-height:1;
+    margin-bottom:6px;
+  }
+  h1 .sub{color:var(--accent);}
+  .meta{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;color:var(--ink-dim);
+    margin-top:6px;
+    display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;
+  }
+  .meta span b{color:var(--ink);font-weight:500}
+
+  /* SVG STAGE */
+  .stage{
+    border:1px solid var(--line);
+    background:
+      radial-gradient(ellipse at 50% 40%,#1d2530 0%,#0d1218 70%);
+    padding:16px 8px 8px;
+    margin-bottom:18px;
+    position:relative;
+  }
+  .stage-label{
+    position:absolute;top:10px;left:14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;color:var(--ink-dim);letter-spacing:.1em;
+  }
+  .stage-label .dot{display:inline-block;width:6px;height:6px;background:var(--accent);border-radius:50%;margin-right:6px;animation:blink 2s infinite}
+  @keyframes blink{50%{opacity:.3}}
+  svg{width:100%;height:auto;display:block;max-width:100%;touch-action:manipulation}
+
+  /* HOTSPOTS */
+  .hot-circle{
+    fill:rgba(255,78,58,.15);
+    stroke:var(--accent);stroke-width:2;
+    cursor:pointer;
+    transition:all .2s;
+  }
+  .hot-circle:hover,.hot-circle.active{
+    fill:rgba(255,78,58,.4);
+    stroke:#fff;
+    filter:drop-shadow(0 0 8px var(--accent));
+  }
+  .hot-num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;font-weight:700;
+    fill:#fff;text-anchor:middle;dominant-baseline:central;
+    pointer-events:none;
+  }
+  .lead-line{stroke:var(--accent);stroke-width:1;stroke-dasharray:3 3;opacity:.5}
+
+  /* LEGEND / DETAIL PANEL */
+  .grid-2{display:grid;grid-template-columns:1fr;gap:14px}
+  @media(min-width:780px){.grid-2{grid-template-columns:1.1fr .9fr}}
+
+  .list{
+    border:1px solid var(--line);
+    background:var(--panel);
+  }
+  .list-h{
+    padding:10px 14px;border-bottom:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    letter-spacing:.12em;color:var(--ink-dim);
+    text-transform:uppercase;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .list-h b{color:var(--accent);}
+  .item{
+    padding:12px 14px;border-bottom:1px solid var(--line);
+    cursor:pointer;display:flex;gap:12px;align-items:flex-start;
+    transition:background .15s;
+  }
+  .item:last-child{border-bottom:none}
+  .item:hover{background:#1c2330}
+  .item.active{background:#1f2a38;border-left:3px solid var(--accent);padding-left:11px}
+  .num{
+    flex-shrink:0;
+    width:28px;height:28px;
+    border:1px solid var(--accent);color:var(--accent);
+    font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .item.active .num{background:var(--accent);color:#fff}
+  .it-body{flex:1;min-width:0}
+  .it-title{font-size:14px;font-weight:500;margin-bottom:2px}
+  .it-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim)}
+
+  /* DETAIL */
+  .detail{
+    border:1px solid var(--line);
+    background:var(--panel);
+    padding:18px;
+    position:sticky;top:12px;
+  }
+  .detail-empty{color:var(--ink-dim);font-size:13px;text-align:center;padding:30px 10px}
+  .detail-empty svg{width:40px;height:40px;opacity:.4;margin-bottom:10px}
+  .d-tag{
+    display:inline-block;
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    padding:2px 7px;border:1px solid var(--accent);color:var(--accent);
+    letter-spacing:.08em;margin-bottom:10px;
+  }
+  .d-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.02em;line-height:1.05;margin-bottom:4px}
+  .d-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent-2);margin-bottom:14px}
+  .d-section{margin-top:14px}
+  .d-section h4{
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink-dim);margin-bottom:6px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .d-section h4::before{content:"";width:8px;height:1px;background:var(--accent)}
+  .d-section p{font-size:13.5px;line-height:1.55;color:var(--ink)}
+  .d-section ul{font-size:13px;line-height:1.55;padding-left:18px}
+  .d-section li{margin-bottom:3px}
+  .d-section li::marker{color:var(--accent)}
+
+  /* SPEC GRID */
+  .specs{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);margin-top:6px}
+  .specs div{background:var(--panel);padding:8px 10px}
+  .specs .k{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--ink-dim);letter-spacing:.08em;text-transform:uppercase}
+  .specs .v{font-size:13px;font-weight:500;margin-top:2px}
+
+  /* FOOTER */
+  footer{
+    margin-top:24px;padding:14px;
+    border:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;
+    color:var(--ink-dim);letter-spacing:.05em;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;
+  }
+  footer b{color:var(--accent)}
+
+  /* corner ticks */
+  .corner{position:absolute;width:10px;height:10px;border:1px solid var(--accent)}
+  .corner.tl{top:-1px;left:-1px;border-right:none;border-bottom:none}
+  .corner.tr{top:-1px;right:-1px;border-left:none;border-bottom:none}
+  .corner.bl{bottom:-1px;left:-1px;border-right:none;border-top:none}
+  .corner.br{bottom:-1px;right:-1px;border-left:none;border-top:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header>
+    <span class="corner tl"></span><span class="corner tr"></span>
+    <span class="corner bl"></span><span class="corner br"></span>
+    <div class="tag-row">
+      <a href="HUB_consolidado_camion_barredor.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(255,78,58,.15);color:#ff4e3a;text-decoration:none;font-family:monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;border:1px solid #ff4e3a;border-radius:3px">← HUB</a>
+      <a href="bloque_hidraulico_interactivo_colaboradores.html" style="display:inline-flex;align-items:center;padding:4px 8px;background:rgba(255,78,58,.10);color:#ff4e3a;text-decoration:none;font-family:monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(255,78,58,.4);border-radius:3px;white-space:nowrap">0042 FICHA</a>
+      <a href="plano_circuito_hidraulico.html" style="display:inline-flex;align-items:center;padding:4px 8px;background:rgba(255,78,58,.10);color:#ff4e3a;text-decoration:none;font-family:monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(255,78,58,.4);border-radius:3px;white-space:nowrap">0048 PLANO</a>
+      <span class="tag hot">● EN SERVICIO</span>
+      <span class="tag">DOC-TEC / DAIG-MNT-0042</span>
+      <span class="tag">REV. 1 — 23·MAY·2026</span>
+    </div>
+    <h1>BLOQUE HIDRÁULICO <span class="sub">/ CITYFANT 6000</span></h1>
+    <p style="color:var(--ink-dim);font-size:13px;max-width:680px;margin-top:4px">
+      Manifold de electroválvulas Hydraforce — circuito de control del implemento de barrido y aspiración sobre chasis Mercedes-Benz Atego 1729.
+    </p>
+    <div class="meta">
+      <span>EQUIPO · <b>Bucher CityFant 6000</b></span>
+      <span>CHASIS · <b>MB Atego 1729</b></span>
+      <span>PATENTES · <b>SR·XF·37 / RR·KH·97</b></span>
+      <span>OPERACIÓN · <b>PVSA · Puchuncaví</b></span>
+    </div>
+  </header>
+
+  <!-- SVG STAGE -->
+  <div class="stage">
+    <span class="corner tl"></span><span class="corner tr"></span>
+    <span class="corner bl"></span><span class="corner br"></span>
+    <div class="stage-label"><span class="dot"></span>VISTA INFERIOR · SUBCHASIS LADO IZQUIERDO</div>
+
+    <svg viewBox="0 0 800 560" xmlns="http://www.w3.org/2000/svg" id="stage">
+      <!-- background structural elements -->
+      <defs>
+        <pattern id="hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#2a3441" stroke-width="1.2"/>
+        </pattern>
+        <linearGradient id="frameGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#3a4654"/>
+          <stop offset="100%" stop-color="#1e2731"/>
+        </linearGradient>
+        <linearGradient id="blockGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#c8cdd4"/>
+          <stop offset="100%" stop-color="#7a8290"/>
+        </linearGradient>
+      </defs>
+
+      <!-- chassis top edge (cabina/cuerpo) -->
+      <rect x="0" y="20" width="800" height="60" fill="#2c3340" opacity=".6"/>
+      <line x1="0" y1="80" x2="800" y2="80" stroke="#3a4654" stroke-width="1"/>
+
+      <!-- red subframe rail -->
+      <rect x="0" y="110" width="800" height="22" fill="#c43a2a"/>
+      <rect x="0" y="110" width="800" height="4" fill="#ff5a45" opacity=".6"/>
+
+      <!-- main chassis rail (gray) -->
+      <rect x="0" y="190" width="800" height="180" fill="url(#frameGrad)"/>
+      <!-- chassis holes -->
+      <g fill="#0d1218">
+        <circle cx="120" cy="280" r="7"/>
+        <circle cx="180" cy="260" r="7"/>
+        <circle cx="240" cy="280" r="7"/>
+        <circle cx="300" cy="260" r="7"/>
+        <circle cx="500" cy="240" r="9"/>
+        <circle cx="560" cy="240" r="9"/>
+        <circle cx="620" cy="240" r="9"/>
+        <circle cx="680" cy="240" r="9"/>
+        <circle cx="740" cy="240" r="9"/>
+        <circle cx="500" cy="300" r="6"/>
+        <circle cx="560" cy="300" r="6"/>
+      </g>
+
+      <!-- spring bracket (MB) right -->
+      <path d="M 600 370 L 760 370 L 770 480 L 720 510 L 640 510 L 590 480 Z" fill="#1a2028" stroke="#3a4654" stroke-width="1"/>
+      <text x="680" y="450" font-family="JetBrains Mono" font-size="9" fill="#5a6675" text-anchor="middle">A 9** 325 32**</text>
+
+      <!-- ground -->
+      <rect x="0" y="510" width="800" height="50" fill="url(#hatch)" opacity=".4"/>
+
+      <!-- HYDRAULIC BLOCK (the manifold) -->
+      <g id="manifold">
+        <!-- shadow -->
+        <rect x="265" y="148" width="220" height="180" fill="#000" opacity=".35"/>
+        <!-- block body -->
+        <rect x="260" y="143" width="220" height="180" fill="url(#blockGrad)" stroke="#4a5260" stroke-width="1.5"/>
+        <!-- top ports (codos) -->
+        <circle cx="305" cy="143" r="14" fill="#5a6370" stroke="#2a3441" stroke-width="1"/>
+        <circle cx="360" cy="143" r="14" fill="#5a6370" stroke="#2a3441" stroke-width="1"/>
+        <rect x="295" y="115" width="20" height="30" fill="#6a7280" stroke="#2a3441"/>
+        <rect x="350" y="115" width="20" height="30" fill="#6a7280" stroke="#2a3441"/>
+        <line x1="305" y1="115" x2="305" y2="80" stroke="#3a4654" stroke-width="3"/>
+        <line x1="360" y1="115" x2="360" y2="80" stroke="#3a4654" stroke-width="3"/>
+
+        <!-- front cartridge ports (the 2 dark holes) -->
+        <circle cx="305" cy="195" r="16" fill="#1a1f26" stroke="#3a4654" stroke-width="1.5"/>
+        <circle cx="360" cy="195" r="16" fill="#1a1f26" stroke="#3a4654" stroke-width="1.5"/>
+        <circle cx="305" cy="195" r="10" fill="#0d1218"/>
+        <circle cx="360" cy="195" r="10" fill="#0d1218"/>
+
+        <!-- solenoid coils (grises con conector DIN) -->
+        <g id="sol1">
+          <rect x="285" y="230" width="40" height="55" rx="3" fill="#8a8f96" stroke="#3a4654"/>
+          <rect x="290" y="235" width="30" height="45" fill="#6a7078"/>
+          <rect x="295" y="285" width="20" height="10" fill="#3a3f46"/>
+        </g>
+        <g id="sol2">
+          <rect x="340" y="230" width="40" height="55" rx="3" fill="#8a8f96" stroke="#3a4654"/>
+          <rect x="345" y="235" width="30" height="45" fill="#6a7078"/>
+          <rect x="350" y="285" width="20" height="10" fill="#3a3f46"/>
+        </g>
+
+        <!-- bolts (Hydraforce stamped nuts) -->
+        <polygon points="305,255 320,265 320,280 305,290 290,280 290,265" fill="#9aa0a8" stroke="#2a3441"/>
+        <polygon points="360,255 375,265 375,280 360,290 345,280 345,265" fill="#9aa0a8" stroke="#2a3441"/>
+
+        <!-- right side valves with labels -->
+        <rect x="395" y="175" width="80" height="60" fill="#d4d8de" stroke="#3a4654"/>
+        <rect x="400" y="180" width="70" height="50" fill="#fff" stroke="#3a4654" stroke-width=".5"/>
+        <text x="435" y="195" font-family="JetBrains Mono" font-size="7" fill="#2a3441" text-anchor="middle">H-8V1  H-8V3</text>
+        <text x="435" y="207" font-family="JetBrains Mono" font-size="7" fill="#2a3441" text-anchor="middle">H-9V1  Y.300</text>
+        <text x="435" y="219" font-family="JetBrains Mono" font-size="6" fill="#2a3441" text-anchor="middle">4305684 / Y.012</text>
+
+        <!-- coil right -->
+        <rect x="395" y="240" width="40" height="55" rx="3" fill="#8a8f96" stroke="#3a4654"/>
+        <rect x="400" y="245" width="30" height="45" fill="#6a7078"/>
+      </g>
+
+      <!-- electrical loom -->
+      <path d="M 200 50 Q 240 90 260 150 Q 270 200 290 230" stroke="#1a1f26" stroke-width="6" fill="none" opacity=".7"/>
+      <path d="M 200 50 Q 240 90 260 150 Q 270 200 290 230" stroke="#3a4654" stroke-width="2" fill="none" stroke-dasharray="2 3"/>
+
+      <!-- air hose blue -->
+      <path d="M 60 540 L 60 400 Q 60 350 90 320 L 130 290" stroke="#3b8fd9" stroke-width="4" fill="none"/>
+      <path d="M 60 540 L 60 400 Q 60 350 90 320 L 130 290" stroke="#5ab9ff" stroke-width="1.5" fill="none"/>
+
+      <!-- accumulator cylinder bottom left -->
+      <rect x="40" y="380" width="42" height="160" fill="#9aa0a8" stroke="#3a4654" rx="3"/>
+      <rect x="40" y="380" width="42" height="20" fill="#7a8088" stroke="#3a4654"/>
+
+      <!-- HOTSPOTS (interactive) -->
+      <g id="hotspots">
+        <g class="hot-group" data-id="1">
+          <line class="lead-line" x1="370" y1="143" x2="560" y2="80"/>
+          <circle class="hot-circle" cx="560" cy="80" r="18"/>
+          <text class="hot-num" x="560" y="80">1</text>
+        </g>
+        <g class="hot-group" data-id="2">
+          <line class="lead-line" x1="370" y1="220" x2="160" y2="160"/>
+          <circle class="hot-circle" cx="160" cy="160" r="18"/>
+          <text class="hot-num" x="160" y="160">2</text>
+        </g>
+        <g class="hot-group" data-id="3">
+          <line class="lead-line" x1="330" y1="265" x2="180" y2="380"/>
+          <circle class="hot-circle" cx="180" cy="380" r="18"/>
+          <text class="hot-num" x="180" y="380">3</text>
+        </g>
+        <g class="hot-group" data-id="4">
+          <line class="lead-line" x1="335" y1="195" x2="170" y2="450"/>
+          <circle class="hot-circle" cx="170" cy="450" r="18"/>
+          <text class="hot-num" x="170" y="450">4</text>
+        </g>
+        <g class="hot-group" data-id="5">
+          <line class="lead-line" x1="435" y1="200" x2="620" y2="140"/>
+          <circle class="hot-circle" cx="620" cy="140" r="18"/>
+          <text class="hot-num" x="620" y="140">5</text>
+        </g>
+        <g class="hot-group" data-id="6">
+          <line class="lead-line" x1="60" y1="450" x2="60" y2="495"/>
+          <circle class="hot-circle" cx="60" cy="510" r="16"/>
+          <text class="hot-num" x="60" y="510">6</text>
+        </g>
+        <g class="hot-group" data-id="7">
+          <line class="lead-line" x1="680" y1="450" x2="730" y2="430"/>
+          <circle class="hot-circle" cx="745" cy="425" r="16"/>
+          <text class="hot-num" x="745" y="425">7</text>
+        </g>
+        <g class="hot-group" data-id="8">
+          <line class="lead-line" x1="200" y1="50" x2="115" y2="50"/>
+          <circle class="hot-circle" cx="100" cy="50" r="16"/>
+          <text class="hot-num" x="100" y="50">8</text>
+        </g>
+      </g>
+
+      <!-- center crosshair / scale -->
+      <g opacity=".4">
+        <line x1="370" y1="335" x2="370" y2="355" stroke="#ffb84d" stroke-width="1"/>
+        <line x1="360" y1="345" x2="380" y2="345" stroke="#ffb84d" stroke-width="1"/>
+        <text x="385" y="349" font-family="JetBrains Mono" font-size="8" fill="#ffb84d">P.REF</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- LEGEND + DETAIL -->
+  <div class="grid-2">
+    <div class="list">
+      <div class="list-h"><span>COMPONENTES</span><b>08 IDENTIFICADOS</b></div>
+      <div id="items"></div>
+    </div>
+
+    <div class="detail" id="detail">
+      <div class="detail-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>
+        </svg>
+        <div>Selecciona un componente en el esquema<br>o en el listado para ver su detalle técnico.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>DAIG SpA · MANTENCIÓN INDUSTRIAL · <b>RUT 77.702.886-3</b></span>
+    <span>FICHA TÉCNICA · USO INTERNO</span>
+  </footer>
+</div>
+
+<script>
+const DATA = {
+  1: {
+    tag:"P / T",
+    title:"Líneas de presión y retorno",
+    sub:"Codos 90° · racores ORFS / JIC",
+    func:"Alimentación hidráulica principal del manifold desde la bomba accionada por la PTO del Atego. Una línea entrega caudal a presión (P) y la otra retorna el aceite al estanque (T).",
+    inspect:[
+      "Verificar ausencia de micro-fugas en racores (manchas húmedas/brillo).",
+      "Par de apriete según norma del fabricante del racor (no sobre-apretar).",
+      "Inspeccionar protección anti-vibración y abrazaderas."
+    ],
+    specs:[["TIPO","Codo 90° hidráulico"],["FLUIDO","Aceite HLP 46"],["PRESIÓN","≈ 180–210 bar"],["TEMP. OP.","40–70 °C"]]
+  },
+  2: {
+    tag:"BLOCK",
+    title:"Manifold Hydraforce",
+    sub:"Bloque distribuidor de aluminio anodizado",
+    func:"Cuerpo central que aloja las cartridge valves y cartuchos solenoide. Distribuye el caudal hidráulico hacia los actuadores del implemento (cepillos, turbina, compuerta de tolva, brazo de aspiración).",
+    inspect:[
+      "Limpieza externa con desengrasante + aire comprimido.",
+      "Revisar pintura/anodizado y ausencia de corrosión galvánica.",
+      "Confirmar fijación al subchasis (4 tornillos en patrón rectangular)."
+    ],
+    specs:[["MARCA","Hydraforce"],["MATERIAL","Aluminio 6061-T6"],["P. MÁX","250 bar"],["MONTAJE","Subchasis Bucher"]]
+  },
+  3: {
+    tag:"SOL · 1/2",
+    title:"Electroválvulas solenoide",
+    sub:"Bobinas DIN 24 VDC · H-8V1 / H-9V1",
+    func:"Convierten la señal eléctrica del PLC/mando del operador en apertura/cierre del cartucho hidráulico. Comandan funciones discretas: subir/bajar cepillo, accionar turbina, abrir/cerrar compuerta.",
+    inspect:[
+      "Continuidad de bobina con multímetro (resistencia típica 6–8 Ω a 24V).",
+      "Sellado del conector DIN tipo A — punto sensible al polvo de Ventanas.",
+      "Limpieza del vástago del cartridge si hay atascos intermitentes."
+    ],
+    specs:[["TENSIÓN","24 VDC"],["CONECTOR","DIN 43650-A"],["IP","IP65"],["CONSUMO","≈ 1.2 A"]]
+  },
+  4: {
+    tag:"CART",
+    title:"Cartridge valves",
+    sub:"Válvulas tipo cartucho Hydraforce",
+    func:"Elementos hidráulicos roscados al bloque que abren/cierran el paso de aceite cuando la bobina se energiza. Se identifican por la tuerca hexagonal con la marca HYDRAFORCE grabada.",
+    inspect:[
+      "Par de apriete del cartucho según hoja del fabricante (típ. 30–35 Nm).",
+      "Reemplazar O-rings al desmontar (kit de sellos Viton).",
+      "No invertir cartucho con bobina al reinstalar."
+    ],
+    specs:[["TIPO","Cartridge 2/2 vías"],["ROSCA","SAE 08 / 10"],["CAUDAL","30–60 L/min"],["P. NOM.","210 bar"]]
+  },
+  5: {
+    tag:"ID-PLATE",
+    title:"Etiqueta de identificación",
+    sub:"P/N 4305684 · Y.012 · Y.300",
+    func:"Placa con la codificación interna Bucher del bloque y de cada válvula (H-8V1, H-8V3, H-9V1, etc.). Imprescindible para repuestos y para cruzar con el esquema hidráulico del manual Bucher.",
+    inspect:[
+      "Fotografiar limpia y archivar en la ficha del equipo (DAIG).",
+      "Si se desprende, registrar el código antes y reemplazar por etiqueta resistente a hidrocarburos.",
+      "Cruzar el P/N con catálogo de repuestos Bucher / Hydraforce."
+    ],
+    specs:[["P/N","4305684"],["VÁLVULAS","Y.012 / Y.300"],["CIRCUITO","H-8 / H-9"],["REF. OEM","Bucher"]]
+  },
+  6: {
+    tag:"AIR",
+    title:"Línea neumática (azul)",
+    sub:"Manguera PA 8×1 — circuito de aire",
+    func:"Conducción de aire comprimido del sistema del chasis Mercedes-Benz (freno/suspensión/accesorios). Pasa próxima al bloque hidráulico pero pertenece a un circuito distinto.",
+    inspect:[
+      "Verificar fijación con bridas — evitar roce con bordes metálicos.",
+      "Revisar racores push-in y ausencia de aplastamientos.",
+      "Mantener separación mínima de líneas hidráulicas calientes."
+    ],
+    specs:[["MATERIAL","PA12 azul"],["Ø","8 × 1 mm"],["P. TRAB.","≈ 8–10 bar"],["NORMA","DIN 74324"]]
+  },
+  7: {
+    tag:"CHASIS",
+    title:"Soporte ballesta MB",
+    sub:"Bracket A 9** 325 32** — Atego 1729",
+    func:"Soporte estructural de la suspensión delantera fundido en el chasis Mercedes-Benz Atego. Punto de referencia para alineación y para cualquier intervención sobre la dirección o el eje delantero.",
+    inspect:[
+      "Inspección visual de fisuras o deformaciones.",
+      "Verificar par de los tornillos de fijación del subchasis al chasis.",
+      "Aplicar protección anticorrosiva en zonas con desgaste de pintura."
+    ],
+    specs:[["MARCA","Mercedes-Benz"],["MODELO","Atego 1729"],["CÓDIGO","A 9** 325 32**"],["FUNCIÓN","Soporte suspensión"]]
+  },
+  8: {
+    tag:"WIRING",
+    title:"Loom eléctrico corrugado",
+    sub:"Conduit PA negro · cableado de control",
+    func:"Mazo de cables protegido por tubo corrugado que lleva la señal de 24 V desde el cuadro de mandos hasta cada bobina solenoide del manifold.",
+    inspect:[
+      "Revisar abrazaderas y ausencia de cortes o aplastamientos.",
+      "Continuidad y aislación de cada conductor (megger si aplica).",
+      "Sellado de las salidas hacia los conectores DIN."
+    ],
+    specs:[["MATERIAL","Poliamida PA6"],["Ø EXT.","≈ 15 mm"],["TENSIÓN","24 VDC"],["NORMA","IP69K loom"]]
+  }
+};
+
+const ORDER = [1,2,3,4,5,6,7,8];
+const itemsEl = document.getElementById('items');
+const detailEl = document.getElementById('detail');
+
+ORDER.forEach(id=>{
+  const d = DATA[id];
+  const el = document.createElement('div');
+  el.className='item';
+  el.dataset.id=id;
+  el.innerHTML = `
+    <div class="num">${String(id).padStart(2,'0')}</div>
+    <div class="it-body">
+      <div class="it-title">${d.title}</div>
+      <div class="it-sub">${d.sub}</div>
+    </div>`;
+  el.addEventListener('click',()=>select(id));
+  itemsEl.appendChild(el);
+});
+
+function select(id){
+  document.querySelectorAll('.item').forEach(el=>{
+    el.classList.toggle('active', el.dataset.id==String(id));
+  });
+  document.querySelectorAll('.hot-group').forEach(g=>{
+    g.querySelector('.hot-circle').classList.toggle('active', g.dataset.id==String(id));
+  });
+  const d = DATA[id];
+  detailEl.innerHTML = `
+    <span class="d-tag">PUNTO ${String(id).padStart(2,'0')} · ${d.tag}</span>
+    <div class="d-title">${d.title}</div>
+    <div class="d-sub">${d.sub}</div>
+
+    <div class="d-section">
+      <h4>Función</h4>
+      <p>${d.func}</p>
+    </div>
+
+    <div class="d-section">
+      <h4>Inspección / Mantención</h4>
+      <ul>${d.inspect.map(x=>`<li>${x}</li>`).join('')}</ul>
+    </div>
+
+    <div class="d-section">
+      <h4>Especificación técnica</h4>
+      <div class="specs">
+        ${d.specs.map(([k,v])=>`<div><div class="k">${k}</div><div class="v">${v}</div></div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+document.querySelectorAll('.hot-group').forEach(g=>{
+  g.style.cursor='pointer';
+  g.addEventListener('click',()=>select(parseInt(g.dataset.id)));
+});
+
+// Auto-select first item on load
+select(2);
+</script>
+</body>
+</html>

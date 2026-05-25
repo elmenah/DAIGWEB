@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#0f1419">
+<title>Bloque Hidráulico Bucher CityFant 6000 · DAIG SpA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Bebas+Neue&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1419;
+    --bg-2:#1a2028;
+    --panel:#161c24;
+    --panel-2:#1c2330;
+    --line:#2a3441;
+    --ink:#e8eef5;
+    --ink-dim:#8a9bb0;
+    --ink-faint:#5a6675;
+    --accent:#ff4e3a;
+    --accent-2:#ffb84d;
+    --ok:#5dd39e;
+    --warn:#ffb84d;
+    --danger:#ff4e3a;
+    --info:#5ab9ff;
+    --grid:#1f2731;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body{
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:40px 40px;
+    background-position:-1px -1px;
+  }
+  .wrap{max-width:1200px;margin:0 auto;padding:14px 12px 100px}
+
+  /* ============ TOP BAR ============ */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(15,20,25,.92);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+    margin:-14px -12px 14px;padding:10px 14px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .logo{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:22px;letter-spacing:.04em;
+    color:var(--ink);
+  }
+  .logo span{color:var(--accent)}
+  .topbar-info{
+    margin-left:auto;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;color:var(--ink-dim);
+    text-align:right;line-height:1.3;
+  }
+  .topbar-info b{color:var(--ok)}
+
+  /* ============ TABS ============ */
+  .tabs{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    border:1px solid var(--line);
+    background:var(--panel);
+    margin-bottom:14px;
+    overflow:hidden;
+  }
+  .tab{
+    padding:12px 8px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    cursor:pointer;border:none;background:transparent;
+    border-right:1px solid var(--line);
+    transition:all .15s;
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    position:relative;
+  }
+  .tab:last-child{border-right:none}
+  .tab:hover{background:var(--panel-2);color:var(--ink)}
+  .tab.active{background:var(--panel-2);color:var(--accent)}
+  .tab.active::after{
+    content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent);
+  }
+  .tab svg{width:18px;height:18px}
+  .tab-badge{
+    position:absolute;top:6px;right:8px;
+    font-size:9px;background:var(--accent);color:#fff;
+    padding:1px 5px;border-radius:8px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-weight:600;
+    display:none;
+  }
+  .tab-badge.show{display:block}
+
+  /* ============ HEADER PANEL ============ */
+  .panel{
+    border:1px solid var(--line);
+    background:var(--panel);
+    position:relative;
+    margin-bottom:14px;
+  }
+  .panel-h{
+    padding:10px 14px;border-bottom:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;
+    letter-spacing:.12em;color:var(--ink-dim);
+    text-transform:uppercase;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .panel-h b{color:var(--accent)}
+  .corner{position:absolute;width:8px;height:8px;border:1px solid var(--accent);pointer-events:none}
+  .corner.tl{top:-1px;left:-1px;border-right:none;border-bottom:none}
+  .corner.tr{top:-1px;right:-1px;border-left:none;border-bottom:none}
+  .corner.bl{bottom:-1px;left:-1px;border-right:none;border-top:none}
+  .corner.br{bottom:-1px;right:-1px;border-left:none;border-top:none}
+
+  header.intro{
+    padding:16px 16px 14px;
+    background:linear-gradient(180deg,#1a2028 0%,#11161d 100%);
+    border:1px solid var(--line);
+    margin-bottom:14px;
+    position:relative;overflow:hidden;
+  }
+  header.intro::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--accent) 0%,var(--accent) 30%,var(--accent-2) 30%,var(--accent-2) 60%,var(--ok) 60%,var(--ok) 100%);
+  }
+  .tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;letter-spacing:.08em;
+    padding:3px 7px;border:1px solid var(--line);
+    color:var(--ink-dim);text-transform:uppercase;
+  }
+  .tag.hot{border-color:var(--accent);color:var(--accent)}
+  .tag.ok{border-color:var(--ok);color:var(--ok)}
+  h1{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(24px,5.5vw,38px);
+    letter-spacing:.02em;line-height:1.05;
+    margin-bottom:4px;
+  }
+  h1 .sub{color:var(--accent);}
+  .lead{color:var(--ink-dim);font-size:13px;line-height:1.5;max-width:680px}
+  .meta{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;color:var(--ink-dim);
+    margin-top:10px;
+    display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;
+  }
+  .meta span b{color:var(--ink);font-weight:500}
+
+  /* ============ SVG STAGE ============ */
+  .stage-wrap{
+    border:1px solid var(--line);
+    background:radial-gradient(ellipse at 50% 40%,#1d2530 0%,#0d1218 70%);
+    position:relative;margin-bottom:14px;
+    overflow:hidden;
+  }
+  .stage-bar{
+    padding:8px 12px;
+    border-bottom:1px solid var(--line);
+    background:var(--panel);
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:.08em;color:var(--ink-dim);
+  }
+  .stage-bar .live{display:flex;align-items:center;gap:6px;color:var(--accent)}
+  .stage-bar .live::before{content:"";width:6px;height:6px;background:var(--accent);border-radius:50%;animation:blink 2s infinite}
+  @keyframes blink{50%{opacity:.3}}
+  .zoom-ctrl{display:flex;gap:4px}
+  .zoom-ctrl button{
+    width:26px;height:22px;border:1px solid var(--line);background:transparent;
+    color:var(--ink-dim);font-family:'JetBrains Mono',monospace;font-size:11px;
+    cursor:pointer;transition:all .15s;
+  }
+  .zoom-ctrl button:hover{border-color:var(--accent);color:var(--accent)}
+  .stage{padding:10px 6px 6px;overflow:auto;max-height:65vh;-webkit-overflow-scrolling:touch}
+  svg.diagram{width:100%;height:auto;display:block;min-width:560px;touch-action:manipulation}
+
+  .hot-circle{
+    fill:rgba(255,78,58,.18);
+    stroke:var(--accent);stroke-width:2;
+    cursor:pointer;
+    transition:all .2s;
+  }
+  .hot-circle:hover,.hot-circle.active{
+    fill:rgba(255,78,58,.45);
+    stroke:#fff;
+    filter:drop-shadow(0 0 10px var(--accent));
+  }
+  .hot-circle.checked{
+    fill:rgba(93,211,158,.3);
+    stroke:var(--ok);
+  }
+  .hot-num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;font-weight:700;
+    fill:#fff;text-anchor:middle;dominant-baseline:central;
+    pointer-events:none;
+  }
+  .lead-line{stroke:var(--accent);stroke-width:1;stroke-dasharray:3 3;opacity:.55}
+  .lead-line.checked{stroke:var(--ok)}
+
+  /* ============ LIST + DETAIL ============ */
+  .grid-2{display:grid;grid-template-columns:1fr;gap:14px}
+  @media(min-width:880px){.grid-2{grid-template-columns:1fr 1fr}}
+
+  .item{
+    padding:12px 14px;border-bottom:1px solid var(--line);
+    cursor:pointer;display:flex;gap:12px;align-items:flex-start;
+    transition:background .15s;
+    position:relative;
+  }
+  .item:last-child{border-bottom:none}
+  .item:hover{background:var(--panel-2)}
+  .item.active{background:#1f2a38}
+  .item.active::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+  .num{
+    flex-shrink:0;
+    width:30px;height:30px;
+    border:1px solid var(--accent);color:var(--accent);
+    font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .item.active .num{background:var(--accent);color:#fff}
+  .item.checked .num{border-color:var(--ok);color:var(--ok)}
+  .item.checked.active .num{background:var(--ok);color:#fff}
+  .it-body{flex:1;min-width:0}
+  .it-title{font-size:14px;font-weight:500;margin-bottom:2px;display:flex;align-items:center;gap:6px}
+  .it-title .chk-mark{color:var(--ok);font-size:14px;display:none}
+  .item.checked .chk-mark{display:inline}
+  .it-sub{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-dim)}
+  .it-arrow{color:var(--ink-faint);font-size:18px;align-self:center}
+
+  /* ============ DETAIL ============ */
+  .detail{
+    border:1px solid var(--line);
+    background:var(--panel);
+    padding:16px;
+    position:relative;
+  }
+  @media(min-width:880px){.detail{position:sticky;top:80px;align-self:start;max-height:calc(100vh - 100px);overflow-y:auto}}
+  .detail-empty{color:var(--ink-dim);font-size:13px;text-align:center;padding:30px 10px}
+  .detail-empty svg{width:40px;height:40px;opacity:.4;margin-bottom:10px}
+  .d-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+  .d-tag{
+    display:inline-block;
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    padding:3px 8px;border:1px solid var(--accent);color:var(--accent);
+    letter-spacing:.08em;
+  }
+  .d-check-btn{
+    border:1px solid var(--line);background:transparent;color:var(--ink-dim);
+    padding:7px 11px;font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:.06em;cursor:pointer;transition:all .15s;
+    display:flex;align-items:center;gap:6px;
+    text-transform:uppercase;
+  }
+  .d-check-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .d-check-btn.checked{border-color:var(--ok);color:var(--ok);background:rgba(93,211,158,.08)}
+  .d-check-btn svg{width:14px;height:14px}
+  .d-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.02em;line-height:1.05;margin-bottom:4px}
+  .d-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent-2);margin-bottom:12px}
+  .d-section{margin-top:14px}
+  .d-section h4{
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink-dim);margin-bottom:7px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .d-section h4::before{content:"";width:10px;height:1px;background:var(--accent)}
+  .d-section p{font-size:13.5px;line-height:1.55;color:var(--ink)}
+  .d-section ul{font-size:13px;line-height:1.55;padding-left:18px}
+  .d-section li{margin-bottom:4px}
+  .d-section li::marker{color:var(--accent)}
+
+  .specs{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);margin-top:4px}
+  .specs div{background:var(--panel);padding:9px 10px}
+  .specs .k{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--ink-dim);letter-spacing:.08em;text-transform:uppercase}
+  .specs .v{font-size:13px;font-weight:500;margin-top:2px}
+
+  /* ============ DIAGNÓSTICO TABLE ============ */
+  .diag-table{width:100%;border-collapse:collapse;margin-top:4px;font-size:12.5px}
+  .diag-table th{
+    background:var(--panel-2);text-align:left;padding:8px 10px;
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--ink-dim);
+    border-bottom:1px solid var(--line);
+  }
+  .diag-table td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+  .diag-table tr:last-child td{border-bottom:none}
+  .sev{
+    display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9.5px;
+    padding:2px 6px;letter-spacing:.06em;border:1px solid;
+  }
+  .sev.A{color:var(--danger);border-color:var(--danger)}
+  .sev.M{color:var(--warn);border-color:var(--warn)}
+  .sev.B{color:var(--ok);border-color:var(--ok)}
+
+  /* ============ REPUESTOS ============ */
+  .parts-row{
+    display:grid;grid-template-columns:auto 1fr auto;gap:10px;
+    padding:10px 12px;border:1px solid var(--line);
+    background:var(--panel-2);margin-bottom:6px;align-items:center;
+  }
+  .parts-row .pn{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent-2);font-weight:500}
+  .parts-row .desc{font-size:12.5px;line-height:1.4}
+  .parts-row .stock{
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    padding:3px 6px;border:1px solid;letter-spacing:.05em;
+  }
+  .stock.s-ok{color:var(--ok);border-color:var(--ok)}
+  .stock.s-low{color:var(--warn);border-color:var(--warn)}
+  .stock.s-no{color:var(--danger);border-color:var(--danger)}
+
+  /* ============ CHECKLIST PANEL (TAB) ============ */
+  .progress-bar{
+    width:100%;height:6px;background:var(--bg-2);
+    border:1px solid var(--line);margin:10px 0 6px;
+    position:relative;overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;background:linear-gradient(90deg,var(--accent),var(--ok));
+    width:0%;transition:width .4s;
+  }
+  .progress-meta{
+    display:flex;justify-content:space-between;
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;
+    color:var(--ink-dim);letter-spacing:.06em;
+  }
+  .progress-meta b{color:var(--ok)}
+
+  .check-actions{
+    display:flex;gap:8px;margin:10px 0 14px;flex-wrap:wrap;
+  }
+  .btn{
+    border:1px solid var(--line);background:transparent;color:var(--ink-dim);
+    padding:9px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;
+    letter-spacing:.06em;cursor:pointer;transition:all .15s;
+    text-transform:uppercase;display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{border-color:var(--accent);color:var(--accent);background:rgba(255,78,58,.05)}
+  .btn.primary:hover{background:var(--accent);color:#fff}
+  .btn.ghost{color:var(--ink-faint)}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .form-grid.full{grid-template-columns:1fr}
+  .form-grid label{display:block;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--ink-dim);letter-spacing:.08em;margin-bottom:4px;text-transform:uppercase}
+  .form-grid input,.form-grid select,.form-grid textarea{
+    width:100%;background:var(--bg-2);border:1px solid var(--line);
+    color:var(--ink);padding:9px 11px;font-family:'IBM Plex Sans',sans-serif;
+    font-size:13.5px;transition:border .15s;
+  }
+  .form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus{outline:none;border-color:var(--accent)}
+  .form-grid textarea{resize:vertical;min-height:60px}
+
+  /* ============ FOOTER ============ */
+  footer{
+    margin-top:18px;padding:14px;
+    border:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;
+    color:var(--ink-dim);letter-spacing:.04em;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  }
+  footer b{color:var(--accent)}
+
+  /* ============ TAB CONTENT ============ */
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+
+  /* ============ TOAST ============ */
+  .toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120%);
+    background:var(--ok);color:#0a1610;padding:10px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+    z-index:100;transition:transform .3s;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);
+  }
+  .toast.show{transform:translateX(-50%) translateY(0)}
+
+  /* ============ MOBILE OPTIMIZATIONS ============ */
+  @media(max-width:520px){
+    .tab{padding:10px 4px;font-size:9.5px}
+    .tab svg{width:16px;height:16px}
+    .specs{grid-template-columns:1fr}
+    .parts-row{grid-template-columns:1fr;gap:4px}
+    .parts-row .stock{justify-self:start}
+    .form-grid{grid-template-columns:1fr}
+    h1{font-size:24px}
+    .meta{font-size:10px}
+    .diag-table th,.diag-table td{padding:7px 6px;font-size:11.5px}
+    .diag-table th{font-size:9px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <a href="HUB_consolidado_camion_barredor.html" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,78,58,.15);color:#ff4e3a;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid #ff4e3a;border-radius:3px;margin-right:10px">← HUB</a><span style="color:#5a6675;font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;margin-right:6px">VER TAMBIÉN</span><a href="plano_circuito_hidraulico.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(255,78,58,.10);color:#ff4e3a;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(255,78,58,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0048 HIDR P&amp;ID</a><a href="esquema_bloque_hidraulico_bucher.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(255,78,58,.10);color:#ff4e3a;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(255,78,58,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0042 ESQUEMA</a><a href="plan_lubricacion_fluidos_interactivo.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(249,115,22,.10);color:#f97316;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(249,115,22,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0047 LUBRIC</a><div class="logo">DAIG<span>·</span>MNT</div>
+    <div class="topbar-info">
+      <div>DOC-TEC / DAIG-MNT-0042</div>
+      <div><b>● EN LÍNEA</b> · v1.0</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="info">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+      INFO
+    </button>
+    <button class="tab" data-tab="diagrama">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 3v18"/></svg>
+      DIAGRAMA
+    </button>
+    <button class="tab" data-tab="checklist">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      CHECKLIST
+      <span class="tab-badge" id="badge-check">0</span>
+    </button>
+    <button class="tab" data-tab="repuestos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      REPUESTOS
+    </button>
+  </nav>
+
+  <!-- ============ TAB: INFO ============ -->
+  <section class="tab-content active" data-tab="info">
+    <header class="intro">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="tag-row">
+        <span class="tag hot">● EN SERVICIO</span>
+        <span class="tag">CRÍTICO</span>
+        <span class="tag ok">REV. 1 — 23·MAY·2026</span>
+      </div>
+      <h1>BLOQUE HIDRÁULICO <span class="sub">/ CITYFANT 6000</span></h1>
+      <p class="lead">
+        Manifold de electroválvulas Hydraforce que gobierna el circuito de control del implemento de barrido y aspiración sobre chasis Mercedes-Benz Atego 1729. Documento técnico de diagnóstico y repuestos para operación PVSA.
+      </p>
+      <div class="meta">
+        <span>EQUIPO · <b>Bucher CityFant 6000</b></span>
+        <span>CHASIS · <b>MB Atego 1729</b></span>
+        <span>PATENTES · <b>SR·XF·37 / RR·KH·97</b></span>
+        <span>OPERACIÓN · <b>PVSA · Puchuncaví</b></span>
+        <span>UBICACIÓN · <b>Subchasis L.I.</b></span>
+        <span>CRITICIDAD · <b style="color:var(--accent)">ALTA</b></span>
+      </div>
+    </header>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>FUNCIONAMIENTO GENERAL</span><b>SISTEMA HIDRÁULICO</b></div>
+      <div style="padding:14px 16px">
+        <p style="font-size:13.5px;line-height:1.6;color:var(--ink);margin-bottom:10px">
+          El bloque distribuye el caudal hidráulico proveniente de la bomba accionada por la <b style="color:var(--accent-2)">PTO del Atego</b> hacia los actuadores del implemento Bucher. Cada electroválvula solenoide (24 VDC) abre o cierra el paso de aceite a un actuador específico según la señal del PLC/mando del operador.
+        </p>
+        <p style="font-size:13.5px;line-height:1.6;color:var(--ink)">
+          Funciones controladas: subida/bajada de cepillos laterales, accionamiento de turbina de aspiración, apertura/cierre de compuerta de tolva, brazo de aspiración manual y oscilación de cepillo central.
+        </p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>PARÁMETROS CRÍTICOS</span><b>VALORES NOMINALES</b></div>
+      <div class="specs" style="margin:0">
+        <div><div class="k">Presión de trabajo</div><div class="v">180 – 210 bar</div></div>
+        <div><div class="k">Presión máxima</div><div class="v">250 bar</div></div>
+        <div><div class="k">Caudal nominal</div><div class="v">60 L/min</div></div>
+        <div><div class="k">Tensión de bobinas</div><div class="v">24 VDC</div></div>
+        <div><div class="k">Aceite hidráulico</div><div class="v">HLP 46 (ISO VG 46)</div></div>
+        <div><div class="k">Temp. operación</div><div class="v">40 – 70 °C</div></div>
+        <div><div class="k">Filtración</div><div class="v">10 µm absoluto</div></div>
+        <div><div class="k">Frecuencia mant.</div><div class="v">500 h / trimestral</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>⚠ ADVERTENCIAS DE SEGURIDAD</span><b>OBLIGATORIO LEER</b></div>
+      <div style="padding:14px 16px">
+        <ul style="font-size:13px;line-height:1.65;padding-left:20px">
+          <li style="margin-bottom:6px"><b style="color:var(--danger)">Despresurizar siempre</b> el circuito antes de cualquier intervención (motor apagado + accionar mandos 3 veces).</li>
+          <li style="margin-bottom:6px"><b style="color:var(--danger)">Riesgo de inyección hidráulica:</b> no buscar fugas con las manos. Usar cartón o papel.</li>
+          <li style="margin-bottom:6px"><b style="color:var(--warn)">EPP obligatorio:</b> guantes nitrilo, lentes de seguridad, ropa de trabajo, calzado de seguridad.</li>
+          <li style="margin-bottom:6px"><b style="color:var(--warn)">Bloqueo y etiquetado (LOTO):</b> desconectar batería antes de intervenir el sistema eléctrico.</li>
+          <li><b style="color:var(--info)">Reportar inmediatamente</b> cualquier fuga, ruido anormal o respuesta lenta del sistema al supervisor.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB: DIAGRAMA ============ -->
+  <section class="tab-content" data-tab="diagrama">
+    <div class="stage-wrap">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="stage-bar">
+        <span class="live">VISTA INFERIOR · SUBCHASIS L.I.</span>
+        <div class="zoom-ctrl">
+          <button id="zoom-out" title="Alejar">−</button>
+          <button id="zoom-reset" title="Reset">⊙</button>
+          <button id="zoom-in" title="Acercar">+</button>
+        </div>
+      </div>
+      <div class="stage" id="stageScroll">
+        <svg viewBox="0 0 800 560" xmlns="http://www.w3.org/2000/svg" id="diagram" class="diagram">
+          <defs>
+            <pattern id="hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="6" stroke="#2a3441" stroke-width="1.2"/>
+            </pattern>
+            <linearGradient id="frameGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3a4654"/>
+              <stop offset="100%" stop-color="#1e2731"/>
+            </linearGradient>
+            <linearGradient id="blockGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#c8cdd4"/>
+              <stop offset="100%" stop-color="#7a8290"/>
+            </linearGradient>
+          </defs>
+
+          <rect x="0" y="20" width="800" height="60" fill="#2c3340" opacity=".6"/>
+          <line x1="0" y1="80" x2="800" y2="80" stroke="#3a4654" stroke-width="1"/>
+          <rect x="0" y="110" width="800" height="22" fill="#c43a2a"/>
+          <rect x="0" y="110" width="800" height="4" fill="#ff5a45" opacity=".6"/>
+          <rect x="0" y="190" width="800" height="180" fill="url(#frameGrad)"/>
+          <g fill="#0d1218">
+            <circle cx="120" cy="280" r="7"/><circle cx="180" cy="260" r="7"/>
+            <circle cx="240" cy="280" r="7"/><circle cx="300" cy="260" r="7"/>
+            <circle cx="500" cy="240" r="9"/><circle cx="560" cy="240" r="9"/>
+            <circle cx="620" cy="240" r="9"/><circle cx="680" cy="240" r="9"/>
+            <circle cx="740" cy="240" r="9"/>
+            <circle cx="500" cy="300" r="6"/><circle cx="560" cy="300" r="6"/>
+          </g>
+          <path d="M 600 370 L 760 370 L 770 480 L 720 510 L 640 510 L 590 480 Z" fill="#1a2028" stroke="#3a4654" stroke-width="1"/>
+          <text x="680" y="450" font-family="JetBrains Mono" font-size="9" fill="#5a6675" text-anchor="middle">A 9** 325 32**</text>
+          <rect x="0" y="510" width="800" height="50" fill="url(#hatch)" opacity=".4"/>
+
+          <g id="manifold">
+            <rect x="265" y="148" width="220" height="180" fill="#000" opacity=".35"/>
+            <rect x="260" y="143" width="220" height="180" fill="url(#blockGrad)" stroke="#4a5260" stroke-width="1.5"/>
+            <circle cx="305" cy="143" r="14" fill="#5a6370" stroke="#2a3441" stroke-width="1"/>
+            <circle cx="360" cy="143" r="14" fill="#5a6370" stroke="#2a3441" stroke-width="1"/>
+            <rect x="295" y="115" width="20" height="30" fill="#6a7280" stroke="#2a3441"/>
+            <rect x="350" y="115" width="20" height="30" fill="#6a7280" stroke="#2a3441"/>
+            <line x1="305" y1="115" x2="305" y2="80" stroke="#3a4654" stroke-width="3"/>
+            <line x1="360" y1="115" x2="360" y2="80" stroke="#3a4654" stroke-width="3"/>
+            <circle cx="305" cy="195" r="16" fill="#1a1f26" stroke="#3a4654" stroke-width="1.5"/>
+            <circle cx="360" cy="195" r="16" fill="#1a1f26" stroke="#3a4654" stroke-width="1.5"/>
+            <circle cx="305" cy="195" r="10" fill="#0d1218"/>
+            <circle cx="360" cy="195" r="10" fill="#0d1218"/>
+            <g>
+              <rect x="285" y="230" width="40" height="55" rx="3" fill="#8a8f96" stroke="#3a4654"/>
+              <rect x="290" y="235" width="30" height="45" fill="#6a7078"/>
+              <rect x="295" y="285" width="20" height="10" fill="#3a3f46"/>
+            </g>
+            <g>
+              <rect x="340" y="230" width="40" height="55" rx="3" fill="#8a8f96" stroke="#3a4654"/>
+              <rect x="345" y="235" width="30" height="45" fill="#6a7078"/>
+              <rect x="350" y="285" width="20" height="10" fill="#3a3f46"/>
+            </g>
+            <polygon points="305,255 320,265 320,280 305,290 290,280 290,265" fill="#9aa0a8" stroke="#2a3441"/>
+            <polygon points="360,255 375,265 375,280 360,290 345,280 345,265" fill="#9aa0a8" stroke="#2a3441"/>
+            <rect x="395" y="175" width="80" height="60" fill="#d4d8de" stroke="#3a4654"/>
+            <rect x="400" y="180" width="70" height="50" fill="#fff" stroke="#3a4654" stroke-width=".5"/>
+            <text x="435" y="195" font-family="JetBrains Mono" font-size="7" fill="#2a3441" text-anchor="middle">H-8V1  H-8V3</text>
+            <text x="435" y="207" font-family="JetBrains Mono" font-size="7" fill="#2a3441" text-anchor="middle">H-9V1  Y.300</text>
+            <text x="435" y="219" font-family="JetBrains Mono" font-size="6" fill="#2a3441" text-anchor="middle">4305684 / Y.012</text>
+            <rect x="395" y="240" width="40" height="55" rx="3" fill="#8a8f96" stroke="#3a4654"/>
+            <rect x="400" y="245" width="30" height="45" fill="#6a7078"/>
+          </g>
+
+          <path d="M 200 50 Q 240 90 260 150 Q 270 200 290 230" stroke="#1a1f26" stroke-width="6" fill="none" opacity=".7"/>
+          <path d="M 200 50 Q 240 90 260 150 Q 270 200 290 230" stroke="#3a4654" stroke-width="2" fill="none" stroke-dasharray="2 3"/>
+          <path d="M 60 540 L 60 400 Q 60 350 90 320 L 130 290" stroke="#3b8fd9" stroke-width="4" fill="none"/>
+          <path d="M 60 540 L 60 400 Q 60 350 90 320 L 130 290" stroke="#5ab9ff" stroke-width="1.5" fill="none"/>
+          <rect x="40" y="380" width="42" height="160" fill="#9aa0a8" stroke="#3a4654" rx="3"/>
+          <rect x="40" y="380" width="42" height="20" fill="#7a8088" stroke="#3a4654"/>
+
+          <g id="hotspots"></g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel" style="margin-bottom:0">
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <span class="corner bl"></span><span class="corner br"></span>
+        <div class="panel-h"><span>COMPONENTES</span><b id="comp-count">08 PUNTOS</b></div>
+        <div id="items"></div>
+      </div>
+
+      <div class="detail" id="detail">
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <span class="corner bl"></span><span class="corner br"></span>
+        <div class="detail-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>
+          </svg>
+          <div>Toca un número en el diagrama o un componente del listado para ver su ficha técnica.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB: CHECKLIST ============ -->
+  <section class="tab-content" data-tab="checklist">
+    <header class="intro">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <h1 style="font-size:28px">INSPECCIÓN <span class="sub">/ CHECKLIST</span></h1>
+      <p class="lead">Lista de verificación por componente. Los cambios se guardan automáticamente en este dispositivo.</p>
+
+      <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+      <div class="progress-meta">
+        <span>PROGRESO</span>
+        <span><b id="progCount">0</b> / <span id="progTotal">8</span> · <span id="progPct">0%</span></span>
+      </div>
+
+      <div class="check-actions">
+        <button class="btn primary" id="btn-export">📋 Exportar reporte</button>
+        <button class="btn ghost" id="btn-reset">↻ Limpiar todo</button>
+      </div>
+    </header>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>DATOS DE LA INSPECCIÓN</span><b>OBLIGATORIO</b></div>
+      <div style="padding:14px 16px">
+        <div class="form-grid">
+          <div>
+            <label>Patente</label>
+            <select id="f-patente">
+              <option value="">— Seleccionar —</option>
+              <option value="SR·XF·37">SR·XF·37</option>
+              <option value="RR·KH·97">RR·KH·97</option>
+            </select>
+          </div>
+          <div>
+            <label>Fecha</label>
+            <input type="date" id="f-fecha"/>
+          </div>
+          <div>
+            <label>Operador / Mecánico</label>
+            <input type="text" id="f-operador" placeholder="Nombre completo"/>
+          </div>
+          <div>
+            <label>Horómetro (h)</label>
+            <input type="number" id="f-horometro" placeholder="0000"/>
+          </div>
+        </div>
+        <div class="form-grid full">
+          <div>
+            <label>Observaciones generales</label>
+            <textarea id="f-obs" placeholder="Anomalías detectadas, ruidos, fugas, comportamiento anormal..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>VERIFICACIONES POR COMPONENTE</span><b>MARCAR AL COMPLETAR</b></div>
+      <div id="check-items"></div>
+    </div>
+  </section>
+
+  <!-- ============ TAB: REPUESTOS ============ -->
+  <section class="tab-content" data-tab="repuestos">
+    <header class="intro">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <h1 style="font-size:28px">CATÁLOGO <span class="sub">/ REPUESTOS</span></h1>
+      <p class="lead">Listado de repuestos críticos asociados al bloque hidráulico. Stock referencial bodega DAIG · Puchuncaví.</p>
+    </header>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>HIDRÁULICA</span><b>HYDRAFORCE / BUCHER</b></div>
+      <div style="padding:10px 12px" id="parts-hyd"></div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>ELÉCTRICOS</span><b>CONEXIÓN 24 VDC</b></div>
+      <div style="padding:10px 12px" id="parts-elec"></div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>CONSUMIBLES / FLUIDOS</span><b>STOCK PERMANENTE</b></div>
+      <div style="padding:10px 12px" id="parts-cons"></div>
+    </div>
+
+    <div class="panel" style="background:rgba(255,184,77,.05);border-color:var(--accent-2)">
+      <div class="panel-h" style="color:var(--accent-2)"><span>⚠ NOTA</span><b>PROCEDIMIENTO</b></div>
+      <div style="padding:14px 16px;font-size:13px;line-height:1.55">
+        Toda solicitud de repuesto debe canalizarse vía supervisor con número de OT. Los códigos Bucher (P/N 4305684, Y.012, Y.300) deben verificarse con catálogo oficial antes de la compra. Contacto compras: <b style="color:var(--ink)">daniel.mena@serviciosdaig.com</b>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>DAIG SpA · <b>RUT 77.702.886-3</b> · Puchuncaví</span>
+    <span>USO INTERNO · DOC-TEC v1.0</span>
+  </footer>
+</div>
+
+<div class="toast" id="toast">Guardado</div>
+
+<script>
+/* ============ DATA ============ */
+const DATA = {
+  1: {
+    tag:"P / T",
+    title:"Líneas de presión y retorno",
+    sub:"Codos 90° · racores ORFS / JIC",
+    func:"Alimentación hidráulica principal del manifold desde la bomba accionada por la PTO del Atego. Una línea entrega caudal a presión (P) y la otra retorna el aceite al estanque (T).",
+    inspect:[
+      "Verificar ausencia de micro-fugas en racores (manchas húmedas/brillo).",
+      "Par de apriete según norma del fabricante del racor.",
+      "Inspeccionar protección anti-vibración y abrazaderas."
+    ],
+    diag:[
+      ["Fuga en codo superior","Apriete insuficiente / O-ring dañado","A","Despresurizar · cambiar O-ring · reapretar a torque"],
+      ["Mangueras vibran","Falta abrazadera o aislante","M","Reinstalar bridas con goma de aislamiento"],
+      ["Aceite oscuro/quemado","Sobrecalentamiento del sistema","A","Análisis de aceite · revisar enfriador"]
+    ],
+    specs:[["TIPO","Codo 90° hidráulico"],["FLUIDO","HLP 46"],["PRESIÓN","180–210 bar"],["TEMP. OP.","40–70 °C"]]
+  },
+  2: {
+    tag:"BLOCK",
+    title:"Manifold Hydraforce",
+    sub:"Bloque distribuidor aluminio anodizado",
+    func:"Cuerpo central que aloja las cartridge valves y cartuchos solenoide. Distribuye el caudal hidráulico hacia los actuadores del implemento (cepillos, turbina, compuerta de tolva, brazo de aspiración).",
+    inspect:[
+      "Limpieza externa con desengrasante + aire comprimido.",
+      "Revisar pintura/anodizado y ausencia de corrosión galvánica.",
+      "Confirmar fijación al subchasis (4 tornillos en patrón rectangular)."
+    ],
+    diag:[
+      ["Corrosión visible en bloque","Ambiente salino PVSA","M","Limpieza + aplicar protector anticorrosivo"],
+      ["Bloque suelto/vibración","Tornillos de fijación flojos","A","Reapretar a torque · verificar arandelas"],
+      ["Fuga interna entre cavidades","Junta interna deteriorada","A","Desmontar bloque · enviar a reacondicionamiento"]
+    ],
+    specs:[["MARCA","Hydraforce"],["MATERIAL","Aluminio 6061-T6"],["P. MÁX","250 bar"],["MONTAJE","Subchasis Bucher"]]
+  },
+  3: {
+    tag:"SOL · 1/2",
+    title:"Electroválvulas solenoide",
+    sub:"Bobinas DIN 24 VDC · H-8V1 / H-9V1",
+    func:"Convierten la señal eléctrica del PLC/mando del operador en apertura/cierre del cartucho hidráulico. Comandan funciones discretas: subir/bajar cepillo, accionar turbina, abrir/cerrar compuerta.",
+    inspect:[
+      "Continuidad de bobina (resistencia 6–8 Ω a 24V).",
+      "Sellado del conector DIN — sensible al polvo de Ventanas.",
+      "Limpieza del vástago del cartridge si hay atascos."
+    ],
+    diag:[
+      ["Bobina no acciona","Resistencia infinita = bobina quemada","A","Reemplazar bobina · revisar voltaje de alimentación"],
+      ["Acciona errático","Conector DIN con humedad","M","Limpiar contactos · cambiar junta de conector"],
+      ["Bobina caliente al tacto","Sobrecorriente / cartucho atascado","A","Apagar sistema · verificar vástago del cartridge"]
+    ],
+    specs:[["TENSIÓN","24 VDC"],["CONECTOR","DIN 43650-A"],["IP","IP65"],["CONSUMO","≈ 1.2 A"]]
+  },
+  4: {
+    tag:"CART",
+    title:"Cartridge valves",
+    sub:"Válvulas tipo cartucho Hydraforce",
+    func:"Elementos hidráulicos roscados al bloque que abren/cierran el paso de aceite cuando la bobina se energiza. Se identifican por la tuerca hexagonal con la marca HYDRAFORCE grabada.",
+    inspect:[
+      "Par de apriete del cartucho (típ. 30–35 Nm).",
+      "Reemplazar O-rings al desmontar (kit Viton).",
+      "No invertir cartucho con bobina al reinstalar."
+    ],
+    diag:[
+      ["Función lenta/débil","Cartridge desgastado o sucio","M","Limpieza ultrasónica · si persiste, reemplazo"],
+      ["Función no responde","Cartridge atascado en cerrado","A","Desmontar · limpiar · revisar resorte interno"],
+      ["Fuga por base del cartridge","O-ring dañado","M","Reemplazar O-ring Viton del kit"]
+    ],
+    specs:[["TIPO","Cartridge 2/2 vías"],["ROSCA","SAE 08 / 10"],["CAUDAL","30–60 L/min"],["P. NOM.","210 bar"]]
+  },
+  5: {
+    tag:"ID-PLATE",
+    title:"Etiqueta de identificación",
+    sub:"P/N 4305684 · Y.012 · Y.300",
+    func:"Placa con la codificación interna Bucher del bloque y de cada válvula (H-8V1, H-8V3, H-9V1, etc.). Imprescindible para repuestos y para cruzar con el esquema hidráulico del manual Bucher.",
+    inspect:[
+      "Fotografiar limpia y archivar en ficha del equipo.",
+      "Si se desprende, registrar código y reemplazar por etiqueta resistente.",
+      "Cruzar el P/N con catálogo de repuestos Bucher / Hydraforce."
+    ],
+    diag:[
+      ["Etiqueta ilegible","Suciedad / sol / hidrocarburos","B","Limpieza suave · si no recupera, reemplazo"],
+      ["Etiqueta despegada","Adhesivo vencido","B","Reemplazar con nueva etiqueta resistente"]
+    ],
+    specs:[["P/N","4305684"],["VÁLVULAS","Y.012 / Y.300"],["CIRCUITO","H-8 / H-9"],["REF. OEM","Bucher"]]
+  },
+  6: {
+    tag:"AIR",
+    title:"Línea neumática (azul)",
+    sub:"Manguera PA 8×1 — circuito de aire",
+    func:"Conducción de aire comprimido del sistema del chasis Mercedes-Benz (freno/suspensión/accesorios). Pasa próxima al bloque hidráulico pero pertenece a un circuito distinto.",
+    inspect:[
+      "Verificar fijación con bridas — evitar roce con bordes metálicos.",
+      "Revisar racores push-in y ausencia de aplastamientos.",
+      "Mantener separación de líneas hidráulicas calientes."
+    ],
+    diag:[
+      ["Fuga audible","Racor push-in suelto / manguera cortada","A","Despresurizar circuito · reemplazar tramo"],
+      ["Pérdida lenta de presión","Micro-fuga difícil de localizar","M","Aplicar agua jabonosa · localizar y sellar"],
+      ["Manguera rozando chasis","Bridas insuficientes","M","Agregar bridas y protector de goma"]
+    ],
+    specs:[["MATERIAL","PA12 azul"],["Ø","8 × 1 mm"],["P. TRAB.","8–10 bar"],["NORMA","DIN 74324"]]
+  },
+  7: {
+    tag:"CHASIS",
+    title:"Soporte ballesta MB",
+    sub:"Bracket A 9** 325 32** — Atego 1729",
+    func:"Soporte estructural de la suspensión delantera fundido en el chasis Mercedes-Benz Atego. Punto de referencia para alineación y para cualquier intervención sobre la dirección o el eje delantero.",
+    inspect:[
+      "Inspección visual de fisuras o deformaciones.",
+      "Verificar par de los tornillos de fijación del subchasis al chasis.",
+      "Aplicar protección anticorrosiva en zonas con desgaste de pintura."
+    ],
+    diag:[
+      ["Fisura visible","Sobrecarga / fatiga estructural","A","Detener operación · inspección certificada"],
+      ["Tornillos flojos","Vibración / falta de mantención","A","Reapretar a torque MB · verificar arandelas"],
+      ["Pintura desgastada","Abrasión ambiental","B","Lijar · imprimar · pintar con anticorrosivo"]
+    ],
+    specs:[["MARCA","Mercedes-Benz"],["MODELO","Atego 1729"],["CÓDIGO","A 9** 325 32**"],["FUNCIÓN","Soporte suspensión"]]
+  },
+  8: {
+    tag:"WIRING",
+    title:"Loom eléctrico corrugado",
+    sub:"Conduit PA negro · cableado de control",
+    func:"Mazo de cables protegido por tubo corrugado que lleva la señal de 24 V desde el cuadro de mandos hasta cada bobina solenoide del manifold.",
+    inspect:[
+      "Revisar abrazaderas y ausencia de cortes o aplastamientos.",
+      "Continuidad y aislación de cada conductor.",
+      "Sellado de las salidas hacia los conectores DIN."
+    ],
+    diag:[
+      ["Cable expuesto","Corrugado cortado / desgastado","A","Reemplazar tramo de corrugado · revisar aislación"],
+      ["Falla intermitente","Conductor con corte interno","A","Megger del cable · si falla, reemplazar"],
+      ["Conector con verdín","Humedad ingresando","M","Limpiar contactos · re-sellar entrada del conector"]
+    ],
+    specs:[["MATERIAL","Poliamida PA6"],["Ø EXT.","≈ 15 mm"],["TENSIÓN","24 VDC"],["NORMA","IP69K loom"]]
+  }
+};
+
+const PARTS = {
+  hyd:[
+    ["4305684","Bloque manifold Hydraforce completo","s-low","1 ud."],
+    ["HF-SV08-21","Cartridge valve SAE-08 2/2 NC","s-ok","3 ud."],
+    ["HF-SV10-22","Cartridge valve SAE-10 2/2 NA","s-ok","2 ud."],
+    ["KIT-OR-VIT","Kit O-rings Viton para cartridges","s-ok","5 kits"],
+    ["BU-Y012","Válvula piloto Bucher Y.012","s-low","1 ud."],
+    ["BU-Y300","Válvula piloto Bucher Y.300","s-no","0 ud."],
+    ["RAC-90-12L","Racor codo 90° 12L métrico","s-ok","8 ud."],
+    ["FILT-10MIC","Filtro hidráulico 10 µm absoluto","s-ok","4 ud."]
+  ],
+  elec:[
+    ["HF-COIL-24","Bobina solenoide 24 VDC 1.2 A","s-ok","4 ud."],
+    ["DIN-43650A","Conector DIN 43650 forma A","s-ok","6 ud."],
+    ["CABLE-2x1.5","Cable 2×1.5 mm² apantallado (m)","s-ok","30 m"],
+    ["CORRUG-15","Tubo corrugado PA Ø15 mm (m)","s-low","8 m"],
+    ["TERM-RING-4","Terminal anillo 4 mm² rojo","s-ok","50 ud."]
+  ],
+  cons:[
+    ["OIL-HLP46","Aceite hidráulico HLP 46 (208 L)","s-ok","1 tambor"],
+    ["DEG-IND","Desengrasante industrial (5 L)","s-ok","4 ud."],
+    ["LIMP-CONT","Limpiador de contactos eléctricos","s-ok","6 ud."],
+    ["PAÑO-IND","Paño industrial absorbente (rollo)","s-ok","3 ud."],
+    ["LOCT-243","Loctite 243 azul fijatornillos (50ml)","s-low","1 ud."]
+  ]
+};
+
+/* ============ STATE ============ */
+const STORAGE_KEY = 'daig-mnt-0042';
+let state = { checks:{}, form:{} };
+
+async function loadState(){
+  try{
+    const r = await window.storage.get(STORAGE_KEY);
+    if(r && r.value) state = JSON.parse(r.value);
+  }catch(e){ /* no existe aún */ }
+}
+async function saveState(){
+  try{ await window.storage.set(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ console.error('save failed',e); }
+}
+
+/* ============ RENDER ============ */
+const itemsEl = document.getElementById('items');
+const detailEl = document.getElementById('detail');
+const ORDER = [1,2,3,4,5,6,7,8];
+
+function renderItems(){
+  itemsEl.innerHTML = '';
+  ORDER.forEach(id=>{
+    const d = DATA[id];
+    const el = document.createElement('div');
+    el.className = 'item' + (state.checks[id]?' checked':'');
+    el.dataset.id = id;
+    el.innerHTML = `
+      <div class="num">${String(id).padStart(2,'0')}</div>
+      <div class="it-body">
+        <div class="it-title">${d.title} <span class="chk-mark">✓</span></div>
+        <div class="it-sub">${d.sub}</div>
+      </div>
+      <div class="it-arrow">›</div>`;
+    el.addEventListener('click',()=>select(id));
+    itemsEl.appendChild(el);
+  });
+}
+
+function select(id){
+  document.querySelectorAll('.item').forEach(el=>{
+    el.classList.toggle('active', el.dataset.id==String(id));
+  });
+  document.querySelectorAll('.hot-group').forEach(g=>{
+    g.querySelector('.hot-circle').classList.toggle('active', g.dataset.id==String(id));
+  });
+  renderDetail(id);
+}
+
+function renderDetail(id){
+  const d = DATA[id];
+  const isChecked = !!state.checks[id];
+  detailEl.innerHTML = `
+    <span class="corner tl"></span><span class="corner tr"></span>
+    <span class="corner bl"></span><span class="corner br"></span>
+    <div class="d-head">
+      <span class="d-tag">PUNTO ${String(id).padStart(2,'0')} · ${d.tag}</span>
+      <button class="d-check-btn ${isChecked?'checked':''}" id="detail-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          ${isChecked?'<path d="M5 12l5 5L20 7"/>':'<rect x="4" y="4" width="16" height="16" rx="1"/>'}
+        </svg>
+        ${isChecked?'VERIFICADO':'MARCAR'}
+      </button>
+    </div>
+    <div class="d-title">${d.title}</div>
+    <div class="d-sub">${d.sub}</div>
+
+    <div class="d-section">
+      <h4>Función</h4>
+      <p>${d.func}</p>
+    </div>
+
+    <div class="d-section">
+      <h4>Inspección / Mantención</h4>
+      <ul>${d.inspect.map(x=>`<li>${x}</li>`).join('')}</ul>
+    </div>
+
+    <div class="d-section">
+      <h4>Diagnóstico de fallas</h4>
+      <table class="diag-table">
+        <thead><tr><th>Síntoma</th><th>Causa probable</th><th>Sev.</th><th>Acción</th></tr></thead>
+        <tbody>
+          ${d.diag.map(([s,c,sev,a])=>`
+            <tr>
+              <td><b>${s}</b></td>
+              <td>${c}</td>
+              <td><span class="sev ${sev}">${sev}</span></td>
+              <td>${a}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="d-section">
+      <h4>Especificación técnica</h4>
+      <div class="specs">
+        ${d.specs.map(([k,v])=>`<div><div class="k">${k}</div><div class="v">${v}</div></div>`).join('')}
+      </div>
+    </div>
+  `;
+  document.getElementById('detail-check').addEventListener('click',()=>toggleCheck(id));
+}
+
+/* ============ HOTSPOTS ============ */
+const hotspotsCfg = [
+  {id:1, lead:[370,143,560,80], cx:560, cy:80, r:18},
+  {id:2, lead:[370,220,160,160], cx:160, cy:160, r:18},
+  {id:3, lead:[330,265,180,380], cx:180, cy:380, r:18},
+  {id:4, lead:[335,195,170,450], cx:170, cy:450, r:18},
+  {id:5, lead:[435,200,620,140], cx:620, cy:140, r:18},
+  {id:6, lead:[60,450,60,495], cx:60, cy:510, r:16},
+  {id:7, lead:[680,450,730,430], cx:745, cy:425, r:16},
+  {id:8, lead:[200,50,115,50], cx:100, cy:50, r:16}
+];
+function renderHotspots(){
+  const g = document.getElementById('hotspots');
+  g.innerHTML = '';
+  hotspotsCfg.forEach(h=>{
+    const checked = state.checks[h.id];
+    const group = document.createElementNS('http://www.w3.org/2000/svg','g');
+    group.setAttribute('class','hot-group');
+    group.dataset.id = h.id;
+    group.style.cursor = 'pointer';
+    group.innerHTML = `
+      <line class="lead-line ${checked?'checked':''}" x1="${h.lead[0]}" y1="${h.lead[1]}" x2="${h.lead[2]}" y2="${h.lead[3]}"/>
+      <circle class="hot-circle ${checked?'checked':''}" cx="${h.cx}" cy="${h.cy}" r="${h.r}"/>
+      <text class="hot-num" x="${h.cx}" y="${h.cy}">${h.id}</text>
+    `;
+    group.addEventListener('click',()=>select(h.id));
+    g.appendChild(group);
+  });
+}
+
+/* ============ CHECKLIST TAB ============ */
+function renderChecklist(){
+  const el = document.getElementById('check-items');
+  el.innerHTML = '';
+  ORDER.forEach(id=>{
+    const d = DATA[id];
+    const checked = !!state.checks[id];
+    const row = document.createElement('div');
+    row.className = 'item' + (checked?' checked':'');
+    row.dataset.id = id;
+    row.style.cursor = 'pointer';
+    row.innerHTML = `
+      <div class="num">${String(id).padStart(2,'0')}</div>
+      <div class="it-body">
+        <div class="it-title">${d.title} <span class="chk-mark">✓</span></div>
+        <div class="it-sub" style="margin-bottom:6px">${d.sub}</div>
+        <div style="font-size:12px;color:var(--ink-dim);line-height:1.5">
+          ${d.inspect.map(x=>`• ${x}`).join('<br>')}
+        </div>
+      </div>
+      <div class="d-check-btn ${checked?'checked':''}" style="align-self:center">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px">
+          ${checked?'<path d="M5 12l5 5L20 7"/>':'<rect x="4" y="4" width="16" height="16" rx="1"/>'}
+        </svg>
+        ${checked?'OK':'PEND.'}
+      </div>`;
+    row.addEventListener('click',()=>toggleCheck(id));
+    el.appendChild(row);
+  });
+}
+
+async function toggleCheck(id){
+  state.checks[id] = !state.checks[id];
+  await saveState();
+  renderItems();
+  renderHotspots();
+  renderDetail(id);
+  renderChecklist();
+  updateProgress();
+  showToast(state.checks[id]?'Verificado ✓':'Pendiente');
+}
+
+function updateProgress(){
+  const total = ORDER.length;
+  const done = ORDER.filter(id=>state.checks[id]).length;
+  const pct = Math.round(done/total*100);
+  document.getElementById('progFill').style.width = pct+'%';
+  document.getElementById('progCount').textContent = done;
+  document.getElementById('progTotal').textContent = total;
+  document.getElementById('progPct').textContent = pct+'%';
+  const badge = document.getElementById('badge-check');
+  if(done>0){ badge.classList.add('show'); badge.textContent = done; }
+  else badge.classList.remove('show');
+}
+
+/* ============ PARTS ============ */
+function renderParts(){
+  ['hyd','elec','cons'].forEach(k=>{
+    const el = document.getElementById('parts-'+k);
+    el.innerHTML = PARTS[k].map(([pn,desc,stock,qty])=>{
+      const label = stock==='s-ok'?'EN STOCK':stock==='s-low'?'BAJO':'AGOTADO';
+      return `
+        <div class="parts-row">
+          <div class="pn">${pn}</div>
+          <div class="desc">${desc}</div>
+          <div class="stock ${stock}">${label} · ${qty}</div>
+        </div>`;
+    }).join('');
+  });
+}
+
+/* ============ FORM ============ */
+function bindForm(){
+  ['f-patente','f-fecha','f-operador','f-horometro','f-obs'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(state.form[id]) el.value = state.form[id];
+    el.addEventListener('change',async ()=>{
+      state.form[id] = el.value;
+      await saveState();
+    });
+    el.addEventListener('input',async ()=>{
+      state.form[id] = el.value;
+      await saveState();
+    });
+  });
+}
+
+/* ============ EXPORT REPORT ============ */
+function exportReport(){
+  const f = state.form;
+  const done = ORDER.filter(id=>state.checks[id]);
+  const pend = ORDER.filter(id=>!state.checks[id]);
+  let txt = `═══════════════════════════════════════\n`;
+  txt += `REPORTE DE INSPECCIÓN · DAIG SpA\n`;
+  txt += `Bloque Hidráulico Bucher CityFant 6000\n`;
+  txt += `═══════════════════════════════════════\n\n`;
+  txt += `Patente:    ${f['f-patente']||'—'}\n`;
+  txt += `Fecha:      ${f['f-fecha']||'—'}\n`;
+  txt += `Operador:   ${f['f-operador']||'—'}\n`;
+  txt += `Horómetro:  ${f['f-horometro']||'—'} h\n\n`;
+  txt += `─── COMPONENTES VERIFICADOS (${done.length}/${ORDER.length}) ───\n`;
+  done.forEach(id=>{ txt += `  ✓ [${String(id).padStart(2,'0')}] ${DATA[id].title}\n`; });
+  if(pend.length){
+    txt += `\n─── PENDIENTES ───\n`;
+    pend.forEach(id=>{ txt += `  ☐ [${String(id).padStart(2,'0')}] ${DATA[id].title}\n`; });
+  }
+  if(f['f-obs']){
+    txt += `\n─── OBSERVACIONES ───\n${f['f-obs']}\n`;
+  }
+  txt += `\n═══════════════════════════════════════\n`;
+  txt += `Generado: ${new Date().toLocaleString('es-CL')}\n`;
+  txt += `DOC-TEC / DAIG-MNT-0042 v1.0\n`;
+
+  // Descargar como .txt
+  const blob = new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `inspeccion_${f['f-patente']||'sin-patente'}_${f['f-fecha']||new Date().toISOString().slice(0,10)}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Reporte exportado');
+}
+
+/* ============ TOAST ============ */
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+/* ============ TABS ============ */
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const target = btn.dataset.tab;
+    document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b===btn));
+    document.querySelectorAll('.tab-content').forEach(c=>{
+      c.classList.toggle('active', c.dataset.tab===target);
+    });
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+/* ============ ZOOM ============ */
+let zoom = 1;
+const svg = document.getElementById('diagram');
+function applyZoom(){ svg.style.width = (100*zoom)+'%'; svg.style.minWidth = (560*zoom)+'px'; }
+document.getElementById('zoom-in').addEventListener('click',()=>{ zoom=Math.min(zoom+0.25,2.5); applyZoom(); });
+document.getElementById('zoom-out').addEventListener('click',()=>{ zoom=Math.max(zoom-0.25,0.75); applyZoom(); });
+document.getElementById('zoom-reset').addEventListener('click',()=>{ zoom=1; applyZoom(); });
+
+/* ============ ACTIONS ============ */
+document.getElementById('btn-export').addEventListener('click',exportReport);
+document.getElementById('btn-reset').addEventListener('click',async ()=>{
+  if(confirm('¿Limpiar todas las verificaciones y datos del formulario? Esta acción no se puede deshacer.')){
+    state = { checks:{}, form:{} };
+    await saveState();
+    ['f-patente','f-fecha','f-operador','f-horometro','f-obs'].forEach(id=>document.getElementById(id).value='');
+    renderItems();renderHotspots();renderChecklist();updateProgress();
+    detailEl.innerHTML = `
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="detail-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>
+        </svg>
+        <div>Toca un número en el diagrama o un componente del listado para ver su ficha técnica.</div>
+      </div>`;
+    showToast('Limpiado');
+  }
+});
+
+/* ============ INIT ============ */
+(async function init(){
+  await loadState();
+  // Set fecha por defecto a hoy si vacía
+  if(!state.form['f-fecha']) {
+    state.form['f-fecha'] = new Date().toISOString().slice(0,10);
+  }
+  renderItems();
+  renderHotspots();
+  renderChecklist();
+  renderParts();
+  bindForm();
+  updateProgress();
+  select(2);
+})();
+</script>
+</body>
+</html>

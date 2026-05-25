@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#0f1419">
+<title>HUB Documental · Camión Barredor Bucher · DAIG SpA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Bebas+Neue&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1419; --bg-2:#1a2028; --panel:#161c24; --panel-2:#1c2330;
+    --line:#2a3441; --ink:#e8eef5; --ink-dim:#8a9bb0; --ink-faint:#5a6675;
+    --accent:#ff4e3a; --accent-2:#ffb84d;
+    --ok:#5dd39e; --warn:#ffb84d; --danger:#ff4e3a; --info:#5ab9ff;
+    --grid:#1f2731;
+    --hidr:#ff4e3a; --barr:#ffb84d; --asp:#5ab9ff; --ctrl:#a78bfa; --neum:#5dd39e; --lub:#f97316; --elec:#3b82f6; --gen:#8a9bb0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px;background-position:-1px -1px}
+  .wrap{max-width:1280px;margin:0 auto;padding:14px 12px 100px}
+
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(15,20,25,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);margin:-14px -12px 14px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.04em;color:var(--ink)}
+  .logo span{color:var(--accent)}
+  .topbar-info{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-dim);text-align:right;line-height:1.3}
+  .topbar-info b{color:var(--ok)}
+
+  .hero{background:linear-gradient(135deg,var(--panel),var(--panel-2));border:1px solid var(--line);padding:24px 20px;margin-bottom:18px;text-align:center}
+  .hero h1{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:.04em;color:var(--ink);line-height:1.1;margin-bottom:6px}
+  .hero h1 span{color:var(--accent)}
+  .hero p{color:var(--ink-dim);font-size:13px;max-width:680px;margin:6px auto 0;line-height:1.5}
+  .hero .meta{display:flex;justify-content:center;gap:14px;margin-top:14px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.05em}
+  .hero .meta b{color:var(--ok)}
+
+  h2.sect{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);letter-spacing:.04em;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  h2.sect span{color:var(--ink-dim);font-size:14px;letter-spacing:0;margin-left:8px;font-family:'JetBrains Mono',monospace}
+
+  .grid-cards{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:18px}
+  @media(min-width:600px){.grid-cards{grid-template-columns:repeat(2,1fr)}}
+  @media(min-width:900px){.grid-cards{grid-template-columns:repeat(3,1fr)}}
+
+  .doc-card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--accent);padding:16px;cursor:pointer;text-decoration:none;color:inherit;display:flex;flex-direction:column;transition:all .15s;position:relative;overflow:hidden}
+  .doc-card:hover{transform:translateY(-2px);border-color:var(--accent);background:var(--panel-2)}
+  .doc-card.hidr{border-left-color:var(--hidr)}
+  .doc-card.barr{border-left-color:var(--barr)}
+  .doc-card.asp{border-left-color:var(--asp)}
+  .doc-card.ctrl{border-left-color:var(--ctrl)}
+  .doc-card.neum{border-left-color:var(--neum)}
+  .doc-card.lub{border-left-color:var(--lub)}
+  .doc-card.elec{border-left-color:var(--elec)}
+
+  .doc-id{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);letter-spacing:.04em;margin-bottom:6px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+  .doc-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.03em;color:var(--ink);line-height:1.1;margin-bottom:8px}
+  .doc-card.hidr .doc-title{color:var(--hidr)}
+  .doc-card.barr .doc-title{color:var(--barr)}
+  .doc-card.asp .doc-title{color:var(--asp)}
+  .doc-card.ctrl .doc-title{color:var(--ctrl)}
+  .doc-card.neum .doc-title{color:var(--neum)}
+  .doc-card.lub .doc-title{color:var(--lub)}
+  .doc-card.elec .doc-title{color:var(--elec)}
+
+  .doc-desc{font-size:12px;color:var(--ink-dim);line-height:1.5;margin-bottom:10px;flex:1}
+  .doc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+  .tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:2px 7px;background:var(--bg-2);border:1px solid var(--line);color:var(--ink-dim);letter-spacing:.04em;text-transform:uppercase}
+  .doc-cta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;border-top:1px solid var(--line);padding-top:8px;display:flex;justify-content:space-between}
+  .doc-cta::after{content:"→";font-size:14px}
+  .doc-card.hidr .doc-cta{color:var(--hidr)}
+  .doc-card.barr .doc-cta{color:var(--barr)}
+  .doc-card.asp .doc-cta{color:var(--asp)}
+  .doc-card.ctrl .doc-cta{color:var(--ctrl)}
+  .doc-card.neum .doc-cta{color:var(--neum)}
+  .doc-card.lub .doc-cta{color:var(--lub)}
+  .doc-card.elec .doc-cta{color:var(--elec)}
+
+  .pill{display:inline-block;padding:1px 6px;border-radius:8px;font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:.04em;text-transform:uppercase}
+  .pill.vig{background:rgba(93,211,158,.15);color:var(--ok)}
+  .pill.new{background:rgba(249,115,22,.15);color:var(--lub)}
+
+  /* Cobertura A-L */
+  .cob-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:6px;margin-bottom:12px}
+  .cob-cell{padding:10px 6px;background:var(--bg-2);border:1px solid var(--line);text-align:center}
+  .cob-cell.done{background:rgba(93,211,158,.12);border-color:var(--ok)}
+  .cob-cell.part{background:rgba(255,184,77,.12);border-color:var(--warn)}
+  .cob-cell.pend{background:rgba(255,78,58,.08);border-color:var(--line);opacity:.6}
+  .cob-letter{font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;color:var(--ink)}
+  .cob-cell.done .cob-letter{color:var(--ok)}
+  .cob-cell.part .cob-letter{color:var(--warn)}
+  .cob-cell.pend .cob-letter{color:var(--ink-faint)}
+  .cob-name{font-size:9px;color:var(--ink-dim);margin-top:4px;line-height:1.2;letter-spacing:.02em}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:18px}
+  .stat{background:var(--panel);border:1px solid var(--line);padding:14px;text-align:center}
+  .stat-n{font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--accent);line-height:1}
+  .stat-l{font-size:10px;color:var(--ink-dim);margin-top:5px;text-transform:uppercase;letter-spacing:.05em;font-family:'JetBrains Mono',monospace}
+
+  .alert{padding:12px 14px;background:rgba(255,184,77,.08);border-left:3px solid var(--warn);color:var(--ink);font-size:12px;margin:10px 0;line-height:1.5}
+  .alert.info{background:rgba(90,185,255,.08);border-left-color:var(--info)}
+  .alert.danger{background:rgba(255,78,58,.08);border-left-color:var(--danger)}
+
+  table.discrepancias{width:100%;border-collapse:collapse;font-size:11.5px;background:var(--panel);border:1px solid var(--line)}
+  table.discrepancias th{text-align:left;padding:10px 8px;background:var(--panel-2);color:var(--ink-dim);font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--line)}
+  table.discrepancias td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  table.discrepancias tr:last-child td{border-bottom:none}
+
+  .footer{padding:16px;text-align:center;color:var(--ink-faint);font-size:10px;font-family:'JetBrains Mono',monospace;border-top:1px solid var(--line);margin-top:24px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="topbar">
+  <div class="logo">DAIG <span>SpA</span></div>
+  <div class="topbar-info">
+    <div>HUB DOCUMENTAL · COTIZACIÓN #230</div>
+    <div><b>● 10 DOC-TEC VIGENTES</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Camión Barredor <span>Bucher CityFant 6000</span></h1>
+  <p>Centro documental consolidado de mantención preventiva para la flota PVSA (SR·XF·37 / RR·KH·97). Acceso directo a las 7 fichas técnicas interactivas de subsistemas, con hotspots, checklists, inventario de repuestos y diagnóstico de fallas.</p>
+  <div class="meta">
+    <div>Chasis · <b>Mercedes-Benz Atego 1729</b></div>
+    <div>Implemento · <b>Bucher V Range Vh</b></div>
+    <div>Cliente · <b>Puerto Ventanas S.A.</b></div>
+  </div>
+</section>
+
+<!-- Estadísticas -->
+<div class="stats">
+  <div class="stat"><div class="stat-n">10</div><div class="stat-l">DOC-TEC vigentes</div></div>
+  <div class="stat"><div class="stat-n">58</div><div class="stat-l">Hotspots totales</div></div>
+  <div class="stat"><div class="stat-n">3</div><div class="stat-l">Planos P&amp;ID / unifilar</div></div>
+  <div class="stat"><div class="stat-n">11</div><div class="stat-l">Marcas OEM</div></div>
+  <div class="stat"><div class="stat-n">14+</div><div class="stat-l">P/N identificados</div></div>
+  <div class="stat"><div class="stat-n">8/12</div><div class="stat-l">Subsistemas cubiertos</div></div>
+</div>
+
+<!-- ═══════════════ DOC-TEC vigentes ═══════════════ -->
+<h2 class="sect">Fichas técnicas <span>· abrir en navegador</span></h2>
+
+<div class="grid-cards">
+
+  <a href="bloque_hidraulico_interactivo_colaboradores.html" class="doc-card hidr">
+    <div class="doc-id"><span>DOC-TEC · DAIG-MNT-0042</span><span class="pill vig">VIGENTE</span></div>
+    <div class="doc-title">Bloque Hidráulico</div>
+    <div class="doc-desc">Manifold Hydraforce P/N 4305684, electroválvulas, cartridge valves, líneas P/T. 8 hotspots con checklist persistente, inventario de repuestos y diagnóstico de fallas.</div>
+    <div class="doc-tags"><span class="tag">D · Hidráulico</span><span class="tag">8 hotspots</span><span class="tag">Hydraforce</span></div>
+    <div class="doc-cta">Abrir ficha</div>
+  </a>
+
+  <a href="esquema_bloque_hidraulico_bucher.html" class="doc-card hidr">
+    <div class="doc-id"><span>DOC-TEC · DAIG-MNT-0042-LITE</span><span class="pill vig">VIGENTE</span></div>
+    <div class="doc-title">Bloque Hidráulico (Esquema)</div>
+    <div class="doc-desc">Versión compacta de consulta rápida del mismo bloque hidráulico, sin checklist ni estado persistente. Ideal para revisión visual express en terreno.</div>
+    <div class="doc-tags"><span class="tag">D · Hidráulico</span><span class="tag">8 hotspots</span><span class="tag">Read-only</span></div>
+    <div class="doc-cta">Abrir esquema</div>
+  </a>
+
+  <a href="conjunto_barrido_lateral_interactivo_v1.1.html" class="doc-card barr">
+    <div class="doc-id"><span>DOC-TEC · DAIG-MNT-0043 v1.1</span><span class="pill vig">VIGENTE</span></div>
+    <div class="doc-title">Conjunto Barrido Lateral</div>
+    <div class="doc-desc">Disco + cerdas, motor WHITE Drive 200 P/N 110-9356, brazo articulado, cilindros, manguera Hansa-Flex K2-40SC. 11 hotspots, repuestos OEM verificados.</div>
+    <div class="doc-tags"><span class="tag">C · Barrido</span><span class="tag">11 hotspots</span><span class="tag">WHITE Drive</span></div>
+    <div class="doc-cta">Abrir ficha</div>
+  </a>
+
+  <a href="sistema_aspiracion_interactivo.html" class="doc-card asp">
+    <div class="doc-id"><span>DOC-TEC · DAIG-MNT-0044</span><span class="pill vig">VIGENTE</span></div>
+    <div class="doc-title">Sistema de Aspiración</div>
+    <div class="doc-desc">Turbina centrífuga -25/-35 kPa, filtros de mangas, tolva 6 m³, manguera corrugada Ø250 mm, boca de aspiración con labios SBR. 9 hotspots.</div>
+    <div class="doc-tags"><span class="tag">F · Tolva/Asp.</span><span class="tag">9 hotspots</span><span class="tag">Bucher</span></div>
+    <div class="doc-cta">Abrir ficha</div>
+  </a>
+
+  <a href="panel_control_central_interactivo.html" class="doc-card ctrl">
+    <div class="doc-id"><span>DOC-TEC · DAIG-MNT-0045</span><span class="pill vig">VIGENTE</span></div>
+    <div class="doc-title">Panel de Control Central</div>
+    <div class="doc-desc">PLC Jetter P/N 10001665, manifold Norgren CANopen (NA6U/NB6U/NC6U/NG6U), banco relés, arquitectura de 5 niveles, fusibles ATO. 12 hotspots — el más completo.</div>
+    <div class="doc-tags"><span class="tag">E · Control</span><span class="tag">12 hotspots</span><span class="tag">Jetter</span><span class="tag">Norgren</span></div>
+    <div class="doc-cta">Abrir ficha</div>
+  </a>
+
+  <a href="sistema_neumatico_norgren_interactivo.html" class="doc-card neum">
+    <div class="doc-id"><span>DOC-TEC · DAIG-MNT-0046</span><span class="pill vig">VIGENTE</span></div>
+    <div class="doc-title">Sistema Neumático Norgren</div>
+    <div class="doc-desc">Regulador AIRY 6 bar, mangueras PA2 (azul/rojo/blanco), racores push-in, sensores presión. Código de colores estandarizado para identificación rápida en terreno.</div>
+    <div class="doc-tags"><span class="tag">E · Neumático</span><span class="tag">10 hotspots</span><span class="tag">Norgren</span></div>
+    <div class="doc-cta">Abrir ficha</div>
+  </a>
+
+  <a href="plan_lubricacion_fluidos_interactivo.html" class="doc-card lub">
+    <div class="doc-id"><span>DOC-TEC · DAIG-MNT-0047</span><span class="pill new">NUEVO</span></div>
+    <div class="doc-title">Plan de Lubricación y Fluidos</div>
+    <div class="doc-desc">Aceite motor Atego (MB 228.5), hidráulico Bucher HLP 46, caja, diferencial, refrigerante, AdBlue, frenos. Marcas Chile, intervalos PVSA, stock mínimo de bodega.</div>
+    <div class="doc-tags"><span class="tag">Lubricación</span><span class="tag">5 secciones</span><span class="tag">Stock bodega</span></div>
+    <div class="doc-cta">Abrir plan</div>
+  </a>
+
+</div>
+
+<!-- ═══════════════ Planos esquemáticos por sistema ═══════════════ -->
+<h2 class="sect">Planos por sistema <span>· P&amp;ID ISO 1219 · unifilar IEC 60617</span></h2>
+
+<div class="grid-cards">
+
+  <a href="plano_circuito_hidraulico.html" class="doc-card hidr">
+    <div class="doc-id"><span>DOC-TEC · DAIG-MNT-0048</span><span class="pill new">NUEVO</span></div>
+    <div class="doc-title">Plano Circuito Hidráulico</div>
+    <div class="doc-desc">P&amp;ID ISO 1219 del lazo bomba PTO → manifold Hydraforce P/N 4305684 → motor WHITE Drive P/N 110-9356 → cilindros → filtro 10 µm → enfriador. Incluye HGB II y mangueras Hansa-Flex.</div>
+    <div class="doc-tags"><span class="tag">D · Hidráulico</span><span class="tag">P&amp;ID</span><span class="tag">HLP 46</span><span class="tag">12 TAGs</span></div>
+    <div class="doc-cta">Abrir plano</div>
+  </a>
+
+  <a href="plano_circuito_neumatico.html" class="doc-card neum">
+    <div class="doc-id"><span>DOC-TEC · DAIG-MNT-0049</span><span class="pill new">NUEVO</span></div>
+    <div class="doc-title">Plano Circuito Neumático</div>
+    <div class="doc-desc">Compresor Atego → secador WABCO → válv. protección 4 circuitos → calderines T1-T4 → frenos + manifold Norgren CANopen. Código de colores DAIG verde/azul/violeta/ámbar.</div>
+    <div class="doc-tags"><span class="tag">E · Neumático</span><span class="tag">P&amp;ID</span><span class="tag">WABCO</span><span class="tag">Norgren</span></div>
+    <div class="doc-cta">Abrir plano</div>
+  </a>
+
+  <a href="plano_circuito_electrico.html" class="doc-card elec">
+    <div class="doc-id"><span>DOC-TEC · DAIG-MNT-0050</span><span class="pill new">NUEVO</span></div>
+    <div class="doc-title">Plano Circuito Eléctrico</div>
+    <div class="doc-desc">Unifilar IEC 60617: baterías 24V CC → master switch → caja Datalem/Datam → ESU MB + PLC Jetter P/N 10001665 → bus CAN J1939 → HMI cabina → banco relés Datam → actuadores.</div>
+    <div class="doc-tags"><span class="tag">E · Eléctrico</span><span class="tag">24V CC</span><span class="tag">CAN J1939</span><span class="tag">Jetter</span></div>
+    <div class="doc-cta">Abrir plano</div>
+  </a>
+
+</div>
+
+<!-- ═══════════════ Cobertura A-L ═══════════════ -->
+<h2 class="sect">Cobertura A-L <span>· verde = cubierto · ámbar = parcial · gris = pendiente</span></h2>
+
+<div class="cob-grid">
+  <div class="cob-cell pend"><div class="cob-letter">A</div><div class="cob-name">Vista General</div></div>
+  <div class="cob-cell pend"><div class="cob-letter">B</div><div class="cob-name">Chasis Atego</div></div>
+  <div class="cob-cell done"><div class="cob-letter">C</div><div class="cob-name">Barrido</div></div>
+  <div class="cob-cell done"><div class="cob-letter">D</div><div class="cob-name">Hidráulico</div></div>
+  <div class="cob-cell done"><div class="cob-letter">E</div><div class="cob-name">Electroneum.</div></div>
+  <div class="cob-cell done"><div class="cob-letter">F</div><div class="cob-name">Tolva/Asp.</div></div>
+  <div class="cob-cell pend"><div class="cob-letter">G</div><div class="cob-name">Operación</div></div>
+  <div class="cob-cell pend"><div class="cob-letter">H</div><div class="cob-name">Mantención</div></div>
+  <div class="cob-cell part"><div class="cob-letter">I</div><div class="cob-name">Cabina PSS</div></div>
+  <div class="cob-cell pend"><div class="cob-letter">J</div><div class="cob-name">Legal</div></div>
+  <div class="cob-cell pend"><div class="cob-letter">K</div><div class="cob-name">EPP</div></div>
+  <div class="cob-cell pend"><div class="cob-letter">L</div><div class="cob-name">Bodega</div></div>
+</div>
+
+<div class="alert"><b>Pendientes prioritarios:</b> A · Vista general integradora y B · Chasis Atego son los que más alimentan el modelo 3D del equipo. G y H pueden derivarse desde las hojas RUTINA_DIARIA / RUTINA_MENSUAL del libro #230.</div>
+
+<!-- ═══════════════ Discrepancias ═══════════════ -->
+<h2 class="sect">Discrepancias pendientes <span>· verificar con placa real</span></h2>
+
+<table class="discrepancias">
+  <tr><th>Componente</th><th>Memoria de fotos</th><th>HTML asociado</th><th>Acción</th></tr>
+  <tr>
+    <td><b>Banco de relés</b></td>
+    <td>Datalem 12-24VDC 3A</td>
+    <td>Datam 12-24VDC 3A (DOC-0045)</td>
+    <td>Confirmar fabricante con placa</td>
+  </tr>
+  <tr>
+    <td><b>PLC Jetter</b></td>
+    <td>JXM-IO-E02-G06-K02-V85</td>
+    <td>JXM-IO-E02-G06-K02-U55 P/N 10001665 (DOC-0045)</td>
+    <td>¿Dos variantes? Verificar etiqueta</td>
+  </tr>
+  <tr>
+    <td><b>Motor WHITE Drive</b></td>
+    <td>Serie W2T122142</td>
+    <td>Serie W2172234A2 (DOC-0043 v1.1)</td>
+    <td>Posiblemente una por patente — verificar</td>
+  </tr>
+</table>
+
+<!-- ═══════════════ Footer ═══════════════ -->
+<footer class="footer">
+  HUB Consolidado · DAIG SpA · 25-MAY-2026 · v1.1 (+ planos 0048-0050)<br>
+  Cotización #230 · Mantenimiento Preventivo Mensual Bucher CityFant 6000 · Cliente PVSA<br>
+  Referencias: Bucher V Range Operator's Guide 01294-1-ES Rev C · MB Atego 1729 Service Manual
+</footer>
+
+</div>
+
+</body>
+</html>

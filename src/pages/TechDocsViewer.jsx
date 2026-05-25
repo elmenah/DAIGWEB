@@ -52,9 +52,9 @@ function TechDocsViewer() {
         Cerrar sesión
       </button>
       <iframe
-        src="/docs/sistema_neumatico_norgren_interactivo.html"
+        src="/docs/HUB_consolidado_camion_barredor.html"
         style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-        title="Sistema Neumático Norgren · Bucher CityFant 6000"
+        title="Portal Técnico · Camión Barredor Bucher CityFant 6000 · DAIG SpA"
       />
     </div>
   )

@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#0f1419">
+<title>Panel de Control Central · Bucher CityFant 6000 · DAIG SpA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Bebas+Neue&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1419;
+    --bg-2:#1a2028;
+    --panel:#161c24;
+    --panel-2:#1c2330;
+    --line:#2a3441;
+    --ink:#e8eef5;
+    --ink-dim:#8a9bb0;
+    --ink-faint:#5a6675;
+    --accent:#a78bfa;     /* violeta para DOC-0045 (eléctrico/control) */
+    --accent-2:#5ab9ff;
+    --ok:#5dd39e;
+    --warn:#ffb84d;
+    --danger:#ff4e3a;
+    --info:#5ab9ff;
+    --grid:#1f2731;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px;background-position:-1px -1px}
+  .wrap{max-width:1200px;margin:0 auto;padding:14px 12px 100px}
+
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(15,20,25,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);margin:-14px -12px 14px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;color:var(--ink)}
+  .logo span{color:var(--accent)}
+  .topbar-info{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-dim);text-align:right;line-height:1.3}
+  .topbar-info b{color:var(--ok)}
+
+  .tabs{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--line);background:var(--panel);margin-bottom:14px;overflow:hidden}
+  .tab{padding:12px 6px;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-dim);cursor:pointer;border:none;background:transparent;border-right:1px solid var(--line);transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+  .tab:last-child{border-right:none}
+  .tab:hover{background:var(--panel-2);color:var(--ink)}
+  .tab.active{background:var(--panel-2);color:var(--accent)}
+  .tab.active::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent)}
+  .tab svg{width:18px;height:18px}
+  .tab-badge{position:absolute;top:4px;right:6px;font-size:9px;background:var(--accent);color:#0a1610;padding:1px 5px;border-radius:8px;font-family:'IBM Plex Sans',sans-serif;font-weight:700;display:none}
+  .tab-badge.show{display:block}
+
+  .panel{border:1px solid var(--line);background:var(--panel);position:relative;margin-bottom:14px}
+  .panel-h{padding:10px 14px;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;color:var(--ink-dim);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+  .panel-h b{color:var(--accent)}
+  .corner{position:absolute;width:8px;height:8px;border:1px solid var(--accent);pointer-events:none}
+  .corner.tl{top:-1px;left:-1px;border-right:none;border-bottom:none}
+  .corner.tr{top:-1px;right:-1px;border-left:none;border-bottom:none}
+  .corner.bl{bottom:-1px;left:-1px;border-right:none;border-top:none}
+  .corner.br{bottom:-1px;right:-1px;border-left:none;border-top:none}
+
+  header.intro{padding:16px 16px 14px;background:linear-gradient(180deg,#1a2028 0%,#11161d 100%);border:1px solid var(--line);margin-bottom:14px;position:relative;overflow:hidden}
+  header.intro::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent) 0%,var(--accent) 25%,var(--accent-2) 25%,var(--accent-2) 50%,var(--warn) 50%,var(--warn) 75%,var(--ok) 75%,var(--ok) 100%)}
+  .tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.08em;padding:3px 7px;border:1px solid var(--line);color:var(--ink-dim);text-transform:uppercase}
+  .tag.hot{border-color:var(--accent);color:var(--accent)}
+  .tag.ok{border-color:var(--ok);color:var(--ok)}
+  .tag.danger{border-color:var(--danger);color:var(--danger)}
+  h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(24px,5.5vw,38px);letter-spacing:.02em;line-height:1.05;margin-bottom:4px}
+  h1 .sub{color:var(--accent)}
+  .lead{color:var(--ink-dim);font-size:13px;line-height:1.5;max-width:680px}
+  .meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}
+  .meta span b{color:var(--ink);font-weight:500}
+
+  .stage-wrap{border:1px solid var(--line);background:radial-gradient(ellipse at 50% 40%,#1d2530 0%,#0d1218 70%);position:relative;margin-bottom:14px;overflow:hidden}
+  .stage-bar{padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:var(--ink-dim)}
+  .stage-bar .live{display:flex;align-items:center;gap:6px;color:var(--accent)}
+  .stage-bar .live::before{content:"";width:6px;height:6px;background:var(--accent);border-radius:50%;animation:blink 2s infinite}
+  @keyframes blink{50%{opacity:.3}}
+  .zoom-ctrl{display:flex;gap:4px}
+  .zoom-ctrl button{width:26px;height:22px;border:1px solid var(--line);background:transparent;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s}
+  .zoom-ctrl button:hover{border-color:var(--accent);color:var(--accent)}
+  .stage{padding:10px 6px 6px;overflow:auto;max-height:65vh;-webkit-overflow-scrolling:touch}
+  svg.diagram{width:100%;height:auto;display:block;min-width:780px;touch-action:manipulation}
+
+  .hot-circle{fill:rgba(167,139,250,.2);stroke:var(--accent);stroke-width:2;cursor:pointer;transition:all .2s}
+  .hot-circle:hover,.hot-circle.active{fill:rgba(167,139,250,.5);stroke:#fff;filter:drop-shadow(0 0 10px var(--accent))}
+  .hot-circle.checked{fill:rgba(93,211,158,.3);stroke:var(--ok)}
+  .hot-num{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;fill:#0a1610;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+  .lead-line{stroke:var(--accent);stroke-width:1;stroke-dasharray:3 3;opacity:.55}
+  .lead-line.checked{stroke:var(--ok)}
+
+  .grid-2{display:grid;grid-template-columns:1fr;gap:14px}
+  @media(min-width:880px){.grid-2{grid-template-columns:1fr 1fr}}
+
+  .item{padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;gap:12px;align-items:flex-start;transition:background .15s;position:relative}
+  .item:last-child{border-bottom:none}
+  .item:hover{background:var(--panel-2)}
+  .item.active{background:#1f2a38}
+  .item.active::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+  .num{flex-shrink:0;width:30px;height:30px;border:1px solid var(--accent);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .item.active .num{background:var(--accent);color:#0a1610}
+  .item.checked .num{border-color:var(--ok);color:var(--ok)}
+  .item.checked.active .num{background:var(--ok);color:#fff}
+  .it-body{flex:1;min-width:0}
+  .it-title{font-size:14px;font-weight:500;margin-bottom:2px;display:flex;align-items:center;gap:6px}
+  .it-title .chk-mark{color:var(--ok);font-size:14px;display:none}
+  .item.checked .chk-mark{display:inline}
+  .it-sub{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-dim)}
+  .it-cat{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.06em;padding:1px 5px;border:1px solid var(--line);color:var(--ink-faint);margin-top:4px;text-transform:uppercase}
+  .it-cat.elec{border-color:var(--accent);color:var(--accent)}
+  .it-cat.hyd{border-color:var(--warn);color:var(--warn)}
+  .it-cat.neu{border-color:var(--accent-2);color:var(--accent-2)}
+  .it-arrow{color:var(--ink-faint);font-size:18px;align-self:center}
+
+  .detail{border:1px solid var(--line);background:var(--panel);padding:16px;position:relative}
+  @media(min-width:880px){.detail{position:sticky;top:80px;align-self:start;max-height:calc(100vh - 100px);overflow-y:auto}}
+  .detail-empty{color:var(--ink-dim);font-size:13px;text-align:center;padding:30px 10px}
+  .detail-empty svg{width:40px;height:40px;opacity:.4;margin-bottom:10px}
+  .d-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .d-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border:1px solid var(--accent);color:var(--accent);letter-spacing:.08em}
+  .d-check-btn{border:1px solid var(--line);background:transparent;color:var(--ink-dim);padding:7px 11px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;text-transform:uppercase}
+  .d-check-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .d-check-btn.checked{border-color:var(--ok);color:var(--ok);background:rgba(93,211,158,.08)}
+  .d-check-btn svg{width:14px;height:14px}
+  .d-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.02em;line-height:1.05;margin-bottom:4px}
+  .d-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent-2);margin-bottom:12px}
+  .d-section{margin-top:14px}
+  .d-section h4{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+  .d-section h4::before{content:"";width:10px;height:1px;background:var(--accent)}
+  .d-section p{font-size:13.5px;line-height:1.55;color:var(--ink)}
+  .d-section ul{font-size:13px;line-height:1.55;padding-left:18px}
+  .d-section li{margin-bottom:4px}
+  .d-section li::marker{color:var(--accent)}
+
+  .specs{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);margin-top:4px}
+  .specs div{background:var(--panel);padding:9px 10px}
+  .specs .k{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--ink-dim);letter-spacing:.08em;text-transform:uppercase}
+  .specs .v{font-size:13px;font-weight:500;margin-top:2px}
+
+  .diag-table{width:100%;border-collapse:collapse;margin-top:4px;font-size:12.5px}
+  .diag-table th{background:var(--panel-2);text-align:left;padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);border-bottom:1px solid var(--line)}
+  .diag-table td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+  .diag-table tr:last-child td{border-bottom:none}
+  .sev{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:2px 6px;letter-spacing:.06em;border:1px solid}
+  .sev.A{color:var(--danger);border-color:var(--danger)}
+  .sev.M{color:var(--warn);border-color:var(--warn)}
+  .sev.B{color:var(--ok);border-color:var(--ok)}
+
+  .parts-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:10px 12px;border:1px solid var(--line);background:var(--panel-2);margin-bottom:6px;align-items:center}
+  .parts-row .pn{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:500}
+  .parts-row .desc{font-size:12.5px;line-height:1.4}
+  .parts-row .stock{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 6px;border:1px solid;letter-spacing:.05em}
+  .stock.s-ok{color:var(--ok);border-color:var(--ok)}
+  .stock.s-low{color:var(--warn);border-color:var(--warn)}
+  .stock.s-no{color:var(--danger);border-color:var(--danger)}
+
+  .progress-bar{width:100%;height:6px;background:var(--bg-2);border:1px solid var(--line);margin:10px 0 6px;position:relative;overflow:hidden}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--ok));width:0%;transition:width .4s}
+  .progress-meta{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-dim);letter-spacing:.06em}
+  .progress-meta b{color:var(--ok)}
+
+  .check-actions{display:flex;gap:8px;margin:10px 0 14px;flex-wrap:wrap}
+  .btn{border:1px solid var(--line);background:transparent;color:var(--ink-dim);padding:9px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;cursor:pointer;transition:all .15s;text-transform:uppercase;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{border-color:var(--accent);color:var(--accent);background:rgba(167,139,250,.05)}
+  .btn.primary:hover{background:var(--accent);color:#0a1610}
+  .btn.ghost{color:var(--ink-faint)}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .form-grid.full{grid-template-columns:1fr}
+  .form-grid label{display:block;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--ink-dim);letter-spacing:.08em;margin-bottom:4px;text-transform:uppercase}
+  .form-grid input,.form-grid select,.form-grid textarea{width:100%;background:var(--bg-2);border:1px solid var(--line);color:var(--ink);padding:9px 11px;font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;transition:border .15s}
+  .form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus{outline:none;border-color:var(--accent)}
+  .form-grid textarea{resize:vertical;min-height:60px}
+
+  footer{margin-top:18px;padding:14px;border:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-dim);letter-spacing:.04em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  footer b{color:var(--accent)}
+
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ok);color:#0a1610;padding:10px 18px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;z-index:100;transition:transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+
+  /* Architecture diagram (TAB ARCH) */
+  .arch-grid{display:grid;grid-template-columns:1fr;gap:12px}
+  .arch-box{border:1px solid var(--line);background:var(--panel);padding:14px 16px;position:relative}
+  .arch-box .arch-h{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--ink-dim);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .arch-box .arch-h::before{content:"";width:14px;height:1px;background:var(--accent)}
+  .arch-box.lvl-1{border-left:3px solid var(--danger)}
+  .arch-box.lvl-2{border-left:3px solid var(--warn)}
+  .arch-box.lvl-3{border-left:3px solid var(--accent)}
+  .arch-box.lvl-4{border-left:3px solid var(--accent-2)}
+  .arch-box.lvl-5{border-left:3px solid var(--ok)}
+  .arch-comp{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .arch-comp span{font-family:'JetBrains Mono',monospace;font-size:10.5px;background:var(--bg-2);color:var(--ink);padding:4px 8px;border:1px solid var(--line)}
+  .arch-box p{font-size:13px;line-height:1.55;color:var(--ink-dim)}
+  .arch-flow{font-family:'JetBrains Mono',monospace;font-size:20px;color:var(--accent);text-align:center;line-height:1;padding:4px 0}
+
+  /* Fuse mapping */
+  .fuse-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;padding:14px 16px}
+  .fuse-cell{background:var(--bg-2);border:1px solid var(--line);padding:8px 10px;font-size:12px}
+  .fuse-cell .fc-k{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.05em}
+  .fuse-cell .fc-v{margin-top:3px;color:var(--ink)}
+
+  @media(max-width:520px){
+    .tab{padding:9px 3px;font-size:8.5px}
+    .tab svg{width:16px;height:16px}
+    .specs{grid-template-columns:1fr}
+    .parts-row{grid-template-columns:1fr;gap:4px}
+    .parts-row .stock{justify-self:start}
+    .form-grid{grid-template-columns:1fr}
+    h1{font-size:24px}
+    .meta{font-size:10px}
+    .diag-table th,.diag-table td{padding:7px 6px;font-size:11.5px}
+    .diag-table th{font-size:9px}
+    .fuse-grid{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <a href="HUB_consolidado_camion_barredor.html" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(167,139,250,.15);color:#a78bfa;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid #a78bfa;border-radius:3px;margin-right:10px">← HUB</a><span style="color:#5a6675;font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;margin-right:6px">VER TAMBIÉN</span><a href="plano_circuito_electrico.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(59,130,246,.10);color:#3b82f6;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(59,130,246,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0050 ELÉCTRICO</a><a href="plano_circuito_neumatico.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(22,163,74,.10);color:#16a34a;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(22,163,74,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0049 NEUM P&amp;ID</a><a href="sistema_neumatico_norgren_interactivo.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(93,211,158,.10);color:#5dd39e;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(93,211,158,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0046 NEUMÁTICO</a><div class="logo">DAIG<span>·</span>MNT</div>
+    <div class="topbar-info">
+      <div>DOC-TEC / DAIG-MNT-0045</div>
+      <div><b>● EN LÍNEA</b> · v1.0</div>
+    </div>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="info">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+      INFO
+    </button>
+    <button class="tab" data-tab="arch">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>
+      ARQUITECTURA
+    </button>
+    <button class="tab" data-tab="diagrama">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 3v18"/></svg>
+      DIAGRAMA
+    </button>
+    <button class="tab" data-tab="checklist">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      CHECK
+      <span class="tab-badge" id="badge-check">0</span>
+    </button>
+    <button class="tab" data-tab="repuestos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      RPTOS.
+    </button>
+  </nav>
+
+  <!-- ============ INFO ============ -->
+  <section class="tab-content active" data-tab="info">
+    <header class="intro">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="tag-row">
+        <span class="tag hot">● EN SERVICIO</span>
+        <span class="tag danger">MUY CRÍTICO</span>
+        <span class="tag">ACCESO RESTRINGIDO</span>
+        <span class="tag ok">REV. 1 — 23·MAY·2026</span>
+      </div>
+      <h1>PANEL CONTROL <span class="sub">/ CENTRAL</span></h1>
+      <p class="lead">
+        Compartimento central de control electro-hidráulico-neumático. Contiene el PLC Jetter, los manifold de electroválvulas hidráulicas y neumáticas, el banco de relés Datam y la caja de fusibles ESU. Es el cerebro que gobierna todo el implemento Bucher.
+      </p>
+      <div class="meta">
+        <span>EQUIPO · <b>Bucher CityFant 6000</b></span>
+        <span>FAB. ORIGEN · <b>Bucher UK · Dorking</b></span>
+        <span>SUBSISTEMA · <b>Control central</b></span>
+        <span>OPERACIÓN · <b>PVSA · Puchuncaví</b></span>
+        <span>UBICACIÓN · <b>Compartimento lateral</b></span>
+        <span>CRITICIDAD · <b style="color:var(--danger)">MUY ALTA</b></span>
+      </div>
+    </header>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>FUNCIONAMIENTO GENERAL</span><b>ARQUITECTURA CAN</b></div>
+      <div style="padding:14px 16px">
+        <p style="font-size:13.5px;line-height:1.6;color:var(--ink);margin-bottom:10px">
+          El panel implementa una <b style="color:var(--accent)">arquitectura distribuida</b> basada en bus <b style="color:var(--accent-2)">CAN/CANopen</b>. El controlador principal <b style="color:var(--accent)">Jetter JXM-IO-E02</b> (PLC made in Germany) recibe órdenes del mando del operador en cabina y las traduce en señales de 24 VDC dirigidas a los actuadores específicos.
+        </p>
+        <p style="font-size:13.5px;line-height:1.6;color:var(--ink);margin-bottom:10px">
+          Cada función del implemento (cepillos, tolva, turbina, riego, brazos) tiene su <b style="color:var(--accent)">ramal eléctrico identificado</b> por código alfanumérico (H = hidráulica, W = potencia, Y = salida, P = alimentación). Esta nomenclatura permite trazar cualquier falla desde el síntoma hasta el componente exacto en el manual eléctrico Bucher.
+        </p>
+        <p style="font-size:13.5px;line-height:1.6;color:var(--ink)">
+          El sistema neumático <b style="color:var(--accent-2)">IMI Norgren CANopen</b> opera en paralelo proporcionando aire de control a las válvulas piloto. Combina robustez electromecánica (relés Datam, cartridges Hydraforce) con diagnóstico digital avanzado vía CAN.
+        </p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>PARÁMETROS CRÍTICOS</span><b>VALORES NOMINALES</b></div>
+      <div class="specs" style="margin:0">
+        <div><div class="k">Tensión nominal</div><div class="v">24 VDC</div></div>
+        <div><div class="k">Rango tolerado</div><div class="v">12 – 24 VDC</div></div>
+        <div><div class="k">Bus comunicación</div><div class="v">CAN / CANopen</div></div>
+        <div><div class="k">PLC principal</div><div class="v">Jetter JXM-IO</div></div>
+        <div><div class="k">Corriente relé</div><div class="v">3 A · Datam</div></div>
+        <div><div class="k">Presión neumática</div><div class="v">8 – 10 bar</div></div>
+        <div><div class="k">Aire de control</div><div class="v">6 bar regulado</div></div>
+        <div><div class="k">Norma protección</div><div class="v">IP54 (compartim.)</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>⚠ ADVERTENCIAS DE SEGURIDAD</span><b>OBLIGATORIO LEER</b></div>
+      <div style="padding:14px 16px">
+        <ul style="font-size:13px;line-height:1.65;padding-left:20px">
+          <li style="margin-bottom:6px"><b style="color:var(--danger)">DESCONECTAR BATERÍA</b> antes de cualquier intervención en este panel — siempre. Aplicar bloqueo LOTO.</li>
+          <li style="margin-bottom:6px"><b style="color:var(--danger)">NO TOCAR conectores</b> con el sistema energizado. Riesgo de daño al PLC Jetter (componente de muy alto costo).</li>
+          <li style="margin-bottom:6px"><b style="color:var(--danger)">No usar agua a presión</b> sobre el panel para limpiar — daño catastrófico al PLC y bobinas. Solo aire comprimido seco.</li>
+          <li style="margin-bottom:6px"><b style="color:var(--warn)">Acceso restringido:</b> solo personal certificado por DAIG en sistemas electrohidráulicos Bucher.</li>
+          <li style="margin-bottom:6px"><b style="color:var(--warn)">Diagnóstico CAN:</b> requiere notebook con software Jetter JetSym o lector CAN compatible. Disponible en taller central.</li>
+          <li style="margin-bottom:6px"><b style="color:var(--warn)">No alterar el cableado</b> ni cambiar identificaciones — el sistema depende de la trazabilidad por código.</li>
+          <li><b style="color:var(--info)">Reportar al supervisor:</b> cualquier falla del PLC, error CAN, o comportamiento anómalo de múltiples funciones simultáneas.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>NOMENCLATURA BUCHER</span><b>CÓDIGOS DE IDENTIFICACIÓN</b></div>
+      <div class="fuse-grid">
+        <div class="fuse-cell"><div class="fc-k">P-18V*</div><div class="fc-v">Alimentación 18 V — nodos principales</div></div>
+        <div class="fuse-cell"><div class="fc-k">P-12V*</div><div class="fc-v">Alimentación 12 V — accesorios</div></div>
+        <div class="fuse-cell"><div class="fc-k">P-0V / P-0Z</div><div class="fc-v">Referencia 0 V / tierra</div></div>
+        <div class="fuse-cell"><div class="fc-k">H-*V*</div><div class="fc-v">Hidráulica — válvula nº</div></div>
+        <div class="fuse-cell"><div class="fc-k">H-2V1 / H-2V3</div><div class="fc-v">Circuito tolva</div></div>
+        <div class="fuse-cell"><div class="fc-k">H-8V* / H-9V*</div><div class="fc-v">Circuito cepillos (ver DOC-0042)</div></div>
+        <div class="fuse-cell"><div class="fc-k">W-*V*</div><div class="fc-v">Salida de potencia</div></div>
+        <div class="fuse-cell"><div class="fc-k">Y005 – Y209</div><div class="fc-v">Salidas a actuadores</div></div>
+        <div class="fuse-cell"><div class="fc-k">K20, K21, K22</div><div class="fc-v">Relés principales</div></div>
+        <div class="fuse-cell"><div class="fc-k">S30.X1, S31.X1</div><div class="fc-v">Conectores de sensores</div></div>
+        <div class="fuse-cell"><div class="fc-k">PA2 / PA6</div><div class="fc-v">Mangueras neumáticas Norgren</div></div>
+        <div class="fuse-cell"><div class="fc-k">NA6U, NB6U...</div><div class="fc-v">Módulos manifold Norgren</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ARCHITECTURE ============ -->
+  <section class="tab-content" data-tab="arch">
+    <header class="intro">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <h1 style="font-size:28px">ARQUITECTURA <span class="sub">/ FLUJO DE CONTROL</span></h1>
+      <p class="lead">Cadena funcional desde la batería del Atego hasta los actuadores finales del implemento. Cinco niveles jerárquicos.</p>
+    </header>
+
+    <div class="arch-grid">
+
+      <div class="arch-box lvl-1">
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <div class="arch-h">NIVEL 1 · ALIMENTACIÓN</div>
+        <p style="font-size:14px;color:var(--ink);font-weight:500">Batería 24 VDC del chasis Mercedes-Benz Atego 1729</p>
+        <div class="arch-comp">
+          <span>2× baterías 12 V serie</span>
+          <span>Alternador MB</span>
+          <span>Fusibles principales</span>
+        </div>
+        <p style="margin-top:8px">Suministra energía al sistema. La PTO del Atego acciona la bomba hidráulica del implemento.</p>
+      </div>
+
+      <div class="arch-flow">↓</div>
+
+      <div class="arch-box lvl-2">
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <div class="arch-h">NIVEL 2 · DISTRIBUCIÓN ESU</div>
+        <p style="font-size:14px;color:var(--ink);font-weight:500">Unidad de Servicio Eléctrico (Electronic Service Unit)</p>
+        <div class="arch-comp">
+          <span>Caja fusibles principales</span>
+          <span>Relés K20/K21/K22</span>
+          <span>Nodos P-18V, P-12V</span>
+          <span>Tierra P-0V/P-0Z</span>
+        </div>
+        <p style="margin-top:8px">Distribuye y protege la energía hacia los distintos nodos del implemento. Cubierta etiquetada "FOR FUSE & RELAY BOXES — REMOVE THIS COVER".</p>
+      </div>
+
+      <div class="arch-flow">↓</div>
+
+      <div class="arch-box lvl-3">
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <div class="arch-h">NIVEL 3 · CONTROL (PLC + BUS CAN)</div>
+        <p style="font-size:14px;color:var(--ink);font-weight:500">Jetter JXM-IO-E02-G06-K02-U55 · 2 módulos · CANopen</p>
+        <div class="arch-comp">
+          <span>PLC Jetter (P/N 10001665)</span>
+          <span>Bus CAN principal</span>
+          <span>Manifold IMI Norgren CANopen</span>
+          <span>Conectores S30.X1, S31.X1</span>
+        </div>
+        <p style="margin-top:8px">Cerebro del sistema. Recibe señales del mando del operador (cabina) y de los sensores del implemento; ejecuta la lógica de control y comanda las salidas digitales. Programable en Jetter JetSym.</p>
+      </div>
+
+      <div class="arch-flow">↓</div>
+
+      <div class="arch-box lvl-4">
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <div class="arch-h">NIVEL 4 · CONMUTACIÓN (RELÉS + BOBINAS)</div>
+        <p style="font-size:14px;color:var(--ink);font-weight:500">Banco de relés Datam + bobinas solenoide C16 H 24/19</p>
+        <div class="arch-comp">
+          <span>Relés Datam 12-24VDC 3A</span>
+          <span>Bobinas C16 24V (semana 19/2024)</span>
+          <span>Bloque hidráulico H-2 (amarillo)</span>
+          <span>Bloque H-8/H-9 (DOC-0042)</span>
+        </div>
+        <p style="margin-top:8px">Las señales digitales del PLC (mA, baja potencia) son amplificadas por los relés Datam que conmutan corrientes mayores hacia las bobinas solenoide de los bloques hidráulicos y válvulas neumáticas.</p>
+      </div>
+
+      <div class="arch-flow">↓</div>
+
+      <div class="arch-box lvl-5">
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <div class="arch-h">NIVEL 5 · ACTUACIÓN</div>
+        <p style="font-size:14px;color:var(--ink);font-weight:500">Funciones físicas del implemento</p>
+        <div class="arch-comp">
+          <span>Cepillo lateral (DOC-0043)</span>
+          <span>Sistema aspiración (DOC-0044)</span>
+          <span>Basculamiento tolva</span>
+          <span>Compuerta trasera</span>
+          <span>Riego antipolvo</span>
+          <span>Sacudido de filtros</span>
+        </div>
+        <p style="margin-top:8px">Los cilindros, motores hidráulicos y actuadores neumáticos ejecutan las funciones físicas. Los sensores de retroalimentación cierran el lazo de control hacia el PLC.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ DIAGRAMA ============ -->
+  <section class="tab-content" data-tab="diagrama">
+    <div class="stage-wrap">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="stage-bar">
+        <span class="live">VISTA PANEL · LAYOUT FUNCIONAL</span>
+        <div class="zoom-ctrl">
+          <button id="zoom-out" title="Alejar">−</button>
+          <button id="zoom-reset" title="Reset">⊙</button>
+          <button id="zoom-in" title="Acercar">+</button>
+        </div>
+      </div>
+      <div class="stage" id="stageScroll">
+        <svg viewBox="0 0 1100 600" xmlns="http://www.w3.org/2000/svg" id="diagram" class="diagram">
+          <defs>
+            <linearGradient id="boxGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3a4654"/>
+              <stop offset="100%" stop-color="#1e2731"/>
+            </linearGradient>
+            <linearGradient id="yellowBlock" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#d9a84a"/>
+              <stop offset="100%" stop-color="#a0782a"/>
+            </linearGradient>
+            <linearGradient id="airyGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#4a5566"/>
+              <stop offset="100%" stop-color="#2a3441"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Panel background -->
+          <rect x="0" y="0" width="1100" height="600" fill="#0d1218"/>
+          <rect x="20" y="20" width="1060" height="560" fill="#161c24" stroke="#3a4654" stroke-width="1"/>
+
+          <!-- Top rail with hinges -->
+          <rect x="20" y="20" width="1060" height="30" fill="#2a3441" stroke="#3a4654"/>
+          <g fill="#3a4654">
+            <rect x="150" y="10" width="60" height="20" rx="2"/>
+            <rect x="450" y="10" width="60" height="20" rx="2"/>
+            <rect x="750" y="10" width="60" height="20" rx="2"/>
+          </g>
+
+          <!-- LED light bar -->
+          <rect x="40" y="55" width="1020" height="6" fill="#f5f5dc" opacity=".7"/>
+
+          <!-- 1. JETTER PLC (left) -->
+          <g id="jetter">
+            <rect x="60" y="120" width="140" height="160" fill="url(#boxGrad)" stroke="#1a1f26" stroke-width="1.5"/>
+            <rect x="65" y="125" width="130" height="70" fill="#2a3441" stroke="#1a1f26"/>
+            <text x="130" y="148" font-family="Bebas Neue" font-size="20" fill="#a78bfa" text-anchor="middle" letter-spacing="2">JETTER</text>
+            <text x="130" y="168" font-family="JetBrains Mono" font-size="8" fill="#8a9bb0" text-anchor="middle">JXM-IO-E02</text>
+            <text x="130" y="180" font-family="JetBrains Mono" font-size="8" fill="#8a9bb0" text-anchor="middle">P/N 10001665</text>
+            <!-- second module -->
+            <rect x="65" y="200" width="130" height="70" fill="#2a3441" stroke="#1a1f26"/>
+            <text x="130" y="223" font-family="Bebas Neue" font-size="20" fill="#a78bfa" text-anchor="middle" letter-spacing="2">JETTER</text>
+            <text x="130" y="243" font-family="JetBrains Mono" font-size="8" fill="#8a9bb0" text-anchor="middle">JXM-IO-E02</text>
+            <text x="130" y="255" font-family="JetBrains Mono" font-size="8" fill="#8a9bb0" text-anchor="middle">Made in Germany</text>
+            <!-- LEDs -->
+            <g fill="#5dd39e">
+              <circle cx="180" cy="135" r="2"/>
+              <circle cx="180" cy="142" r="2"/>
+              <circle cx="180" cy="210" r="2"/>
+              <circle cx="180" cy="217" r="2"/>
+            </g>
+            <text x="130" y="295" font-family="JetBrains Mono" font-size="9" fill="#a78bfa" text-anchor="middle" letter-spacing="1">PLC PRINCIPAL</text>
+          </g>
+
+          <!-- 2. NORGREN MANIFOLD -->
+          <g id="norgren">
+            <rect x="230" y="180" width="170" height="110" fill="#9aa0a8" stroke="#1a1f26" stroke-width="1.5"/>
+            <rect x="230" y="180" width="170" height="14" fill="#c43a2a"/>
+            <text x="315" y="190" font-family="JetBrains Mono" font-size="8" fill="#fff" text-anchor="middle" letter-spacing=".5">IMI NORGREN · CANopen</text>
+            <!-- pin grid -->
+            <g fill="#3a4250">
+              <circle cx="245" cy="210" r="3"/><circle cx="260" cy="210" r="3"/><circle cx="275" cy="210" r="3"/><circle cx="290" cy="210" r="3"/>
+              <circle cx="305" cy="210" r="3"/><circle cx="320" cy="210" r="3"/><circle cx="335" cy="210" r="3"/><circle cx="350" cy="210" r="3"/>
+              <circle cx="365" cy="210" r="3"/><circle cx="380" cy="210" r="3"/>
+              <circle cx="245" cy="230" r="3"/><circle cx="260" cy="230" r="3"/><circle cx="275" cy="230" r="3"/><circle cx="290" cy="230" r="3"/>
+              <circle cx="305" cy="230" r="3"/><circle cx="320" cy="230" r="3"/><circle cx="335" cy="230" r="3"/><circle cx="350" cy="230" r="3"/>
+              <circle cx="365" cy="230" r="3"/><circle cx="380" cy="230" r="3"/>
+            </g>
+            <text x="245" y="225" font-family="JetBrains Mono" font-size="6" fill="#c43a2a">14</text>
+            <text x="245" y="245" font-family="JetBrains Mono" font-size="6" fill="#c43a2a">12</text>
+            <!-- Norgren modules below -->
+            <g>
+              <rect x="230" y="290" width="170" height="40" fill="#d4d8de" stroke="#1a1f26"/>
+              <rect x="230" y="290" width="170" height="4" fill="#c43a2a"/>
+              <g font-family="JetBrains Mono" font-size="6" fill="#2a3441">
+                <text x="240" y="312">NA</text>
+                <text x="255" y="312">NB</text>
+                <text x="270" y="312">NC</text>
+                <text x="285" y="312">NC</text>
+                <text x="300" y="312">NA</text>
+                <text x="315" y="312">NG</text>
+                <text x="330" y="312">NG</text>
+                <text x="345" y="312">NA</text>
+                <text x="365" y="312">B0</text>
+                <text x="383" y="312">B0</text>
+              </g>
+            </g>
+            <text x="315" y="345" font-family="JetBrains Mono" font-size="9" fill="#5ab9ff" text-anchor="middle">NEUMÁTICA</text>
+          </g>
+
+          <!-- 3. AIRY filter regulator -->
+          <g id="airy">
+            <rect x="430" y="170" width="60" height="90" fill="url(#airyGrad)" stroke="#1a1f26"/>
+            <circle cx="460" cy="170" r="15" fill="#1a1f26" stroke="#3a4654" stroke-width="2"/>
+            <text x="460" y="195" font-family="JetBrains Mono" font-size="8" fill="#fff" text-anchor="middle">AIRY</text>
+            <!-- bowl -->
+            <ellipse cx="460" cy="265" rx="18" ry="22" fill="#1a1f26" stroke="#3a4654"/>
+            <text x="460" y="295" font-family="JetBrains Mono" font-size="9" fill="#5ab9ff" text-anchor="middle">REG. AIRE</text>
+          </g>
+
+          <!-- 4. YELLOW HYDRAULIC BLOCK H-2 -->
+          <g id="h2block">
+            <rect x="520" y="190" width="160" height="120" fill="url(#yellowBlock)" stroke="#1a1f26" stroke-width="1.5"/>
+            <!-- Solenoid coils on top -->
+            <g>
+              <rect x="535" y="160" width="28" height="40" fill="#3a3f46" stroke="#1a1f26"/>
+              <rect x="570" y="160" width="28" height="40" fill="#3a3f46" stroke="#1a1f26"/>
+              <rect x="605" y="160" width="28" height="40" fill="#3a3f46" stroke="#1a1f26"/>
+              <rect x="640" y="160" width="28" height="40" fill="#3a3f46" stroke="#1a1f26"/>
+              <text x="549" y="183" font-family="JetBrains Mono" font-size="5" fill="#fff" text-anchor="middle">C16</text>
+              <text x="584" y="183" font-family="JetBrains Mono" font-size="5" fill="#fff" text-anchor="middle">C16</text>
+              <text x="619" y="183" font-family="JetBrains Mono" font-size="5" fill="#fff" text-anchor="middle">C16</text>
+              <text x="654" y="183" font-family="JetBrains Mono" font-size="5" fill="#fff" text-anchor="middle">C16</text>
+            </g>
+            <!-- Bolts/cartridges -->
+            <g fill="#9aa0a8" stroke="#1a1f26">
+              <circle cx="549" cy="225" r="7"/><circle cx="584" cy="225" r="7"/><circle cx="619" cy="225" r="7"/><circle cx="654" cy="225" r="7"/>
+              <circle cx="549" cy="265" r="7"/><circle cx="584" cy="265" r="7"/><circle cx="619" cy="265" r="7"/><circle cx="654" cy="265" r="7"/>
+            </g>
+            <text x="600" y="300" font-family="JetBrains Mono" font-size="8" fill="#1a1f26" text-anchor="middle" font-weight="bold">H-2V1 · H-2V3</text>
+            <text x="600" y="325" font-family="JetBrains Mono" font-size="9" fill="#ffb84d" text-anchor="middle">HID. TOLVA</text>
+          </g>
+
+          <!-- 5. RELAYS DATAM bank -->
+          <g id="datam">
+            <rect x="700" y="180" width="120" height="130" fill="#2a3441" stroke="#1a1f26" stroke-width="1.5"/>
+            <!-- 4x2 matrix -->
+            <g>
+              <rect x="710" y="195" width="22" height="30" fill="#1a1f26" stroke="#3a4654"/>
+              <rect x="740" y="195" width="22" height="30" fill="#1a1f26" stroke="#3a4654"/>
+              <rect x="770" y="195" width="22" height="30" fill="#1a1f26" stroke="#3a4654"/>
+              <rect x="800" y="195" width="22" height="30" fill="#1a1f26" stroke="#3a4654"/>
+
+              <rect x="710" y="230" width="22" height="30" fill="#1a1f26" stroke="#3a4654"/>
+              <rect x="740" y="230" width="22" height="30" fill="#1a1f26" stroke="#3a4654"/>
+              <rect x="770" y="230" width="22" height="30" fill="#1a1f26" stroke="#3a4654"/>
+              <rect x="800" y="230" width="22" height="30" fill="#1a1f26" stroke="#3a4654"/>
+
+              <rect x="710" y="265" width="22" height="30" fill="#3a3f46" stroke="#1a1f26"/>
+              <rect x="740" y="265" width="22" height="30" fill="#3a3f46" stroke="#1a1f26"/>
+              <rect x="770" y="265" width="22" height="30" fill="#3a3f46" stroke="#1a1f26"/>
+              <rect x="800" y="265" width="22" height="30" fill="#3a3f46" stroke="#1a1f26"/>
+            </g>
+            <text x="760" y="187" font-family="JetBrains Mono" font-size="8" fill="#fff" text-anchor="middle">DATAM 12-24VDC 3A</text>
+            <text x="760" y="325" font-family="JetBrains Mono" font-size="9" fill="#a78bfa" text-anchor="middle">BANCO RELÉS</text>
+          </g>
+
+          <!-- 6. Secondary hydraulic block (dark gold) -->
+          <g id="hsecondary">
+            <rect x="840" y="200" width="100" height="100" fill="#8a6f3a" stroke="#1a1f26" stroke-width="1.5"/>
+            <g>
+              <rect x="850" y="175" width="22" height="35" fill="#3a3f46" stroke="#1a1f26"/>
+              <rect x="880" y="175" width="22" height="35" fill="#3a3f46" stroke="#1a1f26"/>
+              <rect x="910" y="175" width="22" height="35" fill="#3a3f46" stroke="#1a1f26"/>
+            </g>
+            <g fill="#9aa0a8" stroke="#1a1f26">
+              <circle cx="861" cy="235" r="6"/><circle cx="891" cy="235" r="6"/><circle cx="921" cy="235" r="6"/>
+              <circle cx="861" cy="270" r="6"/><circle cx="891" cy="270" r="6"/><circle cx="921" cy="270" r="6"/>
+            </g>
+            <text x="890" y="315" font-family="JetBrains Mono" font-size="9" fill="#ffb84d" text-anchor="middle">HID. SEC.</text>
+          </g>
+
+          <!-- 7. ESU fuse box -->
+          <g id="esu">
+            <rect x="950" y="80" width="120" height="240" fill="#2a3441" stroke="#1a1f26" stroke-width="1.5"/>
+            <rect x="950" y="80" width="120" height="20" fill="#1a1f26"/>
+            <text x="1010" y="94" font-family="JetBrains Mono" font-size="9" fill="#a78bfa" text-anchor="middle" letter-spacing="1">ESU</text>
+            <!-- inside fuse labels grid -->
+            <g font-family="JetBrains Mono" font-size="6" fill="#8a9bb0">
+              <text x="965" y="115">P-18V2</text>
+              <text x="1015" y="115">P-18V3</text>
+              <text x="965" y="135">P-12V2</text>
+              <text x="1015" y="135">P-0Z1</text>
+              <text x="965" y="155">P-18V4</text>
+              <text x="1015" y="155">P-18V5</text>
+              <text x="965" y="175">P-0V1</text>
+              <text x="1015" y="175">P-0Z2</text>
+              <text x="965" y="195">K20</text>
+              <text x="1005" y="195">K21</text>
+              <text x="1045" y="195">K22</text>
+              <text x="965" y="215">H-4V1</text>
+              <text x="1015" y="215">H-9V3</text>
+              <text x="965" y="235">W-1V1</text>
+              <text x="1015" y="235">W-3V1</text>
+              <text x="965" y="255">Y005</text>
+              <text x="1015" y="255">Y007</text>
+              <text x="965" y="275">Y201</text>
+              <text x="1015" y="275">Y209</text>
+            </g>
+            <text x="1010" y="305" font-family="JetBrains Mono" font-size="8" fill="#5dd39e" text-anchor="middle">FUSE &amp; RELAY</text>
+          </g>
+
+          <!-- 8. AdBlue / refrigerant container -->
+          <g id="adblue">
+            <rect x="1000" y="380" width="60" height="120" fill="#f5f5f0" stroke="#1a1f26" stroke-width="1.5"/>
+            <circle cx="1020" cy="395" r="6" fill="#ff9a3a" stroke="#1a1f26"/>
+            <!-- liquid -->
+            <rect x="1005" y="440" width="50" height="55" fill="#ffb3c1" opacity=".7"/>
+            <text x="1030" y="520" font-family="JetBrains Mono" font-size="8" fill="#ffb3c1" text-anchor="middle">AdBlue / DEF</text>
+          </g>
+
+          <!-- Wiring (decorative) -->
+          <g stroke-width="1.5" fill="none" opacity=".6">
+            <path d="M 200 200 Q 215 200 230 200" stroke="#5ab9ff"/>
+            <path d="M 200 240 Q 215 240 230 240" stroke="#c43a2a"/>
+            <path d="M 400 230 Q 415 220 430 215" stroke="#5ab9ff"/>
+            <path d="M 490 240 Q 505 240 520 240" stroke="#1a1f26" stroke-width="2.5"/>
+            <path d="M 680 230 Q 690 230 700 230" stroke="#a78bfa"/>
+            <path d="M 820 230 Q 830 230 840 230" stroke="#a78bfa"/>
+            <path d="M 940 230 Q 945 230 950 230" stroke="#1a1f26" stroke-width="2.5"/>
+          </g>
+
+          <!-- Air lines blue (decorative) -->
+          <path d="M 460 290 Q 460 380 460 470 Q 460 510 500 510 Q 700 510 900 510" stroke="#5ab9ff" stroke-width="2.5" fill="none" opacity=".8"/>
+
+          <!-- Bottom rail / labels -->
+          <rect x="20" y="540" width="1060" height="40" fill="#1a1f26" stroke="#3a4654"/>
+          <text x="550" y="565" font-family="JetBrains Mono" font-size="10" fill="#5a6675" text-anchor="middle" letter-spacing="2">PANEL CENTRAL · BUCHER CITYFANT 6000 · DAIG-MNT-0045</text>
+
+          <!-- HOTSPOTS -->
+          <g id="hotspots"></g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel" style="margin-bottom:0">
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <span class="corner bl"></span><span class="corner br"></span>
+        <div class="panel-h"><span>COMPONENTES</span><b id="comp-count">12 PUNTOS</b></div>
+        <div id="items"></div>
+      </div>
+
+      <div class="detail" id="detail">
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <span class="corner bl"></span><span class="corner br"></span>
+        <div class="detail-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>
+          </svg>
+          <div>Toca un número en el diagrama o un componente del listado para ver su ficha técnica.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CHECKLIST ============ -->
+  <section class="tab-content" data-tab="checklist">
+    <header class="intro">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <h1 style="font-size:28px">INSPECCIÓN <span class="sub">/ CHECKLIST</span></h1>
+      <p class="lead">Lista de verificación del panel de control central. <b style="color:var(--danger)">Atención: requiere personal certificado.</b></p>
+
+      <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+      <div class="progress-meta">
+        <span>PROGRESO</span>
+        <span><b id="progCount">0</b> / <span id="progTotal">12</span> · <span id="progPct">0%</span></span>
+      </div>
+
+      <div class="check-actions">
+        <button class="btn primary" id="btn-export">📋 Exportar reporte</button>
+        <button class="btn ghost" id="btn-reset">↻ Limpiar todo</button>
+      </div>
+    </header>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>DATOS DE LA INSPECCIÓN</span><b>OBLIGATORIO</b></div>
+      <div style="padding:14px 16px">
+        <div class="form-grid">
+          <div>
+            <label>Patente</label>
+            <select id="f-patente">
+              <option value="">— Seleccionar —</option>
+              <option value="SR·XF·37">SR·XF·37</option>
+              <option value="RR·KH·97">RR·KH·97</option>
+            </select>
+          </div>
+          <div>
+            <label>Fecha</label>
+            <input type="date" id="f-fecha"/>
+          </div>
+          <div>
+            <label>Técnico certificado</label>
+            <input type="text" id="f-operador" placeholder="Nombre completo"/>
+          </div>
+          <div>
+            <label>Horómetro (h)</label>
+            <input type="number" id="f-horometro" placeholder="0000"/>
+          </div>
+          <div>
+            <label>Voltaje batería (V)</label>
+            <input type="number" step="0.1" id="f-voltaje" placeholder="24.0"/>
+          </div>
+          <div>
+            <label>Estado bus CAN</label>
+            <select id="f-can">
+              <option value="">— Seleccionar —</option>
+              <option value="OK">OK · sin errores</option>
+              <option value="ADV">Con advertencias</option>
+              <option value="ERR">Con errores</option>
+              <option value="NV">No verificado</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid full">
+          <div>
+            <label>Observaciones generales</label>
+            <textarea id="f-obs" placeholder="Errores PLC, fallas intermitentes, fusibles quemados, bobinas defectuosas..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>VERIFICACIONES POR COMPONENTE</span><b>MARCAR AL COMPLETAR</b></div>
+      <div id="check-items"></div>
+    </div>
+  </section>
+
+  <!-- ============ REPUESTOS ============ -->
+  <section class="tab-content" data-tab="repuestos">
+    <header class="intro">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <h1 style="font-size:28px">CATÁLOGO <span class="sub">/ REPUESTOS</span></h1>
+      <p class="lead">Repuestos del panel de control. Códigos OEM Jetter, IMI Norgren, Datam y Bucher. Importación directa o vía proveedor autorizado.</p>
+    </header>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>CONTROL Y AUTOMATIZACIÓN</span><b>JETTER · ALTO COSTO</b></div>
+      <div style="padding:10px 12px" id="parts-ctrl"></div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>ELÉCTRICOS</span><b>RELÉS · CONECTORES · FUSIBLES</b></div>
+      <div style="padding:10px 12px" id="parts-elec"></div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>NEUMÁTICA NORGREN</span><b>VÁLVULAS · MANGUERAS · ACOPLES</b></div>
+      <div style="padding:10px 12px" id="parts-neum"></div>
+    </div>
+
+    <div class="panel" style="background:rgba(167,139,250,.05);border-color:var(--accent)">
+      <div class="panel-h" style="color:var(--accent)"><span>⚠ NOTA CRÍTICA</span><b>IMPORTACIÓN DIRECTA</b></div>
+      <div style="padding:14px 16px;font-size:13px;line-height:1.55">
+        El <b style="color:var(--ink)">PLC Jetter</b> y los manifolds <b style="color:var(--ink)">IMI Norgren CANopen</b> son componentes de altísimo costo (>USD 2000 c/u) y rara vez se reemplazan completos — se diagnostican y reparan por módulo. Cualquier intervención requiere autorización del supervisor + presupuesto previo. Contacto compras: <b style="color:var(--ink)">daniel.mena@serviciosdaig.com</b>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>DAIG SpA · <b>RUT 77.702.886-3</b> · Puchuncaví</span>
+    <span>USO INTERNO · DOC-TEC v1.0</span>
+  </footer>
+</div>
+
+<div class="toast" id="toast">Guardado</div>
+
+<script>
+const DATA = {
+  1: {
+    tag:"PLC",
+    title:"Jetter JXM-IO-E02",
+    sub:"PLC principal · P/N 10001665 · made in Germany",
+    cat:"elec",
+    func:"Controlador lógico programable (PLC) marca Jetter, modelo JXM-IO-E02-G06-K02-U55, P/N 10001665, revisión 12.24. Es el cerebro del implemento Bucher. Recibe señales del mando del operador y de los sensores, ejecuta la lógica de control y comanda todas las salidas digitales hacia los actuadores. Programado en Jetter JetSym (lenguaje IEC 61131-3). El panel cuenta con DOS módulos en paralelo.",
+    inspect:[
+      "Verificar LEDs de estado (verde fijo = OK).",
+      "Sin polvo ni humedad en las ranuras de ventilación.",
+      "Conectores sin oxidación ni juego.",
+      "Voltaje de alimentación 24 VDC ±10%.",
+      "Backup de programa actualizado en taller central."
+    ],
+    diag:[
+      ["LED rojo encendido","Error interno PLC","A","Diagnóstico con JetSym · enviar a soporte Jetter"],
+      ["No comunica con cabina","Falla bus CAN o conector","A","Verificar bus CAN · revisar conector principal"],
+      ["Funciones erráticas","Programa corrupto / voltaje inestable","A","Verificar alimentación · recargar programa"],
+      ["No arranca","Sin alimentación / fusible quemado","A","Revisar fusible · medir 24 V en bornes"],
+      ["Sobrecalentamiento","Ventilación obstruida","M","Limpiar con aire seco · NO mojar"]
+    ],
+    specs:[["MARCA","Jetter (Alemania)"],["MODELO","JXM-IO-E02-G06-K02-U55"],["P/N","10001665"],["REV.","12.24"],["TENSIÓN","24 VDC"],["BUS","CAN / CANopen"]]
+  },
+  2: {
+    tag:"NORGREN",
+    title:"Manifold neumático IMI Norgren",
+    sub:"CANopen · módulos NA6U/NB6U/NC6U",
+    cat:"neu",
+    func:"Manifold neumático modular IMI Norgren con bus CANopen. Distribuye y conmuta aire comprimido hacia los actuadores neumáticos del implemento (válvulas piloto de los bloques hidráulicos, sacudido de filtros, etc.). Cada módulo (NA6U, NB6U, NC6U, NG6U) controla una función específica. Comunicación digital directa con el PLC Jetter — diagnóstico avanzado vía CAN.",
+    inspect:[
+      "Verificar presión de entrada (6 bar regulado).",
+      "Estado de los LEDs de cada módulo.",
+      "Limpieza con aire comprimido seco (NO agua).",
+      "Conectores eléctricos sin verdín.",
+      "Revisar identificadores de cada módulo legibles."
+    ],
+    diag:[
+      ["Módulo no responde","Falla CAN / conector suelto","A","Verificar CAN bus · revisar conector M12"],
+      ["Aire no llega al actuador","Válvula trabada","M","Limpieza interior · si persiste, reemplazar módulo"],
+      ["Fuga audible","Sello interno vencido","M","Reemplazar módulo (no se repara)"],
+      ["Error CAN intermitente","Cable de bus dañado","A","Inspeccionar cable · reemplazar tramo"]
+    ],
+    specs:[["MARCA","IMI Norgren"],["BUS","CANopen"],["MÓDULOS","NA6U/NB6U/NC6U/NG6U"],["P. ALIM.","6 bar"],["TENSIÓN","24 VDC"],["ORIGEN","CZ · 0522CZ"]]
+  },
+  3: {
+    tag:"AIRY",
+    title:"Filtro-regulador AIRY",
+    sub:"Preparación aire neumático",
+    cat:"neu",
+    func:"Unidad FRL (Filter-Regulator-Lubricator) compacta marca AIRY que prepara el aire comprimido proveniente del compresor del Atego antes de ingresar al manifold Norgren. Filtra partículas, condensados y regula la presión a 6 bar.",
+    inspect:[
+      "Vaciar el bowl de condensados (purga manual o automática).",
+      "Verificar presión regulada con manómetro.",
+      "Inspeccionar elemento filtrante (cambio anual).",
+      "Ajuste de la perilla negra superior según uso."
+    ],
+    diag:[
+      ["Bowl con mucha agua","Compresor sin secador / drenaje obstruido","M","Vaciar · revisar secador del Atego"],
+      ["Presión inestable","Regulador defectuoso","M","Recalibrar · reemplazar si persiste"],
+      ["Bajo caudal","Filtro saturado","B","Reemplazar elemento filtrante"],
+      ["Fuga por bowl","Junta vencida","M","Reemplazar junta o bowl completo"]
+    ],
+    specs:[["MARCA","AIRY"],["P. REGULADA","6 bar"],["P. MÁX ENTRADA","16 bar"],["TEMP. OP.","0–60 °C"],["FILTRACIÓN","5 µm"],["DRENAJE","Manual"]]
+  },
+  4: {
+    tag:"H-2",
+    title:"Bloque hidráulico H-2 (tolva)",
+    sub:"Manifold amarillo · bobinas C16 H 24/19",
+    cat:"hyd",
+    func:"Bloque hidráulico anodizado amarillo que controla el circuito de la TOLVA del implemento: basculamiento, compuerta trasera, sacudido de filtros. Identificado como H-2 con válvulas H-2V1, H-2V3 grabadas. Bobinas solenoide código C16 H 24/19 (24 V, semana 19 de 2024).",
+    inspect:[
+      "Limpieza externa con desengrasante (NO con agua a presión).",
+      "Verificar par de apriete de cartridges (30–35 Nm).",
+      "Inspección de fugas en racores.",
+      "Continuidad de bobinas (resistencia 6–8 Ω).",
+      "Conectores DIN sellados sin polvo."
+    ],
+    diag:[
+      ["Tolva no bascula","Bobina H-2V1 quemada","A","Reemplazar bobina · verificar señal PLC"],
+      ["Compuerta no abre","Cartridge atascado","M","Limpieza cartridge · O-rings nuevos"],
+      ["Movimiento lento","Caudal bajo / fuga interna","M","Medir presión · revisar bomba"],
+      ["Fuga externa","O-ring vencido / tornillo flojo","M","Kit O-rings · reapretar"]
+    ],
+    specs:[["CIRCUITO","H-2 · Tolva"],["VÁLVULAS","H-2V1 / H-2V3"],["BOBINAS","C16 H 24/19"],["TENSIÓN","24 VDC"],["P. TRAB.","160–210 bar"],["MATERIAL","Aluminio anodiz."]]
+  },
+  5: {
+    tag:"DATAM",
+    title:"Banco relés Datam",
+    sub:"12-24VDC 3A · matriz 4×2",
+    cat:"elec",
+    func:"Banco de 8 relés electromecánicos marca Datam dispuestos en matriz 4×2. Cada relé conmuta corrientes de hasta 3 A a 12-24 VDC. Reciben la señal de baja potencia del PLC Jetter y amplifican la corriente hacia las bobinas solenoide del bloque H-2 y otros actuadores de potencia (luces de trabajo, bocina, etc.).",
+    inspect:[
+      "Verificar click característico al energizarse.",
+      "Sin oxidación en los contactos visibles.",
+      "Continuidad de cada contacto con multímetro.",
+      "Conectores DIN sin daño.",
+      "Reemplazar como conjunto si más de 2 fallan."
+    ],
+    diag:[
+      ["No conmuta","Bobina interna quemada","M","Reemplazar relé individual"],
+      ["Click pero sin salida","Contactos pegados / sucios","M","Reemplazar relé (no se repara)"],
+      ["Conmuta errático","Voltaje bajo / contacto degradado","M","Verificar voltaje · reemplazar"],
+      ["Calentamiento","Sobrecorriente en circuito","A","Verificar carga · revisar fusibles"]
+    ],
+    specs:[["MARCA","Datam"],["TENSIÓN","12-24 VDC"],["CORRIENTE","3 A"],["CONFIG.","4×2 (8 relés)"],["VIDA ÚTIL","≈ 100k ciclos"],["DIAGRAMA","En etiqueta lateral"]]
+  },
+  6: {
+    tag:"ESU",
+    title:"Caja fusibles y relés ESU",
+    sub:"Electronic Service Unit · K20/K21/K22",
+    cat:"elec",
+    func:"Unidad de servicio eléctrico (Electronic Service Unit) que contiene los fusibles principales y relés de potencia K20, K21, K22 del implemento. La cubierta lleva la etiqueta 'FOR FUSE & RELAY BOXES - REMOVE THIS COVER' con el mapa de identificación de cada fusible: alimentaciones P-18V, P-12V, salidas H-, W-, Y- (ver Info para nomenclatura completa).",
+    inspect:[
+      "Inspección visual de cada fusible (filamento intacto).",
+      "Continuidad de los relés principales.",
+      "Limpieza con aire seco — no introducir herramientas.",
+      "Conectores apretados firmemente.",
+      "Cubierta sellada correctamente al cerrar."
+    ],
+    diag:[
+      ["Sin tensión global","Fusible principal quemado","A","Identificar fusible quemado · reemplazar mismo amperaje"],
+      ["Falla función específica","Fusible de ramal quemado","M","Ubicar fusible según nomenclatura · reemplazar"],
+      ["K20/K21/K22 no funciona","Relé principal defectuoso","A","Reemplazar relé · verificar carga"],
+      ["Fusible quemado recurrente","Cortocircuito aguas abajo","A","Buscar causa · NO usar fusible mayor"]
+    ],
+    specs:[["TIPO","ESU Bucher"],["RELÉS PRINC.","K20 / K21 / K22"],["FUSIBLES","ATO/MAXI"],["TENSIÓN","24 VDC"],["TIPO ACCESO","Tornillos cubierta"],["NORMA","IP54"]]
+  },
+  7: {
+    tag:"COILS",
+    title:"Bobinas solenoide C16",
+    sub:"C16 H 24/19 · semana 19/2024",
+    cat:"hyd",
+    func:"Bobinas solenoide cuadradas de 24 VDC montadas sobre los cartridges del bloque H-2. Código C16 H 24/19 indica modelo C16, tensión 24 V, fabricación semana 19 año 2024. Activan los cartridges hidráulicos al recibir la señal del relé Datam correspondiente.",
+    inspect:[
+      "Medir resistencia (6–8 Ω a 20 °C).",
+      "Sin sobrecalentamiento al tacto (<60 °C).",
+      "Conector DIN bien encajado con junta presente.",
+      "Sin fisuras en encapsulado plástico."
+    ],
+    diag:[
+      ["Bobina fría sin acción","Resistencia infinita = abierta","A","Reemplazar bobina"],
+      ["Bobina muy caliente","Sobrecorriente / cartridge trabado","A","Apagar · verificar cartridge"],
+      ["Acción intermitente","Conector DIN flojo / con humedad","M","Limpiar contactos · resellar"],
+      ["Resistencia baja (<5 Ω)","Cortocircuito interno","A","Reemplazar"]
+    ],
+    specs:[["MODELO","C16"],["TENSIÓN","24 VDC"],["RESISTENCIA","6–8 Ω"],["CONSUMO","≈ 1.0 A"],["CONECTOR","DIN 43650-A"],["IP","IP65"]]
+  },
+  8: {
+    tag:"H-SEC",
+    title:"Bloque hidráulico secundario",
+    sub:"Color dorado oscuro · funciones auxiliares",
+    cat:"hyd",
+    func:"Bloque hidráulico complementario en color dorado oscuro adyacente al H-2. Comanda funciones auxiliares del implemento (probablemente lavado a presión, ducha de cepillo central, o funciones opcionales del POWAPAK NODE). Misma arquitectura: cartridges Hydraforce + bobinas solenoide DIN.",
+    inspect:[
+      "Mismas verificaciones que el bloque H-2.",
+      "Identificar y rotular cada bobina con su función.",
+      "Verificar etiquetado interno legible."
+    ],
+    diag:[
+      ["Función auxiliar no opera","Bobina o cartridge","M","Identificar función · diagnóstico estándar"],
+      ["Fugas múltiples","Sellos vencidos","M","Kit O-rings completo"]
+    ],
+    specs:[["CIRCUITO","Funciones aux."],["MARCA CART.","Hydraforce"],["MATERIAL","Aluminio"],["TENSIÓN","24 VDC"]]
+  },
+  9: {
+    tag:"WIRING",
+    title:"Cableado y conectores",
+    sub:"S30.X1, S31.X1 · Norgren PA2",
+    cat:"elec",
+    func:"Mazo de cables del panel con conectores identificados (S30.X1, S31.X1, R12 DTM, M3, W3). Incluye mangueras neumáticas Norgren PA2 (código PA2_010s1059) en colores rojo (piloto) y azul (aire principal). Toda la nomenclatura es trazable al esquema eléctrico Bucher.",
+    inspect:[
+      "Verificar todas las bridas de fijación.",
+      "Sin cortes ni roce en corrugados.",
+      "Etiquetas legibles en cada cable principal.",
+      "Conectores sellados (vaselina dieléctrica)."
+    ],
+    diag:[
+      ["Falla intermitente","Cable cortado interno","A","Megger · reemplazar tramo"],
+      ["Conector con verdín","Humedad ingresando","M","Limpiar · resellar con vaselina"],
+      ["Manguera aire suelta","Push-in dañado","M","Reemplazar racor"],
+      ["Identificación ilegible","Etiqueta vencida","B","Re-etiquetar con cinta resistente"]
+    ],
+    specs:[["TENSIÓN","24 VDC"],["NORMA","DIN 72551"],["CONECTORES","Deutsch DT / DIN"],["MANGUERA NEUM.","Norgren PA2"]]
+  },
+  10: {
+    tag:"REG-AIR",
+    title:"Regulador aire principal",
+    sub:"Norgren con perilla manual + manómetro",
+    cat:"neu",
+    func:"Regulador de presión Norgren con perilla negra de ajuste manual y manómetro integrado. Reduce la presión del calderín del Atego (8-10 bar) a la presión de control del implemento (6 bar). Cuenta con válvula manual de bypass en latón para corte rápido.",
+    inspect:[
+      "Verificar lectura del manómetro (6 bar en operación).",
+      "Sin fugas audibles.",
+      "Perilla de ajuste con tope sin trabarse.",
+      "Válvula de bypass operativa."
+    ],
+    diag:[
+      ["Presión baja","Regulador descalibrado / fuga","M","Recalibrar · si persiste, reemplazar"],
+      ["Sin presión","Válvula bypass cerrada","B","Abrir válvula manual"],
+      ["Presión inestable","Diafragma roto","M","Reemplazar regulador"],
+      ["Fuga continua","Asiento interno dañado","M","Reemplazar"]
+    ],
+    specs:[["MARCA","Norgren"],["P. SALIDA","6 bar"],["P. ENTRADA MÁX","16 bar"],["AJUSTE","Manual con tope"],["MANÓMETRO","Integrado"],["BYPASS","Válvula latón"]]
+  },
+  11: {
+    tag:"ADBLUE",
+    title:"Bidón AdBlue / DEF",
+    sub:"Sistema SCR Mercedes-Benz Atego",
+    cat:"elec",
+    func:"Bidón plástico de AdBlue (DEF - Diesel Exhaust Fluid) que alimenta el sistema SCR del motor diesel del Atego para reducción de NOx. NO pertenece al implemento Bucher pero está ubicado dentro del compartimento. Tapón naranja característico de AdBlue. Líquido rosado/incoloro.",
+    inspect:[
+      "Verificar nivel mensual.",
+      "Tapón naranja correctamente cerrado.",
+      "Sin cristales blancos alrededor (señal de fuga).",
+      "No mezclar con otros fluidos.",
+      "Vida útil del producto: 12 meses sellado."
+    ],
+    diag:[
+      ["Nivel bajo","Consumo normal","B","Rellenar con AdBlue ISO 22241"],
+      ["Cristales blancos","Pequeña fuga / derrame","M","Limpiar · verificar tapón y bidón"],
+      ["Alarma SCR en Atego","Calidad AdBlue / sistema SCR","A","Diagnóstico MB · NO continuar operación"]
+    ],
+    specs:[["FLUIDO","AdBlue / DEF"],["NORMA","ISO 22241-1"],["CONCENTRACIÓN","32.5% urea"],["TAPÓN","Naranja (estándar)"],["CAPACIDAD","≈ 10 L"]]
+  },
+  12: {
+    tag:"LIGHT",
+    title:"Iluminación LED interior",
+    sub:"Tira LED inspección · 24 VDC",
+    cat:"elec",
+    func:"Tira LED de iluminación instalada en el techo del compartimento para facilitar inspección y mantención nocturna. Se enciende al abrir la compuerta del panel.",
+    inspect:[
+      "Verificar encendido al abrir.",
+      "Sin LEDs quemados.",
+      "Limpieza de la cubierta plástica.",
+      "Cableado sin daño."
+    ],
+    diag:[
+      ["No enciende","Sensor compuerta / fusible","B","Verificar sensor · revisar fusible"],
+      ["Algunos LEDs apagados","Tramo dañado","B","Reemplazar tira completa"],
+      ["Parpadeo","Conexión flojo","B","Reapretar conector"]
+    ],
+    specs:[["TIPO","Tira LED"],["TENSIÓN","24 VDC"],["LARGO","≈ 1 m"],["IP","IP65"],["ACTIVACIÓN","Auto (compuerta)"]]
+  }
+};
+
+const PARTS = {
+  ctrl:[
+    ["JET-10001665","Jetter JXM-IO-E02-G06-K02-U55","s-no","0 ud."],
+    ["JET-CABLE-CAN","Cable bus CAN Jetter M12 (m)","s-low","5 m"],
+    ["NOR-CAN-NA6U","Módulo Norgren NA6U CANopen","s-no","0 ud."],
+    ["NOR-CAN-NB6U","Módulo Norgren NB6U CANopen","s-no","0 ud."],
+    ["NOR-CAN-NC6U","Módulo Norgren NC6U CANopen","s-no","0 ud."],
+    ["NOR-CAN-NG6U","Módulo Norgren NG6U CANopen","s-no","0 ud."]
+  ],
+  elec:[
+    ["DAT-12-24-3A","Relé Datam 12-24VDC 3A","s-ok","8 ud."],
+    ["BU-COIL-C16","Bobina solenoide C16 24V DIN","s-low","2 ud."],
+    ["DIN-43650A","Conector DIN 43650 forma A","s-ok","10 ud."],
+    ["FUS-ATO-10","Fusible ATO 10A","s-ok","20 ud."],
+    ["FUS-ATO-15","Fusible ATO 15A","s-ok","20 ud."],
+    ["FUS-ATO-25","Fusible ATO 25A","s-ok","15 ud."],
+    ["FUS-MAXI-40","Fusible MAXI 40A","s-low","4 ud."],
+    ["BU-K20","Relé K20 ESU Bucher","s-low","1 ud."],
+    ["LED-STRIP-24V","Tira LED 24V IP65 (1m)","s-ok","3 ud."],
+    ["CABLE-2x1.5","Cable 2×1.5 mm² apantallado (m)","s-ok","25 m"]
+  ],
+  neum:[
+    ["NOR-AIRY-REG","Regulador Norgren AIRY 6 bar","s-low","1 ud."],
+    ["NOR-AIRY-FILT","Elemento filtro AIRY 5 µm","s-ok","3 ud."],
+    ["NOR-PA2-RED","Manguera Norgren PA2 roja 8mm (m)","s-ok","20 m"],
+    ["NOR-PA2-BLU","Manguera Norgren PA2 azul 8mm (m)","s-ok","20 m"],
+    ["NOR-PUSH-8","Racor push-in Norgren Ø8 mm","s-ok","15 ud."],
+    ["NOR-VAL-MANU","Válvula manual bypass latón","s-low","1 ud."],
+    ["NOR-SENS-P","Sensor presión Norgren","s-low","2 ud."]
+  ]
+};
+
+const STORAGE_KEY = 'daig-mnt-0045';
+let state = { checks:{}, form:{} };
+
+async function loadState(){
+  try{
+    const r = await window.storage.get(STORAGE_KEY);
+    if(r && r.value) state = JSON.parse(r.value);
+  }catch(e){}
+}
+async function saveState(){
+  try{ await window.storage.set(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+const itemsEl = document.getElementById('items');
+const detailEl = document.getElementById('detail');
+const ORDER = [1,2,3,4,5,6,7,8,9,10,11,12];
+
+function renderItems(){
+  itemsEl.innerHTML = '';
+  ORDER.forEach(id=>{
+    const d = DATA[id];
+    const el = document.createElement('div');
+    el.className = 'item' + (state.checks[id]?' checked':'');
+    el.dataset.id = id;
+    const catLabel = d.cat==='elec'?'ELÉCTRICO':d.cat==='hyd'?'HIDRÁULICO':'NEUMÁTICO';
+    el.innerHTML = `
+      <div class="num">${String(id).padStart(2,'0')}</div>
+      <div class="it-body">
+        <div class="it-title">${d.title} <span class="chk-mark">✓</span></div>
+        <div class="it-sub">${d.sub}</div>
+        <span class="it-cat ${d.cat}">${catLabel}</span>
+      </div>
+      <div class="it-arrow">›</div>`;
+    el.addEventListener('click',()=>select(id));
+    itemsEl.appendChild(el);
+  });
+}
+
+function select(id){
+  document.querySelectorAll('.item').forEach(el=>{
+    el.classList.toggle('active', el.dataset.id==String(id));
+  });
+  document.querySelectorAll('.hot-group').forEach(g=>{
+    g.querySelector('.hot-circle').classList.toggle('active', g.dataset.id==String(id));
+  });
+  renderDetail(id);
+}
+
+function renderDetail(id){
+  const d = DATA[id];
+  const isChecked = !!state.checks[id];
+  detailEl.innerHTML = `
+    <span class="corner tl"></span><span class="corner tr"></span>
+    <span class="corner bl"></span><span class="corner br"></span>
+    <div class="d-head">
+      <span class="d-tag">PUNTO ${String(id).padStart(2,'0')} · ${d.tag}</span>
+      <button class="d-check-btn ${isChecked?'checked':''}" id="detail-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          ${isChecked?'<path d="M5 12l5 5L20 7"/>':'<rect x="4" y="4" width="16" height="16" rx="1"/>'}
+        </svg>
+        ${isChecked?'VERIFICADO':'MARCAR'}
+      </button>
+    </div>
+    <div class="d-title">${d.title}</div>
+    <div class="d-sub">${d.sub}</div>
+
+    <div class="d-section">
+      <h4>Función</h4>
+      <p>${d.func}</p>
+    </div>
+
+    <div class="d-section">
+      <h4>Inspección / Mantención</h4>
+      <ul>${d.inspect.map(x=>`<li>${x}</li>`).join('')}</ul>
+    </div>
+
+    <div class="d-section">
+      <h4>Diagnóstico de fallas</h4>
+      <table class="diag-table">
+        <thead><tr><th>Síntoma</th><th>Causa probable</th><th>Sev.</th><th>Acción</th></tr></thead>
+        <tbody>
+          ${d.diag.map(([s,c,sev,a])=>`
+            <tr>
+              <td><b>${s}</b></td>
+              <td>${c}</td>
+              <td><span class="sev ${sev}">${sev}</span></td>
+              <td>${a}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="d-section">
+      <h4>Especificación técnica</h4>
+      <div class="specs">
+        ${d.specs.map(([k,v])=>`<div><div class="k">${k}</div><div class="v">${v}</div></div>`).join('')}
+      </div>
+    </div>
+  `;
+  document.getElementById('detail-check').addEventListener('click',()=>toggleCheck(id));
+}
+
+const hotspotsCfg = [
+  {id:1, lead:[130,200,40,80], cx:30, cy:65, r:18},
+  {id:2, lead:[315,200,250,130], cx:240, cy:115, r:18},
+  {id:3, lead:[460,215,420,130], cx:410, cy:115, r:18},
+  {id:4, lead:[600,250,540,130], cx:530, cy:115, r:18},
+  {id:5, lead:[760,240,710,130], cx:700, cy:115, r:18},
+  {id:6, lead:[1010,200,1075,130], cx:1080, cy:115, r:18},
+  {id:7, lead:[600,170,640,90], cx:650, cy:80, r:16},
+  {id:8, lead:[890,250,890,140], cx:890, cy:120, r:16},
+  {id:9, lead:[400,540,200,560], cx:180, cy:570, r:16},
+  {id:10, lead:[460,260,440,400], cx:430, cy:415, r:16},
+  {id:11, lead:[1030,440,1075,495], cx:1080, cy:510, r:16},
+  {id:12, lead:[540,60,600,30], cx:610, cy:25, r:14}
+];
+
+function renderHotspots(){
+  const g = document.getElementById('hotspots');
+  g.innerHTML = '';
+  hotspotsCfg.forEach(h=>{
+    const checked = state.checks[h.id];
+    const group = document.createElementNS('http://www.w3.org/2000/svg','g');
+    group.setAttribute('class','hot-group');
+    group.dataset.id = h.id;
+    group.style.cursor = 'pointer';
+    group.innerHTML = `
+      <line class="lead-line ${checked?'checked':''}" x1="${h.lead[0]}" y1="${h.lead[1]}" x2="${h.lead[2]}" y2="${h.lead[3]}"/>
+      <circle class="hot-circle ${checked?'checked':''}" cx="${h.cx}" cy="${h.cy}" r="${h.r}"/>
+      <text class="hot-num" x="${h.cx}" y="${h.cy}" style="${checked?'fill:#fff':''}">${h.id}</text>
+    `;
+    group.addEventListener('click',()=>select(h.id));
+    g.appendChild(group);
+  });
+}
+
+function renderChecklist(){
+  const el = document.getElementById('check-items');
+  el.innerHTML = '';
+  ORDER.forEach(id=>{
+    const d = DATA[id];
+    const checked = !!state.checks[id];
+    const row = document.createElement('div');
+    row.className = 'item' + (checked?' checked':'');
+    row.dataset.id = id;
+    row.style.cursor = 'pointer';
+    const catLabel = d.cat==='elec'?'ELÉCTRICO':d.cat==='hyd'?'HIDRÁULICO':'NEUMÁTICO';
+    row.innerHTML = `
+      <div class="num">${String(id).padStart(2,'0')}</div>
+      <div class="it-body">
+        <div class="it-title">${d.title} <span class="chk-mark">✓</span></div>
+        <div class="it-sub" style="margin-bottom:4px">${d.sub}</div>
+        <span class="it-cat ${d.cat}" style="margin-bottom:6px">${catLabel}</span>
+        <div style="font-size:12px;color:var(--ink-dim);line-height:1.5;margin-top:6px">
+          ${d.inspect.map(x=>`• ${x}`).join('<br>')}
+        </div>
+      </div>
+      <div class="d-check-btn ${checked?'checked':''}" style="align-self:center">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px">
+          ${checked?'<path d="M5 12l5 5L20 7"/>':'<rect x="4" y="4" width="16" height="16" rx="1"/>'}
+        </svg>
+        ${checked?'OK':'PEND.'}
+      </div>`;
+    row.addEventListener('click',()=>toggleCheck(id));
+    el.appendChild(row);
+  });
+}
+
+async function toggleCheck(id){
+  state.checks[id] = !state.checks[id];
+  await saveState();
+  renderItems();
+  renderHotspots();
+  renderDetail(id);
+  renderChecklist();
+  updateProgress();
+  showToast(state.checks[id]?'Verificado ✓':'Pendiente');
+}
+
+function updateProgress(){
+  const total = ORDER.length;
+  const done = ORDER.filter(id=>state.checks[id]).length;
+  const pct = Math.round(done/total*100);
+  document.getElementById('progFill').style.width = pct+'%';
+  document.getElementById('progCount').textContent = done;
+  document.getElementById('progTotal').textContent = total;
+  document.getElementById('progPct').textContent = pct+'%';
+  const badge = document.getElementById('badge-check');
+  if(done>0){ badge.classList.add('show'); badge.textContent = done; }
+  else badge.classList.remove('show');
+}
+
+function renderParts(){
+  ['ctrl','elec','neum'].forEach(k=>{
+    const el = document.getElementById('parts-'+k);
+    el.innerHTML = PARTS[k].map(([pn,desc,stock,qty])=>{
+      const label = stock==='s-ok'?'EN STOCK':stock==='s-low'?'BAJO':'AGOTADO';
+      return `
+        <div class="parts-row">
+          <div class="pn">${pn}</div>
+          <div class="desc">${desc}</div>
+          <div class="stock ${stock}">${label} · ${qty}</div>
+        </div>`;
+    }).join('');
+  });
+}
+
+function bindForm(){
+  ['f-patente','f-fecha','f-operador','f-horometro','f-voltaje','f-can','f-obs'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(state.form[id]) el.value = state.form[id];
+    el.addEventListener('change',async ()=>{
+      state.form[id] = el.value;
+      await saveState();
+    });
+    el.addEventListener('input',async ()=>{
+      state.form[id] = el.value;
+      await saveState();
+    });
+  });
+}
+
+function exportReport(){
+  const f = state.form;
+  const done = ORDER.filter(id=>state.checks[id]);
+  const pend = ORDER.filter(id=>!state.checks[id]);
+  let txt = `═══════════════════════════════════════\n`;
+  txt += `REPORTE DE INSPECCIÓN · DAIG SpA\n`;
+  txt += `Panel de Control Central · CityFant 6000\n`;
+  txt += `═══════════════════════════════════════\n\n`;
+  txt += `Patente:        ${f['f-patente']||'—'}\n`;
+  txt += `Fecha:          ${f['f-fecha']||'—'}\n`;
+  txt += `Técnico:        ${f['f-operador']||'—'}\n`;
+  txt += `Horómetro:      ${f['f-horometro']||'—'} h\n`;
+  txt += `Voltaje bat.:   ${f['f-voltaje']||'—'} V\n`;
+  txt += `Estado CAN:     ${f['f-can']||'—'}\n\n`;
+  txt += `─── COMPONENTES VERIFICADOS (${done.length}/${ORDER.length}) ───\n`;
+  done.forEach(id=>{
+    const cat = DATA[id].cat.toUpperCase();
+    txt += `  ✓ [${String(id).padStart(2,'0')}] [${cat}] ${DATA[id].title}\n`;
+  });
+  if(pend.length){
+    txt += `\n─── PENDIENTES ───\n`;
+    pend.forEach(id=>{
+      const cat = DATA[id].cat.toUpperCase();
+      txt += `  ☐ [${String(id).padStart(2,'0')}] [${cat}] ${DATA[id].title}\n`;
+    });
+  }
+  if(f['f-obs']){
+    txt += `\n─── OBSERVACIONES ───\n${f['f-obs']}\n`;
+  }
+  txt += `\n═══════════════════════════════════════\n`;
+  txt += `Generado: ${new Date().toLocaleString('es-CL')}\n`;
+  txt += `DOC-TEC / DAIG-MNT-0045 v1.0\n`;
+
+  const blob = new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `inspeccion_panel_${f['f-patente']||'sin-patente'}_${f['f-fecha']||new Date().toISOString().slice(0,10)}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Reporte exportado');
+}
+
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const target = btn.dataset.tab;
+    document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b===btn));
+    document.querySelectorAll('.tab-content').forEach(c=>{
+      c.classList.toggle('active', c.dataset.tab===target);
+    });
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+let zoom = 1;
+const svg = document.getElementById('diagram');
+function applyZoom(){ svg.style.width = (100*zoom)+'%'; svg.style.minWidth = (780*zoom)+'px'; }
+document.getElementById('zoom-in').addEventListener('click',()=>{ zoom=Math.min(zoom+0.25,2.5); applyZoom(); });
+document.getElementById('zoom-out').addEventListener('click',()=>{ zoom=Math.max(zoom-0.25,0.75); applyZoom(); });
+document.getElementById('zoom-reset').addEventListener('click',()=>{ zoom=1; applyZoom(); });
+
+document.getElementById('btn-export').addEventListener('click',exportReport);
+document.getElementById('btn-reset').addEventListener('click',async ()=>{
+  if(confirm('¿Limpiar todas las verificaciones y datos del formulario?')){
+    state = { checks:{}, form:{} };
+    await saveState();
+    ['f-patente','f-fecha','f-operador','f-horometro','f-voltaje','f-can','f-obs'].forEach(id=>document.getElementById(id).value='');
+    renderItems();renderHotspots();renderChecklist();updateProgress();
+    detailEl.innerHTML = `
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="detail-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>
+        </svg>
+        <div>Toca un número en el diagrama o un componente del listado para ver su ficha técnica.</div>
+      </div>`;
+    showToast('Limpiado');
+  }
+});
+
+(async function init(){
+  await loadState();
+  if(!state.form['f-fecha']) state.form['f-fecha'] = new Date().toISOString().slice(0,10);
+  renderItems();
+  renderHotspots();
+  renderChecklist();
+  renderParts();
+  bindForm();
+  updateProgress();
+  select(1);
+})();
+</script>
+</body>
+</html>

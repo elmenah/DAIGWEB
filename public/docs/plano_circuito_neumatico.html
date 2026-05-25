@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAIG·MNT — Plano Circuito Neumático · CityFant 6000</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0b; --panel:#141417; --line:#1f1f24; --line2:#2a2a31;
+  --txt:#e8e8ec; --dim:#7a7a85; --hot:#16a34a; --hot2:#4ade80;
+  --warn:#f59e0b;
+}
+html,body{background:var(--bg);color:var(--txt);font-family:'IBM Plex Sans',sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;padding-bottom:80px}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(10,10,11,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.topbar a.back{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--hot);color:var(--hot);text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;border-radius:4px;transition:.15s}
+.topbar a.back:hover{background:var(--hot);color:#000}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--txt)}
+.logo span{color:var(--hot)}
+.tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-left:auto;border:1px solid var(--line2);padding:4px 8px;border-radius:3px}
+header{padding:32px 16px 20px;border-bottom:1px solid var(--line)}
+header h1{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:1.5px;line-height:1;color:var(--hot)}
+header h1 small{display:block;font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:var(--dim);font-weight:600;letter-spacing:.5px;margin-top:8px}
+header p.sub{margin-top:14px;color:var(--dim);font-size:13px;max-width:720px;line-height:1.5}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.meta-row span{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);background:var(--panel);border:1px solid var(--line2);padding:4px 8px;border-radius:3px}
+main{padding:24px 16px;max-width:1200px;margin:0 auto}
+section{margin-bottom:32px}
+h2{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1.2px;color:var(--txt);padding-bottom:8px;border-bottom:2px solid var(--hot);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+h2 .num{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--hot);background:rgba(22,163,74,0.12);padding:2px 8px;border-radius:3px;letter-spacing:0}
+.svg-wrap{background:var(--panel);border:1px solid var(--line2);border-radius:8px;padding:8px;overflow-x:auto;overflow-y:hidden}
+.svg-wrap svg{display:block;min-width:720px;width:100%;height:auto;background:#0d0d10;border-radius:4px}
+.svg-caption{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-top:8px;text-align:center}
+.legend-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.legend-item{background:var(--panel);border:1px solid var(--line2);border-radius:6px;padding:12px;display:flex;align-items:center;gap:12px}
+.legend-item .sym{flex-shrink:0;width:48px;height:40px;background:#0d0d10;border:1px solid var(--line);border-radius:3px;display:flex;align-items:center;justify-content:center}
+.legend-item .info{flex:1;min-width:0}
+.legend-item .name{font-weight:700;font-size:13px;color:var(--txt)}
+.legend-item .desc{font-size:11px;color:var(--dim);margin-top:2px;line-height:1.3}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line2);border-radius:6px;overflow:hidden;font-size:12px}
+thead{background:rgba(22,163,74,0.08)}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--hot2);font-weight:700}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(22,163,74,0.04)}
+.pn{font-family:'JetBrains Mono',monospace;color:var(--hot2);font-size:11px}
+.color-pill{display:inline-block;padding:2px 8px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;margin-right:4px}
+.notes{background:var(--panel);border-left:3px solid var(--warn);border-radius:0 6px 6px 0;padding:14px 16px}
+.notes h3{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--warn);margin-bottom:8px}
+.notes ul{list-style:none;padding-left:0}
+.notes li{font-size:12px;color:var(--dim);padding:5px 0;padding-left:18px;position:relative;line-height:1.5}
+.notes li:before{content:"▸";position:absolute;left:0;color:var(--warn);font-weight:700}
+footer{padding:20px 16px;border-top:1px solid var(--line);text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-top:32px}
+footer .ref{margin-top:6px}
+@media (max-width:600px){
+  header h1{font-size:30px}
+  .svg-wrap svg{min-width:680px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar" style="flex-wrap:wrap">
+  <a href="HUB_consolidado_camion_barredor.html" class="back">← HUB</a>
+  <span style="color:#5a6675;font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;margin:0 4px">VER TAMBIÉN</span>
+  <a href="sistema_neumatico_norgren_interactivo.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(93,211,158,.10);color:#5dd39e;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(93,211,158,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0046 NEUMÁTICO</a>
+  <a href="panel_control_central_interactivo.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(167,139,250,.10);color:#a78bfa;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(167,139,250,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0045 CONTROL</a>
+  <a href="plano_circuito_electrico.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(59,130,246,.10);color:#3b82f6;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(59,130,246,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0050 ELÉCTRICO</a>
+  <div class="logo">DAIG<span>·</span>MNT</div>
+  <div class="tag">DAIG-MNT-0049 · v1.0</div>
+</div>
+
+<header>
+  <h1>PLANO CIRCUITO NEUMÁTICO
+    <small>Bucher CityFant 6000 — Diagrama esquemático ISO 1219 / DIN 24300</small>
+  </h1>
+  <p class="sub">Esquema del circuito neumático compartido entre el chasis MB Atego 1729 (frenos WABCO, suspensión, accesorios) y el implemento Bucher (manifold Norgren CANopen, actuadores de barrido y aspiración). Distribución por colores según función según norma interna DAIG.</p>
+  <div class="meta-row">
+    <span>PRESIÓN OPERACIÓN: 8.0–10.5 bar</span>
+    <span>CALDERINES: 4 × 30 L (Atego)</span>
+    <span>BUS: CANopen Norgren</span>
+    <span>ESTANQUEIDAD: ≤3 % caída/10 min</span>
+  </div>
+</header>
+
+<main>
+
+<section>
+  <h2><span class="num">§1</span>Diagrama esquemático</h2>
+  <div class="svg-wrap">
+<svg viewBox="0 0 1200 780" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+  <defs>
+    <marker id="arrG" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrD" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#7a7a85"/>
+    </marker>
+  </defs>
+
+  <!-- Grid -->
+  <g opacity="0.15">
+    <path d="M0 0 H1200 M0 100 H1200 M0 200 H1200 M0 300 H1200 M0 400 H1200 M0 500 H1200 M0 600 H1200 M0 700 H1200" stroke="#2a2a31" stroke-width="0.5"/>
+    <path d="M0 0 V780 M100 0 V780 M200 0 V780 M300 0 V780 M400 0 V780 M500 0 V780 M600 0 V780 M700 0 V780 M800 0 V780 M900 0 V780 M1000 0 V780 M1100 0 V780 M1200 0 V780" stroke="#2a2a31" stroke-width="0.5"/>
+  </g>
+
+  <!-- Title -->
+  <text x="600" y="35" fill="#16a34a" font-size="18" text-anchor="middle" font-weight="700" letter-spacing="2">CIRCUITO NEUMÁTICO · CITYFANT 6000 / ATEGO 1729</text>
+  <text x="600" y="55" fill="#7a7a85" font-size="10" text-anchor="middle">esquema funcional · símbolos ISO 1219 simplificados · código colores DAIG</text>
+
+  <!-- Color legend mini -->
+  <g transform="translate(40,80)">
+    <rect x="0" y="-8" width="14" height="14" fill="#16a34a"/>
+    <text x="20" y="3" fill="#7a7a85" font-size="10">Verde · suministro principal</text>
+    <rect x="200" y="-8" width="14" height="14" fill="#3b82f6"/>
+    <text x="220" y="3" fill="#7a7a85" font-size="10">Azul · frenos (WABCO)</text>
+    <rect x="390" y="-8" width="14" height="14" fill="#f59e0b"/>
+    <text x="410" y="-1" fill="#7a7a85" font-size="10">Ámbar · actuadores</text>
+    <text x="410" y="9" fill="#7a7a85" font-size="10">implemento Bucher</text>
+    <rect x="610" y="-8" width="14" height="14" fill="#a855f7"/>
+    <text x="630" y="3" fill="#7a7a85" font-size="10">Violeta · pilotaje / señal</text>
+    <line x1="820" y1="0" x2="850" y2="0" stroke="#7a7a85" stroke-width="2" stroke-dasharray="5,3"/>
+    <text x="860" y="3" fill="#7a7a85" font-size="10">Línea escape (silenciador)</text>
+  </g>
+
+  <!-- ATEGO COMPRESSOR -->
+  <g>
+    <circle cx="100" cy="200" r="32" fill="#0d0d10" stroke="#16a34a" stroke-width="2"/>
+    <polygon points="100,178 112,200 100,222 88,200" fill="#16a34a"/>
+    <text x="100" y="255" fill="#e8e8ec" font-size="10" text-anchor="middle" font-weight="700">COMPRESOR</text>
+    <text x="100" y="268" fill="#7a7a85" font-size="9" text-anchor="middle">Bitzer/MB · 360 cc</text>
+    <text x="100" y="280" fill="#16a34a" font-size="10" text-anchor="middle" font-weight="700">C-1</text>
+  </g>
+
+  <!-- Air dryer + APU WABCO -->
+  <line x1="132" y1="200" x2="180" y2="200" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
+  <g>
+    <rect x="195" y="170" width="80" height="60" fill="#141417" stroke="#16a34a" stroke-width="2"/>
+    <circle cx="220" cy="195" r="6" fill="none" stroke="#16a34a" stroke-width="1"/>
+    <text x="220" y="199" fill="#16a34a" font-size="8" text-anchor="middle" font-weight="700">H₂O</text>
+    <rect x="240" y="188" width="25" height="14" fill="none" stroke="#16a34a" stroke-width="1"/>
+    <text x="252" y="198" fill="#16a34a" font-size="8" text-anchor="middle">APU</text>
+    <text x="235" y="215" fill="#7a7a85" font-size="8" text-anchor="middle">P-tarado</text>
+    <text x="235" y="248" fill="#e8e8ec" font-size="10" text-anchor="middle" font-weight="700">SECADOR + APU</text>
+    <text x="235" y="260" fill="#7a7a85" font-size="9" text-anchor="middle">WABCO 432 410</text>
+  </g>
+
+  <!-- Manifold protección 4 circuitos -->
+  <line x1="275" y1="200" x2="320" y2="200" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
+  <g>
+    <rect x="320" y="160" width="40" height="80" fill="#141417" stroke="#16a34a" stroke-width="2"/>
+    <text x="340" y="150" fill="#7a7a85" font-size="9" text-anchor="middle">VÁLV. 4 CIRC.</text>
+    <line x1="360" y1="175" x2="385" y2="175" stroke="#3b82f6" stroke-width="2"/>
+    <line x1="360" y1="195" x2="385" y2="195" stroke="#3b82f6" stroke-width="2"/>
+    <line x1="360" y1="215" x2="385" y2="215" stroke="#16a34a" stroke-width="2"/>
+    <line x1="360" y1="235" x2="385" y2="235" stroke="#f59e0b" stroke-width="2"/>
+  </g>
+
+  <!-- 4 calderines -->
+  <g>
+    <rect x="395" y="100" width="60" height="120" fill="#141417" stroke="#3b82f6" stroke-width="2"/>
+    <text x="425" y="140" fill="#3b82f6" font-size="10" text-anchor="middle" font-weight="700">T-1</text>
+    <text x="425" y="160" fill="#7a7a85" font-size="9" text-anchor="middle">30 L</text>
+    <text x="425" y="175" fill="#7a7a85" font-size="9" text-anchor="middle">FRENO</text>
+    <text x="425" y="188" fill="#7a7a85" font-size="9" text-anchor="middle">DELANT.</text>
+    <text x="425" y="205" fill="#7a7a85" font-size="8" text-anchor="middle">8.0-10.5 bar</text>
+
+    <rect x="465" y="100" width="60" height="120" fill="#141417" stroke="#3b82f6" stroke-width="2"/>
+    <text x="495" y="140" fill="#3b82f6" font-size="10" text-anchor="middle" font-weight="700">T-2</text>
+    <text x="495" y="160" fill="#7a7a85" font-size="9" text-anchor="middle">30 L</text>
+    <text x="495" y="175" fill="#7a7a85" font-size="9" text-anchor="middle">FRENO</text>
+    <text x="495" y="188" fill="#7a7a85" font-size="9" text-anchor="middle">TRAS.</text>
+
+    <rect x="535" y="100" width="60" height="120" fill="#141417" stroke="#16a34a" stroke-width="2"/>
+    <text x="565" y="140" fill="#16a34a" font-size="10" text-anchor="middle" font-weight="700">T-3</text>
+    <text x="565" y="160" fill="#7a7a85" font-size="9" text-anchor="middle">30 L</text>
+    <text x="565" y="175" fill="#7a7a85" font-size="9" text-anchor="middle">PARQUEO</text>
+    <text x="565" y="188" fill="#7a7a85" font-size="9" text-anchor="middle">+ REMOLQ.</text>
+
+    <rect x="605" y="100" width="60" height="120" fill="#141417" stroke="#f59e0b" stroke-width="2"/>
+    <text x="635" y="140" fill="#f59e0b" font-size="10" text-anchor="middle" font-weight="700">T-4</text>
+    <text x="635" y="160" fill="#7a7a85" font-size="9" text-anchor="middle">30 L</text>
+    <text x="635" y="175" fill="#7a7a85" font-size="9" text-anchor="middle">ACCES.</text>
+    <text x="635" y="188" fill="#7a7a85" font-size="9" text-anchor="middle">BUCHER</text>
+  </g>
+
+  <!-- Vertical lines from manifold to tanks -->
+  <line x1="425" y1="175" x2="425" y2="220" stroke="#3b82f6" stroke-width="2"/>
+  <path d="M 385 175 L 395 175 L 395 130 L 425 130 L 425 100" stroke="#3b82f6" stroke-width="2" fill="none"/>
+  <path d="M 385 195 L 465 195 L 465 130 L 495 130 L 495 100" stroke="#3b82f6" stroke-width="2" fill="none"/>
+  <path d="M 385 215 L 535 215 L 535 130 L 565 130 L 565 100" stroke="#16a34a" stroke-width="2" fill="none"/>
+  <path d="M 385 235 L 605 235 L 605 130 L 635 130 L 635 100" stroke="#f59e0b" stroke-width="2" fill="none"/>
+
+  <!-- Pressure gauges -->
+  <g>
+    <circle cx="425" cy="90" r="8" fill="#0d0d10" stroke="#16a34a" stroke-width="1"/>
+    <text x="425" y="94" fill="#16a34a" font-size="9" text-anchor="middle" font-weight="700">P</text>
+    <circle cx="495" cy="90" r="8" fill="#0d0d10" stroke="#16a34a" stroke-width="1"/>
+    <text x="495" y="94" fill="#16a34a" font-size="9" text-anchor="middle" font-weight="700">P</text>
+    <circle cx="565" cy="90" r="8" fill="#0d0d10" stroke="#16a34a" stroke-width="1"/>
+    <text x="565" y="94" fill="#16a34a" font-size="9" text-anchor="middle" font-weight="700">P</text>
+    <circle cx="635" cy="90" r="8" fill="#0d0d10" stroke="#16a34a" stroke-width="1"/>
+    <text x="635" y="94" fill="#16a34a" font-size="9" text-anchor="middle" font-weight="700">P</text>
+  </g>
+
+  <!-- BRAKES output  T1/T2 -->
+  <g>
+    <line x1="425" y1="220" x2="425" y2="380" stroke="#3b82f6" stroke-width="2.5" marker-end="url(#arrG)"/>
+    <line x1="495" y1="220" x2="495" y2="380" stroke="#3b82f6" stroke-width="2.5" marker-end="url(#arrG)"/>
+    <rect x="380" y="380" width="160" height="60" fill="#141417" stroke="#3b82f6" stroke-width="2"/>
+    <text x="460" y="405" fill="#e8e8ec" font-size="11" text-anchor="middle" font-weight="700">SISTEMA FRENOS WABCO</text>
+    <text x="460" y="420" fill="#7a7a85" font-size="9" text-anchor="middle">Pedal · EBS · ABS · Tristop</text>
+    <text x="460" y="432" fill="#7a7a85" font-size="9" text-anchor="middle">cámaras de freno tipo 16/24</text>
+  </g>
+
+  <!-- Hand brake T3 -->
+  <line x1="565" y1="220" x2="565" y2="380" stroke="#16a34a" stroke-width="2" marker-end="url(#arrG)"/>
+  <g>
+    <rect x="540" y="380" width="50" height="60" fill="#141417" stroke="#16a34a" stroke-width="2"/>
+    <text x="565" y="405" fill="#e8e8ec" font-size="9" text-anchor="middle" font-weight="700">FRENO</text>
+    <text x="565" y="418" fill="#e8e8ec" font-size="9" text-anchor="middle" font-weight="700">MANO</text>
+    <text x="565" y="432" fill="#7a7a85" font-size="8" text-anchor="middle">+ TRAILER</text>
+  </g>
+
+  <!-- T4 line to FRL Bucher -->
+  <line x1="635" y1="220" x2="635" y2="280" stroke="#f59e0b" stroke-width="2.5"/>
+  <line x1="635" y1="280" x2="780" y2="280" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arrG)"/>
+
+  <!-- AIRY FRL Norgren -->
+  <g>
+    <rect x="790" y="260" width="110" height="50" fill="#141417" stroke="#f59e0b" stroke-width="2"/>
+    <polygon points="800,275 814,275 807,295" fill="none" stroke="#f59e0b" stroke-width="1"/>
+    <text x="807" y="305" fill="#f59e0b" font-size="7" text-anchor="middle">F</text>
+    <rect x="822" y="270" width="20" height="20" fill="none" stroke="#f59e0b" stroke-width="1"/>
+    <line x1="832" y1="265" x2="832" y2="270" stroke="#f59e0b" stroke-width="1"/>
+    <text x="832" y="305" fill="#f59e0b" font-size="7" text-anchor="middle">R</text>
+    <ellipse cx="870" cy="280" rx="10" ry="6" fill="none" stroke="#f59e0b" stroke-width="1"/>
+    <line x1="870" y1="274" x2="870" y2="285" stroke="#f59e0b" stroke-width="1"/>
+    <text x="870" y="305" fill="#f59e0b" font-size="7" text-anchor="middle">L</text>
+    <text x="845" y="252" fill="#e8e8ec" font-size="10" text-anchor="middle" font-weight="700">AIRY FRL · Norgren</text>
+  </g>
+
+  <!-- to manifold Norgren -->
+  <line x1="900" y1="285" x2="950" y2="285" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arrG)"/>
+
+  <!-- MANIFOLD NORGREN CANopen -->
+  <g>
+    <rect x="950" y="240" width="220" height="120" fill="#141417" stroke="#f59e0b" stroke-width="2.5"/>
+    <line x1="1005" y1="240" x2="1005" y2="360" stroke="#7a7a85" stroke-width="1" stroke-dasharray="4,3"/>
+    <line x1="1060" y1="240" x2="1060" y2="360" stroke="#7a7a85" stroke-width="1" stroke-dasharray="4,3"/>
+    <line x1="1115" y1="240" x2="1115" y2="360" stroke="#7a7a85" stroke-width="1" stroke-dasharray="4,3"/>
+
+    <text x="977" y="265" fill="#f59e0b" font-size="9" text-anchor="middle" font-weight="700">NA6U</text>
+    <text x="1032" y="265" fill="#f59e0b" font-size="9" text-anchor="middle" font-weight="700">NB6U</text>
+    <text x="1087" y="265" fill="#f59e0b" font-size="9" text-anchor="middle" font-weight="700">NC6U</text>
+    <text x="1142" y="265" fill="#f59e0b" font-size="9" text-anchor="middle" font-weight="700">NG6U</text>
+
+    <text x="977" y="285" fill="#7a7a85" font-size="8" text-anchor="middle">CEPILLO</text>
+    <text x="977" y="296" fill="#7a7a85" font-size="8" text-anchor="middle">DCHO.</text>
+    <text x="1032" y="285" fill="#7a7a85" font-size="8" text-anchor="middle">CEPILLO</text>
+    <text x="1032" y="296" fill="#7a7a85" font-size="8" text-anchor="middle">IZQDO.</text>
+    <text x="1087" y="285" fill="#7a7a85" font-size="8" text-anchor="middle">BOCA</text>
+    <text x="1087" y="296" fill="#7a7a85" font-size="8" text-anchor="middle">ASPIR.</text>
+    <text x="1142" y="285" fill="#7a7a85" font-size="8" text-anchor="middle">RIEGO</text>
+    <text x="1142" y="296" fill="#7a7a85" font-size="8" text-anchor="middle">+ AUX</text>
+
+    <text x="1060" y="232" fill="#e8e8ec" font-size="11" text-anchor="middle" font-weight="700">MANIFOLD NORGREN CANopen</text>
+    <text x="1060" y="375" fill="#f59e0b" font-size="9" text-anchor="middle" font-weight="700">DV-N · serie VR15/VR22 G⅛</text>
+
+    <!-- CAN bus connector -->
+    <rect x="1145" y="335" width="20" height="14" fill="#a855f7" stroke="#a855f7" stroke-width="1"/>
+    <text x="1155" y="346" fill="#0a0a0b" font-size="7" text-anchor="middle" font-weight="700">CAN</text>
+  </g>
+
+  <!-- CAN bus to PLC -->
+  <line x1="1170" y1="342" x2="1180" y2="342" stroke="#a855f7" stroke-width="2"/>
+  <line x1="1180" y1="342" x2="1180" y2="700" stroke="#a855f7" stroke-width="2" stroke-dasharray="3,2"/>
+  <line x1="1180" y1="700" x2="700" y2="700" stroke="#a855f7" stroke-width="2" stroke-dasharray="3,2" marker-end="url(#arrG)"/>
+  <g>
+    <rect x="610" y="685" width="80" height="30" fill="#141417" stroke="#a855f7" stroke-width="2"/>
+    <text x="650" y="703" fill="#e8e8ec" font-size="10" text-anchor="middle" font-weight="700">PLC JETTER</text>
+    <text x="650" y="715" fill="#7a7a85" font-size="8" text-anchor="middle">P/N 10001665</text>
+  </g>
+
+  <!-- Actuators (cylinders) -->
+  <g>
+    <line x1="977" y1="360" x2="977" y2="480" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrG)"/>
+    <rect x="935" y="490" width="84" height="30" fill="#0d0d10" stroke="#f59e0b" stroke-width="1.5"/>
+    <rect x="945" y="497" width="50" height="16" fill="none" stroke="#f59e0b" stroke-width="1"/>
+    <line x1="975" y1="505" x2="1020" y2="505" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="977" y="540" fill="#7a7a85" font-size="9" text-anchor="middle">CY-N1</text>
+    <text x="977" y="552" fill="#7a7a85" font-size="9" text-anchor="middle">CEPILLO DCHO.</text>
+    <text x="977" y="563" fill="#7a7a85" font-size="8" text-anchor="middle">subir/bajar · presión</text>
+
+    <line x1="1032" y1="360" x2="1032" y2="480" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrG)"/>
+    <rect x="990" y="490" width="84" height="30" fill="#0d0d10" stroke="#f59e0b" stroke-width="1.5" opacity="0"/>
+    <rect x="990" y="600" width="84" height="30" fill="#0d0d10" stroke="#f59e0b" stroke-width="1.5"/>
+    <rect x="1000" y="607" width="50" height="16" fill="none" stroke="#f59e0b" stroke-width="1"/>
+    <line x1="1030" y1="615" x2="1075" y2="615" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="1032" y="650" fill="#7a7a85" font-size="9" text-anchor="middle">CY-N2</text>
+    <text x="1032" y="662" fill="#7a7a85" font-size="9" text-anchor="middle">CEPILLO IZQDO.</text>
+    <line x1="1032" y1="520" x2="1032" y2="600" stroke="#f59e0b" stroke-width="2"/>
+
+    <line x1="1087" y1="360" x2="1087" y2="430" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrG)"/>
+    <rect x="1045" y="440" width="84" height="30" fill="#0d0d10" stroke="#f59e0b" stroke-width="1.5"/>
+    <rect x="1055" y="447" width="50" height="16" fill="none" stroke="#f59e0b" stroke-width="1"/>
+    <line x1="1085" y1="455" x2="1130" y2="455" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="1087" y="490" fill="#7a7a85" font-size="9" text-anchor="middle">CY-N3</text>
+    <text x="1087" y="502" fill="#7a7a85" font-size="9" text-anchor="middle">BOCA ASPIRACIÓN</text>
+
+    <line x1="1142" y1="360" x2="1142" y2="430" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrG)"/>
+    <g>
+      <rect x="1115" y="440" width="55" height="30" fill="#0d0d10" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="1142" y="458" fill="#f59e0b" font-size="8" text-anchor="middle" font-weight="700">SV-RIEGO</text>
+      <text x="1142" y="467" fill="#7a7a85" font-size="7" text-anchor="middle">3/2 NC</text>
+      <text x="1142" y="490" fill="#7a7a85" font-size="9" text-anchor="middle">VÁLV. RIEGO</text>
+    </g>
+  </g>
+
+  <!-- Drain valves on tanks (purge) -->
+  <g>
+    <line x1="425" y1="220" x2="425" y2="280" stroke="#16a34a" stroke-width="1" stroke-dasharray="2,2"/>
+    <polygon points="420,280 430,280 425,290" fill="#16a34a"/>
+    <text x="425" y="305" fill="#7a7a85" font-size="7" text-anchor="middle">PURGA</text>
+  </g>
+
+  <!-- Notes labels -->
+  <text x="1060" y="495" fill="#7a7a85" font-size="9" text-anchor="middle" opacity="0">CY-N3</text>
+</svg>
+  </div>
+  <p class="svg-caption">DAIG-MNT-0049 · Fig. 1 — Compresor Atego → secador → válv. 4 circuitos → calderines T1-T4 → frenos WABCO (azul) + manifold Bucher Norgren (ámbar). Bus CANopen del PLC al manifold (violeta).</p>
+</section>
+
+<section>
+  <h2><span class="num">§2</span>Código de colores DAIG · identificación de mangueras</h2>
+  <table>
+    <thead>
+      <tr><th>COLOR</th><th>FUNCIÓN</th><th>PRESIÓN</th><th>UBICACIÓN TÍPICA</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="color-pill" style="background:#16a34a;color:#000">VERDE</span></td><td>Suministro principal compresor → secador → distribuidor</td><td>10.0 bar nom.</td><td>Tras motor, hacia secador WABCO bajo cabina</td></tr>
+      <tr><td><span class="color-pill" style="background:#3b82f6;color:#fff">AZUL</span></td><td>Frenos servicio (T1 delantero / T2 trasero)</td><td>8.0–10.5 bar</td><td>Hacia válvula pedal y cámaras de freno tipo Tristop</td></tr>
+      <tr><td><span class="color-pill" style="background:#a855f7;color:#fff">VIOLETA</span></td><td>Pilotaje / actuadores remolque y servicio parqueo (T3)</td><td>8.5 bar</td><td>Hacia palanca freno mano y conectores trailer M16</td></tr>
+      <tr><td><span class="color-pill" style="background:#f59e0b;color:#000">ÁMBAR</span></td><td>Accesorios implemento Bucher (T4 → AIRY FRL → manifold Norgren)</td><td>6.5 bar tras FRL</td><td>Hacia cilindros cepillos, boca aspiración, electroválvula riego</td></tr>
+      <tr><td><span class="color-pill" style="background:#ef4444;color:#fff">ROJO</span></td><td>Líneas críticas/seguridad (paro emergencia neumático opcional)</td><td>8.0 bar</td><td>Solo si implementado en versión PVSA</td></tr>
+      <tr><td><span class="color-pill" style="background:#7a7a85;color:#000">GRIS</span></td><td>Escape silenciador / venteo</td><td>atm.</td><td>Salida a silenciadores de los cilindros</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="num">§3</span>Lista de componentes</h2>
+  <table>
+    <thead>
+      <tr><th>TAG</th><th>Componente</th><th>P/N OEM</th><th>Especificación</th><th>Mantención</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>C-1</b></td><td>Compresor de aire Atego</td><td class="pn">A 906 130 xx xx</td><td>360 cc/rev · driven by motor OM 924 LA · enfriado por agua</td><td>Revisión cabeza c/240.000 km</td></tr>
+      <tr><td><b>SD-1</b></td><td>Secador aire + APU integrado</td><td class="pn">WABCO 432 410 0xx 0</td><td>Cartucho desecante + válvula reguladora 10.5 bar</td><td>Cambio cartucho anual o 100.000 km</td></tr>
+      <tr><td><b>V-4C</b></td><td>Válvula protección 4 circuitos</td><td class="pn">WABCO 934 705 0xx 0</td><td>Aísla circuitos en caso de fuga · prioridad frenos</td><td>Inspección estanqueidad anual</td></tr>
+      <tr><td><b>T-1/T-2</b></td><td>Calderines freno servicio</td><td class="pn">MB OEM</td><td>30 L c/u · 12.5 bar máx · purga manual diaria</td><td>Purga diaria · inspección visual mensual · CTRP anual</td></tr>
+      <tr><td><b>T-3</b></td><td>Calderín freno parqueo / remolque</td><td class="pn">MB OEM</td><td>30 L · suministra cámaras Tristop muelle</td><td>Purga diaria · CTRP anual</td></tr>
+      <tr><td><b>T-4</b></td><td>Calderín accesorios implemento</td><td class="pn">Bucher OEM</td><td>30 L · suministro exclusivo manifold Bucher</td><td>Purga diaria · inspección visual mensual</td></tr>
+      <tr><td><b>FRL-1</b></td><td>AIRY · Filtro Regulador Lubricador</td><td class="pn">Norgren B72G/R72G/L72G</td><td>Filtración 5 µm · reg. 6.5 bar · lubric. neblina aceite ISO VG 32</td><td>Vaciar vaso filtro diario · cambio elemento c/6 meses</td></tr>
+      <tr><td><b>DV-N</b></td><td>Manifold electroválvulas Bucher</td><td class="pn">Norgren NA6U / NB6U / NC6U / NG6U</td><td>Serie VR15/VR22 · G⅛ · CANopen V62 · 4 estaciones</td><td>Limpieza ranuras · prueba estanqueidad anual</td></tr>
+      <tr><td><b>CY-N1/N2</b></td><td>Cilindros neumáticos cepillos</td><td class="pn">Norgren / SMC</td><td>DA · Ø50 · carrera ajustable · amortiguación regulable</td><td>Cambio sellos c/2 años · revisión vástagos mensual</td></tr>
+      <tr><td><b>CY-N3</b></td><td>Cilindro boca aspiración</td><td class="pn">Norgren / SMC</td><td>DA · Ø63 · carrera 200 mm</td><td>Cambio sellos c/2 años</td></tr>
+      <tr><td><b>SV-R</b></td><td>Electroválvula riego</td><td class="pn">Norgren V60A511A-A2KJ</td><td>3/2 NC · NPT ¼ · 24 VDC bobina</td><td>Limpieza filtro entrada semestral</td></tr>
+      <tr><td>—</td><td>Mangueras poliuretano DIN 73378</td><td class="pn">Multitubo Norgren PU</td><td>Ø ext 8/10/12 mm · WP 15 bar · racores push-in instantáneos</td><td>Inspección visual mensual · cambio si abrasión visible</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="num">§4</span>Pruebas operativas obligatorias (rutina mensual)</h2>
+  <div class="notes">
+    <h3>PROCEDIMIENTO DE PRUEBA</h3>
+    <ul>
+      <li><b>Purga de calderines T1–T4</b>: diaria, con motor apagado y presión 0 — verificar ausencia de agua/aceite excesivo. Agua persistente = secador WABCO saturado.</li>
+      <li><b>Prueba estanqueidad</b>: cargar sistema a 10.5 bar, parar motor, medir caída de presión a los 10 min. ≤3 % aceptable. ≥10 % = fuga grave a localizar con espuma jabonosa.</li>
+      <li><b>Tiempo de carga</b>: del 0 a presión nominal en ≤6 min con motor a 1.500 rpm. Tiempos mayores = compresor desgastado o fuga importante.</li>
+      <li><b>AIRY FRL Norgren</b>: vaciar vaso filtro al inicio de cada turno; verificar nivel aceite ISO VG 32 sin ferrugino; ajustar regulador a 6.5 bar tras reposición.</li>
+      <li><b>Manifold Norgren</b>: con vehículo en plataforma, accionar cada CY desde panel y desde HMI Bucher; observar tiempos respuesta &lt;0.5 s y ausencia de fugas en racores.</li>
+      <li><b>Frenos WABCO</b>: prueba de frenado con vehículo en marcha cargado, verificar mordida progresiva, ABS reacciona (test ISO 21069 o equivalente).</li>
+      <li><b>Cilindros neumáticos</b>: aplicar palanca a vástago retraído (motor apagado, presión 0) y verificar deslizamiento sin marcas en cromado. Marcas = cambio de sellos.</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div>DAIG SpA · Servicio Técnico Camión Barredor · DOC-TEC DAIG-MNT-0049 v1.0</div>
+  <div class="ref">Fuentes: Bucher V Range Operator's Guide 01294-1-ES Rev C · MB Atego Workshop Manual · WABCO Brake System Manual · Norgren Pneumatics Catalogue · Práctica DAIG terreno PVSA</div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAIG·MNT — Plano Circuito Eléctrico de Control · CityFant 6000</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0b; --panel:#141417; --line:#1f1f24; --line2:#2a2a31;
+  --txt:#e8e8ec; --dim:#7a7a85; --hot:#3b82f6; --hot2:#60a5fa;
+  --warn:#f59e0b; --ok:#16a34a; --ham:#ff4e3a; --vio:#a855f7;
+}
+html,body{background:var(--bg);color:var(--txt);font-family:'IBM Plex Sans',sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;padding-bottom:80px}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(10,10,11,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.topbar a.back{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--hot);color:var(--hot);text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;border-radius:4px;transition:.15s}
+.topbar a.back:hover{background:var(--hot);color:#000}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--txt)}
+.logo span{color:var(--hot)}
+.tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-left:auto;border:1px solid var(--line2);padding:4px 8px;border-radius:3px}
+header{padding:32px 16px 20px;border-bottom:1px solid var(--line)}
+header h1{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:1.5px;line-height:1;color:var(--hot)}
+header h1 small{display:block;font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:var(--dim);font-weight:600;letter-spacing:.5px;margin-top:8px}
+header p.sub{margin-top:14px;color:var(--dim);font-size:13px;max-width:720px;line-height:1.5}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.meta-row span{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);background:var(--panel);border:1px solid var(--line2);padding:4px 8px;border-radius:3px}
+main{padding:24px 16px;max-width:1200px;margin:0 auto}
+section{margin-bottom:32px}
+h2{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1.2px;color:var(--txt);padding-bottom:8px;border-bottom:2px solid var(--hot);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+h2 .num{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--hot);background:rgba(59,130,246,0.12);padding:2px 8px;border-radius:3px;letter-spacing:0}
+.svg-wrap{background:var(--panel);border:1px solid var(--line2);border-radius:8px;padding:8px;overflow-x:auto;overflow-y:hidden}
+.svg-wrap svg{display:block;min-width:720px;width:100%;height:auto;background:#0d0d10;border-radius:4px}
+.svg-caption{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-top:8px;text-align:center}
+.legend-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.legend-item{background:var(--panel);border:1px solid var(--line2);border-radius:6px;padding:12px;display:flex;align-items:center;gap:12px}
+.legend-item .sym{flex-shrink:0;width:48px;height:40px;background:#0d0d10;border:1px solid var(--line);border-radius:3px;display:flex;align-items:center;justify-content:center}
+.legend-item .info{flex:1;min-width:0}
+.legend-item .name{font-weight:700;font-size:13px;color:var(--txt)}
+.legend-item .desc{font-size:11px;color:var(--dim);margin-top:2px;line-height:1.3}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line2);border-radius:6px;overflow:hidden;font-size:12px}
+thead{background:rgba(59,130,246,0.08)}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--hot2);font-weight:700}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(59,130,246,0.04)}
+.pn{font-family:'JetBrains Mono',monospace;color:var(--hot2);font-size:11px}
+.notes{background:var(--panel);border-left:3px solid var(--warn);border-radius:0 6px 6px 0;padding:14px 16px}
+.notes h3{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--warn);margin-bottom:8px}
+.notes ul{list-style:none;padding-left:0}
+.notes li{font-size:12px;color:var(--dim);padding:5px 0;padding-left:18px;position:relative;line-height:1.5}
+.notes li:before{content:"▸";position:absolute;left:0;color:var(--warn);font-weight:700}
+footer{padding:20px 16px;border-top:1px solid var(--line);text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-top:32px}
+footer .ref{margin-top:6px}
+@media (max-width:600px){
+  header h1{font-size:30px}
+  .svg-wrap svg{min-width:680px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar" style="flex-wrap:wrap">
+  <a href="HUB_consolidado_camion_barredor.html" class="back">← HUB</a>
+  <span style="color:#5a6675;font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;margin:0 4px">VER TAMBIÉN</span>
+  <a href="panel_control_central_interactivo.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(167,139,250,.10);color:#a78bfa;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(167,139,250,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0045 CONTROL</a>
+  <a href="plano_circuito_neumatico.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(22,163,74,.10);color:#16a34a;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(22,163,74,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0049 NEUM P&amp;ID</a>
+  <a href="sistema_neumatico_norgren_interactivo.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(93,211,158,.10);color:#5dd39e;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(93,211,158,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0046 NEUMÁTICO</a>
+  <div class="logo">DAIG<span>·</span>MNT</div>
+  <div class="tag">DAIG-MNT-0050 · v1.0</div>
+</div>
+
+<header>
+  <h1>PLANO CIRCUITO ELÉCTRICO DE CONTROL
+    <small>Bucher CityFant 6000 / MB Atego 1729 — arquitectura 24V CC + bus CAN</small>
+  </h1>
+  <p class="sub">Esquema unifilar de la electrónica de control: alimentación 24V CC desde dos baterías en serie, distribución por fusibles Datalem/Datam, ESU del chasis MB, PLC Jetter del implemento Bucher, bus CAN entre ESU/PLC/manifold Norgren CANopen, panel HMI cabina y banco de relés de potencia para actuadores.</p>
+  <div class="meta-row">
+    <span>TENSIÓN: 24V CC</span>
+    <span>BATERÍAS: 2 × 12V 175 Ah serie</span>
+    <span>ALTERNADOR: 28V / 100 A</span>
+    <span>BUS: CAN J1939 + CANopen</span>
+    <span>PLC: Jetter P/N 10001665</span>
+  </div>
+</header>
+
+<main>
+
+<section>
+  <h2><span class="num">§1</span>Diagrama esquemático unifilar</h2>
+  <div class="svg-wrap">
+<svg viewBox="0 0 1200 820" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+  <defs>
+    <marker id="arrB" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#3b82f6"/>
+    </marker>
+    <marker id="arrV" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#a855f7"/>
+    </marker>
+  </defs>
+
+  <!-- Grid -->
+  <g opacity="0.15">
+    <path d="M0 0 H1200 M0 100 H1200 M0 200 H1200 M0 300 H1200 M0 400 H1200 M0 500 H1200 M0 600 H1200 M0 700 H1200 M0 800 H1200" stroke="#2a2a31" stroke-width="0.5"/>
+    <path d="M0 0 V820 M100 0 V820 M200 0 V820 M300 0 V820 M400 0 V820 M500 0 V820 M600 0 V820 M700 0 V820 M800 0 V820 M900 0 V820 M1000 0 V820 M1100 0 V820 M1200 0 V820" stroke="#2a2a31" stroke-width="0.5"/>
+  </g>
+
+  <!-- Title -->
+  <text x="600" y="35" fill="#3b82f6" font-size="18" text-anchor="middle" font-weight="700" letter-spacing="2">CIRCUITO ELÉCTRICO DE CONTROL · CITYFANT 6000 / ATEGO 24V</text>
+  <text x="600" y="55" fill="#7a7a85" font-size="10" text-anchor="middle">esquema unifilar simplificado · símbolos IEC 60617 · señales bus CAN destacadas</text>
+
+  <!-- Legend mini -->
+  <g transform="translate(40,80)">
+    <line x1="0" y1="0" x2="30" y2="0" stroke="#3b82f6" stroke-width="2.5"/>
+    <text x="40" y="4" fill="#7a7a85" font-size="10">+24V CC potencia</text>
+    <line x1="160" y1="0" x2="190" y2="0" stroke="#7a7a85" stroke-width="2"/>
+    <text x="200" y="4" fill="#7a7a85" font-size="10">GND chasis</text>
+    <line x1="290" y1="0" x2="320" y2="0" stroke="#a855f7" stroke-width="2" stroke-dasharray="4,3"/>
+    <text x="330" y="4" fill="#7a7a85" font-size="10">Bus CAN (señal)</text>
+    <line x1="460" y1="0" x2="490" y2="0" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="2,2"/>
+    <text x="500" y="4" fill="#7a7a85" font-size="10">Señal sensor 24V</text>
+    <line x1="630" y1="0" x2="660" y2="0" stroke="#f59e0b" stroke-width="2"/>
+    <text x="670" y="4" fill="#7a7a85" font-size="10">Bobinas / actuadores</text>
+  </g>
+
+  <!-- BATERÍAS 2x12V serie -->
+  <g>
+    <rect x="40" y="180" width="55" height="80" fill="#141417" stroke="#3b82f6" stroke-width="2"/>
+    <line x1="50" y1="190" x2="50" y2="200" stroke="#3b82f6" stroke-width="2"/>
+    <line x1="46" y1="195" x2="54" y2="195" stroke="#3b82f6" stroke-width="2"/>
+    <line x1="46" y1="205" x2="54" y2="205" stroke="#3b82f6" stroke-width="1"/>
+    <line x1="48" y1="210" x2="52" y2="210" stroke="#3b82f6" stroke-width="1"/>
+    <text x="67" y="200" fill="#3b82f6" font-size="9">12V</text>
+    <text x="67" y="212" fill="#7a7a85" font-size="8">175 Ah</text>
+    <text x="67" y="232" fill="#3b82f6" font-size="9">12V</text>
+    <text x="67" y="244" fill="#7a7a85" font-size="8">175 Ah</text>
+    <text x="67" y="275" fill="#e8e8ec" font-size="10" text-anchor="middle" font-weight="700">BATERÍAS</text>
+    <text x="67" y="288" fill="#7a7a85" font-size="9" text-anchor="middle">2×12V serie</text>
+    <text x="67" y="170" fill="#3b82f6" font-size="10" text-anchor="middle" font-weight="700">BAT-1</text>
+  </g>
+
+  <!-- Master switch -->
+  <g>
+    <line x1="95" y1="200" x2="140" y2="200" stroke="#3b82f6" stroke-width="2.5"/>
+    <circle cx="145" cy="200" r="3" fill="#3b82f6"/>
+    <line x1="148" y1="200" x2="160" y2="185" stroke="#3b82f6" stroke-width="2"/>
+    <circle cx="163" cy="183" r="2" fill="#3b82f6"/>
+    <line x1="166" y1="183" x2="178" y2="200" stroke="#3b82f6" stroke-width="2" stroke-dasharray="2,2"/>
+    <text x="160" y="170" fill="#7a7a85" font-size="9" text-anchor="middle">MASTER SW</text>
+  </g>
+
+  <!-- Shunt + Fuse main -->
+  <g>
+    <line x1="178" y1="200" x2="210" y2="200" stroke="#3b82f6" stroke-width="2.5"/>
+    <rect x="210" y="190" width="20" height="20" fill="#0d0d10" stroke="#3b82f6" stroke-width="1.5"/>
+    <line x1="213" y1="200" x2="227" y2="200" stroke="#3b82f6" stroke-width="1"/>
+    <text x="220" y="183" fill="#7a7a85" font-size="8" text-anchor="middle">F-MAIN</text>
+    <text x="220" y="225" fill="#7a7a85" font-size="8" text-anchor="middle">250 A</text>
+  </g>
+
+  <!-- BUSBAR distribución (Datam/Datalem) -->
+  <g>
+    <line x1="230" y1="200" x2="270" y2="200" stroke="#3b82f6" stroke-width="3"/>
+    <rect x="270" y="120" width="80" height="180" fill="#141417" stroke="#3b82f6" stroke-width="2.5"/>
+    <text x="310" y="110" fill="#e8e8ec" font-size="10" text-anchor="middle" font-weight="700">CAJA FUSIBLES</text>
+    <text x="310" y="98" fill="#7a7a85" font-size="9" text-anchor="middle">Datalem/Datam</text>
+    <!-- fuses as rectangles -->
+    <g transform="translate(280,130)">
+      <rect x="0" y="0" width="12" height="20" fill="#0d0d10" stroke="#3b82f6" stroke-width="1"/>
+      <text x="20" y="13" fill="#7a7a85" font-size="8">F1·30A ESU</text>
+      <rect x="0" y="25" width="12" height="20" fill="#0d0d10" stroke="#3b82f6" stroke-width="1"/>
+      <text x="20" y="38" fill="#7a7a85" font-size="8">F2·30A PLC</text>
+      <rect x="0" y="50" width="12" height="20" fill="#0d0d10" stroke="#3b82f6" stroke-width="1"/>
+      <text x="20" y="63" fill="#7a7a85" font-size="8">F3·15A HMI</text>
+      <rect x="0" y="75" width="12" height="20" fill="#0d0d10" stroke="#3b82f6" stroke-width="1"/>
+      <text x="20" y="88" fill="#7a7a85" font-size="8">F4·20A FAROS</text>
+      <rect x="0" y="100" width="12" height="20" fill="#0d0d10" stroke="#3b82f6" stroke-width="1"/>
+      <text x="20" y="113" fill="#7a7a85" font-size="8">F5·40A RELÉS</text>
+      <rect x="0" y="125" width="12" height="20" fill="#0d0d10" stroke="#3b82f6" stroke-width="1"/>
+      <text x="20" y="138" fill="#7a7a85" font-size="8">F6·15A SENS.</text>
+    </g>
+  </g>
+
+  <!-- Alternator -->
+  <g>
+    <circle cx="100" cy="370" r="22" fill="#0d0d10" stroke="#3b82f6" stroke-width="2"/>
+    <text x="100" y="368" fill="#3b82f6" font-size="11" text-anchor="middle" font-weight="700">G</text>
+    <text x="100" y="380" fill="#3b82f6" font-size="9" text-anchor="middle">~</text>
+    <text x="100" y="408" fill="#7a7a85" font-size="9" text-anchor="middle">ALTERNADOR</text>
+    <text x="100" y="420" fill="#7a7a85" font-size="9" text-anchor="middle">28V / 100A</text>
+    <line x1="122" y1="370" x2="180" y2="370" stroke="#3b82f6" stroke-width="2"/>
+    <line x1="180" y1="370" x2="180" y2="220" stroke="#3b82f6" stroke-width="2"/>
+    <line x1="180" y1="220" x2="180" y2="200" stroke="#3b82f6" stroke-width="2"/>
+    <text x="195" y="290" fill="#7a7a85" font-size="8">recarga</text>
+  </g>
+
+  <!-- GND -->
+  <g>
+    <line x1="67" y1="260" x2="67" y2="320" stroke="#7a7a85" stroke-width="2"/>
+    <line x1="55" y1="320" x2="79" y2="320" stroke="#7a7a85" stroke-width="2.5"/>
+    <line x1="58" y1="324" x2="76" y2="324" stroke="#7a7a85" stroke-width="2"/>
+    <line x1="61" y1="328" x2="73" y2="328" stroke="#7a7a85" stroke-width="1.5"/>
+    <line x1="64" y1="332" x2="70" y2="332" stroke="#7a7a85" stroke-width="1"/>
+    <text x="67" y="345" fill="#7a7a85" font-size="8" text-anchor="middle">GND</text>
+  </g>
+
+  <!-- ESU Atego -->
+  <g>
+    <line x1="292" y1="140" x2="430" y2="140" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrB)"/>
+    <rect x="440" y="115" width="160" height="60" fill="#141417" stroke="#3b82f6" stroke-width="2.5"/>
+    <text x="520" y="140" fill="#e8e8ec" font-size="12" text-anchor="middle" font-weight="700">ESU · MB ATEGO</text>
+    <text x="520" y="155" fill="#7a7a85" font-size="9" text-anchor="middle">Electronic Service Unit</text>
+    <text x="520" y="167" fill="#7a7a85" font-size="9" text-anchor="middle">CAN J1939</text>
+    <text x="600" y="100" fill="#3b82f6" font-size="9" text-anchor="middle" font-weight="700">ESU-1</text>
+  </g>
+
+  <!-- PLC Jetter -->
+  <g>
+    <line x1="292" y1="165" x2="430" y2="320" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrB)"/>
+    <rect x="440" y="305" width="160" height="80" fill="#141417" stroke="#3b82f6" stroke-width="2.5"/>
+    <text x="520" y="330" fill="#e8e8ec" font-size="12" text-anchor="middle" font-weight="700">PLC JETTER</text>
+    <text x="520" y="345" fill="#7a7a85" font-size="9" text-anchor="middle">JC-340 · series JetControl</text>
+    <text x="520" y="358" fill="#7a7a85" font-size="9" text-anchor="middle">P/N 10001665</text>
+    <text x="520" y="371" fill="#3b82f6" font-size="9" text-anchor="middle">DI:32 · DO:24 · AI:8 · CAN×2</text>
+    <text x="600" y="295" fill="#3b82f6" font-size="9" text-anchor="middle" font-weight="700">PLC-1</text>
+  </g>
+
+  <!-- CAN bus between ESU - PLC - Norgren manifold - HMI -->
+  <line x1="600" y1="170" x2="640" y2="170" stroke="#a855f7" stroke-width="2.5" stroke-dasharray="4,3"/>
+  <line x1="640" y1="170" x2="640" y2="345" stroke="#a855f7" stroke-width="2.5" stroke-dasharray="4,3"/>
+  <line x1="640" y1="345" x2="600" y2="345" stroke="#a855f7" stroke-width="2.5" stroke-dasharray="4,3" marker-end="url(#arrV)"/>
+  <text x="660" y="260" fill="#a855f7" font-size="9" font-weight="700">CAN J1939</text>
+  <text x="660" y="272" fill="#7a7a85" font-size="8">500 kbit/s</text>
+
+  <!-- HMI cabina -->
+  <g>
+    <line x1="600" y1="345" x2="640" y2="345" stroke="#a855f7" stroke-width="2.5" stroke-dasharray="4,3"/>
+    <line x1="640" y1="345" x2="640" y2="500" stroke="#a855f7" stroke-width="2.5" stroke-dasharray="4,3"/>
+    <line x1="640" y1="500" x2="730" y2="500" stroke="#a855f7" stroke-width="2.5" stroke-dasharray="4,3" marker-end="url(#arrV)"/>
+    <rect x="740" y="475" width="160" height="60" fill="#141417" stroke="#a855f7" stroke-width="2"/>
+    <text x="820" y="497" fill="#e8e8ec" font-size="11" text-anchor="middle" font-weight="700">HMI / PANEL CABINA</text>
+    <text x="820" y="512" fill="#7a7a85" font-size="9" text-anchor="middle">Jetter display + botoneras</text>
+    <text x="820" y="525" fill="#7a7a85" font-size="9" text-anchor="middle">Joystick · ON/OFF · Estado</text>
+    <text x="900" y="465" fill="#a855f7" font-size="9" text-anchor="middle" font-weight="700">HMI-1</text>
+  </g>
+
+  <!-- Banco relés -->
+  <g>
+    <line x1="600" y1="345" x2="700" y2="345" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrB)"/>
+    <rect x="710" y="295" width="160" height="100" fill="#141417" stroke="#3b82f6" stroke-width="2"/>
+    <text x="790" y="315" fill="#e8e8ec" font-size="11" text-anchor="middle" font-weight="700">BANCO RELÉS POTENCIA</text>
+    <text x="790" y="328" fill="#7a7a85" font-size="8" text-anchor="middle">Datam · 8× SPDT 40A</text>
+    <!-- relays mini -->
+    <g transform="translate(720,335)">
+      <rect x="0" y="0" width="14" height="22" fill="#0d0d10" stroke="#3b82f6" stroke-width="1"/>
+      <text x="7" y="13" fill="#3b82f6" font-size="7" text-anchor="middle">K1</text>
+      <rect x="18" y="0" width="14" height="22" fill="#0d0d10" stroke="#3b82f6" stroke-width="1"/>
+      <text x="25" y="13" fill="#3b82f6" font-size="7" text-anchor="middle">K2</text>
+      <rect x="36" y="0" width="14" height="22" fill="#0d0d10" stroke="#3b82f6" stroke-width="1"/>
+      <text x="43" y="13" fill="#3b82f6" font-size="7" text-anchor="middle">K3</text>
+      <rect x="54" y="0" width="14" height="22" fill="#0d0d10" stroke="#3b82f6" stroke-width="1"/>
+      <text x="61" y="13" fill="#3b82f6" font-size="7" text-anchor="middle">K4</text>
+      <rect x="72" y="0" width="14" height="22" fill="#0d0d10" stroke="#3b82f6" stroke-width="1"/>
+      <text x="79" y="13" fill="#3b82f6" font-size="7" text-anchor="middle">K5</text>
+      <rect x="90" y="0" width="14" height="22" fill="#0d0d10" stroke="#3b82f6" stroke-width="1"/>
+      <text x="97" y="13" fill="#3b82f6" font-size="7" text-anchor="middle">K6</text>
+      <rect x="108" y="0" width="14" height="22" fill="#0d0d10" stroke="#3b82f6" stroke-width="1"/>
+      <text x="115" y="13" fill="#3b82f6" font-size="7" text-anchor="middle">K7</text>
+      <rect x="126" y="0" width="14" height="22" fill="#0d0d10" stroke="#3b82f6" stroke-width="1"/>
+      <text x="133" y="13" fill="#3b82f6" font-size="7" text-anchor="middle">K8</text>
+    </g>
+    <text x="790" y="385" fill="#7a7a85" font-size="9" text-anchor="middle">comandados por PLC vía DO</text>
+  </g>
+
+  <!-- Norgren CANopen (referencia al neumático) -->
+  <g>
+    <line x1="600" y1="370" x2="640" y2="370" stroke="#a855f7" stroke-width="2.5" stroke-dasharray="4,3"/>
+    <line x1="640" y1="370" x2="640" y2="610" stroke="#a855f7" stroke-width="2.5" stroke-dasharray="4,3"/>
+    <line x1="640" y1="610" x2="730" y2="610" stroke="#a855f7" stroke-width="2.5" stroke-dasharray="4,3" marker-end="url(#arrV)"/>
+    <rect x="740" y="585" width="200" height="55" fill="#141417" stroke="#a855f7" stroke-width="2"/>
+    <text x="840" y="608" fill="#e8e8ec" font-size="10" text-anchor="middle" font-weight="700">MANIFOLD NORGREN CANopen</text>
+    <text x="840" y="622" fill="#7a7a85" font-size="9" text-anchor="middle">→ ver DOC-TEC 0049 neumático</text>
+    <text x="840" y="634" fill="#a855f7" font-size="8" text-anchor="middle">CANopen V62 · 4× est.</text>
+  </g>
+
+  <!-- ACTUATORS (zona derecha) -->
+  <g>
+    <!-- Salidas relés a actuadores -->
+    <line x1="870" y1="346" x2="950" y2="346" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrB)"/>
+    <rect x="960" y="320" width="180" height="50" fill="#141417" stroke="#f59e0b" stroke-width="2"/>
+    <text x="1050" y="340" fill="#e8e8ec" font-size="10" text-anchor="middle" font-weight="700">ACTUADORES 24V</text>
+    <text x="1050" y="354" fill="#7a7a85" font-size="9" text-anchor="middle">Bocinas · Faros LED · Beacons</text>
+    <text x="1050" y="365" fill="#7a7a85" font-size="9" text-anchor="middle">Bomba agua · Motores aux.</text>
+  </g>
+
+  <!-- SENSORS BUCHER feedback -->
+  <g>
+    <text x="200" y="500" fill="#16a34a" font-size="11" text-anchor="middle" font-weight="700">SENSORES (entradas PLC)</text>
+    <g transform="translate(50,520)">
+      <rect x="0" y="0" width="100" height="22" fill="#0d0d10" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="50" y="14" fill="#16a34a" font-size="9" text-anchor="middle">S1 · Nivel tolva</text>
+      <line x1="100" y1="11" x2="440" y2="320" stroke="#16a34a" stroke-width="1" stroke-dasharray="2,2"/>
+    </g>
+    <g transform="translate(50,548)">
+      <rect x="0" y="0" width="100" height="22" fill="#0d0d10" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="50" y="14" fill="#16a34a" font-size="9" text-anchor="middle">S2 · Presión hidr.</text>
+      <line x1="100" y1="11" x2="440" y2="335" stroke="#16a34a" stroke-width="1" stroke-dasharray="2,2"/>
+    </g>
+    <g transform="translate(50,576)">
+      <rect x="0" y="0" width="100" height="22" fill="#0d0d10" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="50" y="14" fill="#16a34a" font-size="9" text-anchor="middle">S3 · Temp. aceite</text>
+      <line x1="100" y1="11" x2="440" y2="350" stroke="#16a34a" stroke-width="1" stroke-dasharray="2,2"/>
+    </g>
+    <g transform="translate(50,604)">
+      <rect x="0" y="0" width="100" height="22" fill="#0d0d10" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="50" y="14" fill="#16a34a" font-size="9" text-anchor="middle">S4 · Pos. cepillos</text>
+      <line x1="100" y1="11" x2="440" y2="365" stroke="#16a34a" stroke-width="1" stroke-dasharray="2,2"/>
+    </g>
+    <g transform="translate(50,632)">
+      <rect x="0" y="0" width="100" height="22" fill="#0d0d10" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="50" y="14" fill="#16a34a" font-size="9" text-anchor="middle">S5 · Nivel agua</text>
+      <line x1="100" y1="11" x2="440" y2="380" stroke="#16a34a" stroke-width="1" stroke-dasharray="2,2"/>
+    </g>
+    <g transform="translate(50,660)">
+      <rect x="0" y="0" width="100" height="22" fill="#0d0d10" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="50" y="14" fill="#16a34a" font-size="9" text-anchor="middle">S6 · Boca aspir.</text>
+      <line x1="100" y1="11" x2="440" y2="385" stroke="#16a34a" stroke-width="1" stroke-dasharray="2,2"/>
+    </g>
+  </g>
+
+  <!-- Emergency stop -->
+  <g>
+    <line x1="270" y1="220" x2="180" y2="730" stroke="#ff4e3a" stroke-width="2"/>
+    <circle cx="180" cy="750" r="22" fill="#ff4e3a" stroke="#ff4e3a" stroke-width="2"/>
+    <text x="180" y="754" fill="#0a0a0b" font-size="11" text-anchor="middle" font-weight="700">EMG</text>
+    <text x="180" y="785" fill="#ff4e3a" font-size="9" text-anchor="middle" font-weight="700">PARO EMERGENCIA</text>
+    <text x="180" y="797" fill="#7a7a85" font-size="8" text-anchor="middle">corta línea de mando PLC</text>
+  </g>
+
+  <!-- ELU diagnostico OBD -->
+  <g>
+    <rect x="990" y="115" width="160" height="60" fill="#141417" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <text x="1070" y="140" fill="#e8e8ec" font-size="11" text-anchor="middle" font-weight="700">DIAG OBD / J1939</text>
+    <text x="1070" y="155" fill="#7a7a85" font-size="9" text-anchor="middle">Conector cabina</text>
+    <text x="1070" y="167" fill="#7a7a85" font-size="9" text-anchor="middle">para scan Xentry / Jetter</text>
+    <line x1="600" y1="155" x2="990" y2="155" stroke="#a855f7" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrV)"/>
+  </g>
+</svg>
+  </div>
+  <p class="svg-caption">DAIG-MNT-0050 · Fig. 1 — Distribución 24V CC desde baterías → master switch → caja Datalem/Datam → ESU + PLC Jetter; bus CAN J1939 entre ESU/PLC/HMI/manifold Norgren; banco relés Datam para actuadores; sensores PT100/4-20mA al PLC.</p>
+</section>
+
+<section>
+  <h2><span class="num">§2</span>Leyenda IEC 60617</h2>
+  <div class="legend-grid">
+    <div class="legend-item">
+      <div class="sym"><svg width="40" height="30" viewBox="0 0 40 30"><line x1="14" y1="8" x2="14" y2="22" stroke="#3b82f6" stroke-width="2.5"/><line x1="20" y1="6" x2="20" y2="24" stroke="#3b82f6" stroke-width="2"/><line x1="26" y1="10" x2="26" y2="20" stroke="#3b82f6" stroke-width="2.5"/></svg></div>
+      <div class="info"><div class="name">Batería (BAT)</div><div class="desc">2 × 12V 175 Ah en serie · arranque y reserva carga implemento</div></div>
+    </div>
+    <div class="legend-item">
+      <div class="sym"><svg width="40" height="30" viewBox="0 0 40 30"><circle cx="20" cy="15" r="9" fill="none" stroke="#3b82f6" stroke-width="1.5"/><text x="20" y="19" fill="#3b82f6" font-size="11" text-anchor="middle" font-weight="700" font-family="JetBrains Mono">G</text></svg></div>
+      <div class="info"><div class="name">Alternador (G)</div><div class="desc">28V / 100A · regulador integrado · recarga continua del banco baterías</div></div>
+    </div>
+    <div class="legend-item">
+      <div class="sym"><svg width="40" height="30" viewBox="0 0 40 30"><line x1="6" y1="15" x2="14" y2="15" stroke="#3b82f6" stroke-width="2"/><circle cx="16" cy="15" r="2" fill="#3b82f6"/><line x1="18" y1="15" x2="26" y2="8" stroke="#3b82f6" stroke-width="2"/><circle cx="28" cy="6" r="1.5" fill="#3b82f6"/><line x1="26" y1="15" x2="34" y2="15" stroke="#3b82f6" stroke-width="2"/></svg></div>
+      <div class="info"><div class="name">Interruptor (SW)</div><div class="desc">Master switch desconectador de baterías · accesible cabina</div></div>
+    </div>
+    <div class="legend-item">
+      <div class="sym"><svg width="40" height="30" viewBox="0 0 40 30"><rect x="10" y="11" width="20" height="8" fill="#0d0d10" stroke="#3b82f6" stroke-width="1.5"/><line x1="13" y1="15" x2="27" y2="15" stroke="#3b82f6" stroke-width="1"/></svg></div>
+      <div class="info"><div class="name">Fusible (F)</div><div class="desc">Cartucho cilíndrico Datalem · valores 15/20/30/40/250 A · color codificado</div></div>
+    </div>
+    <div class="legend-item">
+      <div class="sym"><svg width="40" height="30" viewBox="0 0 40 30"><rect x="10" y="9" width="14" height="14" fill="#0d0d10" stroke="#3b82f6" stroke-width="1.5"/><line x1="24" y1="13" x2="34" y2="13" stroke="#3b82f6" stroke-width="1"/><line x1="24" y1="19" x2="34" y2="19" stroke="#3b82f6" stroke-width="1"/></svg></div>
+      <div class="info"><div class="name">Relé (K)</div><div class="desc">Datam SPDT 40A · contacto NA + NC · bobina 24V CC</div></div>
+    </div>
+    <div class="legend-item">
+      <div class="sym"><svg width="40" height="30" viewBox="0 0 40 30"><line x1="14" y1="22" x2="26" y2="22" stroke="#7a7a85" stroke-width="2.5"/><line x1="16" y1="25" x2="24" y2="25" stroke="#7a7a85" stroke-width="2"/><line x1="18" y1="28" x2="22" y2="28" stroke="#7a7a85" stroke-width="1.5"/><line x1="20" y1="8" x2="20" y2="22" stroke="#7a7a85" stroke-width="2"/></svg></div>
+      <div class="info"><div class="name">Tierra (GND)</div><div class="desc">Masa chasis · todos los negativos confluyen al bloque motor o larguero</div></div>
+    </div>
+    <div class="legend-item">
+      <div class="sym"><svg width="40" height="30" viewBox="0 0 40 30"><line x1="6" y1="15" x2="34" y2="15" stroke="#a855f7" stroke-width="2.5" stroke-dasharray="4,3"/></svg></div>
+      <div class="info"><div class="name">Bus CAN</div><div class="desc">Par trenzado CAN-H/CAN-L · 120 Ω terminación · 500 kbit/s</div></div>
+    </div>
+    <div class="legend-item">
+      <div class="sym"><svg width="40" height="30" viewBox="0 0 40 30"><rect x="10" y="9" width="20" height="12" fill="#0d0d10" stroke="#3b82f6" stroke-width="1.5"/><text x="20" y="18" fill="#3b82f6" font-size="8" text-anchor="middle" font-weight="700" font-family="JetBrains Mono">PLC</text></svg></div>
+      <div class="info"><div class="name">PLC Jetter</div><div class="desc">P/N 10001665 — controlador del implemento Bucher con CAN dual</div></div>
+    </div>
+    <div class="legend-item">
+      <div class="sym"><svg width="40" height="30" viewBox="0 0 40 30"><circle cx="20" cy="15" r="8" fill="#ff4e3a"/><text x="20" y="18" fill="#0a0a0b" font-size="8" text-anchor="middle" font-weight="700" font-family="JetBrains Mono">EMG</text></svg></div>
+      <div class="info"><div class="name">Paro emergencia</div><div class="desc">Botón seta rojo · corta línea de mando · rearme manual con giro</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">§3</span>Lista de componentes</h2>
+  <table>
+    <thead>
+      <tr><th>TAG</th><th>Componente</th><th>P/N OEM</th><th>Especificación</th><th>Mantención</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>BAT-1</b></td><td>Banco baterías 24V</td><td class="pn">Varta H8 / Bosch T5</td><td>2 × 12V 175 Ah en serie · arranque 950 A · libre mantención</td><td>Densidad/voltaje mensual · cambio c/4 años</td></tr>
+      <tr><td><b>G-1</b></td><td>Alternador</td><td class="pn">MB OEM A 011 154 xx xx</td><td>28V / 100A · regulador integrado · acoplamiento polea</td><td>Inspección escobillas c/200.000 km</td></tr>
+      <tr><td><b>SW-M</b></td><td>Master switch desconectador</td><td class="pn">Hella / MB OEM</td><td>250A continua · operación manual cabina</td><td>Verificación contactos anual</td></tr>
+      <tr><td><b>F-MAIN</b></td><td>Fusible principal</td><td class="pn">Mega 250A</td><td>Cartucho color amarillo · protege línea desde batería</td><td>Inspección visual mensual</td></tr>
+      <tr><td><b>F1-F6</b></td><td>Caja fusibles distribución</td><td class="pn">Datalem / Datam</td><td>Cartuchos individuales 15/20/30/40A · ATO/MAXI</td><td>Inspección visual c/mantención mensual</td></tr>
+      <tr><td><b>ESU-1</b></td><td>Electronic Service Unit MB</td><td class="pn">MB A 005 446 xx xx</td><td>Gestión motor + chasis · CAN J1939 · diagnóstico Xentry</td><td>Diagnóstico OBD c/mantención mensual</td></tr>
+      <tr><td><b>PLC-1</b></td><td>PLC implemento Bucher</td><td class="pn">10001665 (Jetter JC-340)</td><td>32 DI · 24 DO · 8 AI · 2× CAN · firmware Bucher Vh</td><td>Backup programa anual · diagnóstico Jetter c/6 meses</td></tr>
+      <tr><td><b>HMI-1</b></td><td>Display + botoneras cabina</td><td class="pn">Jetter JVM-407B</td><td>Pantalla 7" táctil · idioma ES · joystick proporcional</td><td>Limpieza pantalla diaria · calibración táctil c/6 meses</td></tr>
+      <tr><td><b>K1-K8</b></td><td>Banco relés potencia</td><td class="pn">Datam SPDT-24-40</td><td>SPDT 40A · bobina 24V · vida 100k operaciones</td><td>Prueba accionamiento c/mantención mensual</td></tr>
+      <tr><td><b>S1-S6</b></td><td>Sensores PLC</td><td class="pn">varios IFM / Turck</td><td>PT100, 4-20 mA, NPN/PNP 24V · IP67 mínimo</td><td>Limpieza superficie sensora mensual · calibración anual</td></tr>
+      <tr><td><b>EMG</b></td><td>Paro emergencia</td><td class="pn">Schneider XALK178F</td><td>Seta roja Ø40 · 2 NC · enclavamiento rearme giro</td><td>Prueba accionamiento mensual obligatoria</td></tr>
+      <tr><td>—</td><td>Conector OBD diagnóstico</td><td class="pn">J1939 9-pin Deutsch</td><td>Acceso CAN J1939 · scan Jetter/Xentry</td><td>Sin mantención · inspección pin anual</td></tr>
+      <tr><td>—</td><td>Cableado control y potencia</td><td class="pn">FLRY-B / FLY 1.5–10 mm²</td><td>Aislante XLPE · resistente aceite/abrasión · conectores Deutsch DT</td><td>Inspección visual mensual · cambio mazo si abrasión</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="num">§4</span>Notas operativas y seguridad eléctrica</h2>
+  <div class="notes">
+    <h3>OBSERVACIONES CRÍTICAS</h3>
+    <ul>
+      <li><b>Antes de cualquier intervención</b>: desactivar master switch, esperar 60 s descarga capacitores PLC/HMI, verificar 0V con multímetro en bornes batería.</li>
+      <li><b>NO soldar arco eléctrico</b> en chasis o tolva sin desconectar batería + ESU + PLC: tensiones inducidas dañan electrónica. Aterrar la masa de soldadura lo más cerca posible al punto de trabajo.</li>
+      <li><b>Diagnóstico CAN J1939</b>: usar scan Xentry para ESU MB; scan Jetter Tools (JetSym) para PLC Bucher. Códigos DTC + valores en tiempo real.</li>
+      <li><b>Bus CAN</b>: resistencia entre CAN-H y CAN-L debe ser ~60 Ω con bus desconectado (2× 120 Ω en paralelo). 120 Ω = una terminación abierta. ∞ = corto o conductor abierto.</li>
+      <li><b>Norgren CANopen V62</b>: dirección de nodo configurable por DIP switches; mantener registro de direcciones por estación para reemplazos campo.</li>
+      <li><b>Fusibles Datalem</b>: cambiar siempre por valor idéntico marcado. Subir amperaje = riesgo incendio cableado.</li>
+      <li><b>Paro emergencia</b>: probar mensualmente accionamiento + rearme; verificar que el PLC entra en estado seguro (todos los DO en 0).</li>
+      <li><b>Limpieza alta presión</b>: NO dirigir chorro a conectores Deutsch, HMI, módulos PLC. Cubrir con plástico el panel cabina al lavar interior.</li>
+      <li><b>Reemplazo batería</b>: respetar polaridad (negativo masa); cambiar ambas baterías a la vez (no mezclar nueva/vieja); aplicar grasa dieléctrica en bornes.</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div>DAIG SpA · Servicio Técnico Camión Barredor · DOC-TEC DAIG-MNT-0050 v1.0</div>
+  <div class="ref">Fuentes: Bucher V Range Operator's Guide 01294-1-ES Rev C · MB Atego Workshop Manual · Jetter JetControl Datasheet · Norgren CANopen V62 · Datalem/Datam Catalogue · Práctica DAIG terreno PVSA</div>
+</footer>
+
+</body>
+</html>

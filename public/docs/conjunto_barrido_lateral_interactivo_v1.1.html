@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#0f1419">
+<title>Conjunto Barrido Lateral · Bucher CityFant 6000 · DAIG SpA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Bebas+Neue&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1419;
+    --bg-2:#1a2028;
+    --panel:#161c24;
+    --panel-2:#1c2330;
+    --line:#2a3441;
+    --ink:#e8eef5;
+    --ink-dim:#8a9bb0;
+    --ink-faint:#5a6675;
+    --accent:#ffb84d;     /* ámbar para diferenciar del doc 0042 (rojo) */
+    --accent-2:#ff4e3a;
+    --ok:#5dd39e;
+    --warn:#ffb84d;
+    --danger:#ff4e3a;
+    --info:#5ab9ff;
+    --grid:#1f2731;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body{
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:40px 40px;
+    background-position:-1px -1px;
+  }
+  .wrap{max-width:1200px;margin:0 auto;padding:14px 12px 100px}
+
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(15,20,25,.92);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+    margin:-14px -12px 14px;padding:10px 14px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;color:var(--ink)}
+  .logo span{color:var(--accent)}
+  .topbar-info{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-dim);text-align:right;line-height:1.3}
+  .topbar-info b{color:var(--ok)}
+
+  .tabs{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    border:1px solid var(--line);background:var(--panel);
+    margin-bottom:14px;overflow:hidden;
+  }
+  .tab{
+    padding:12px 8px;font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink-dim);cursor:pointer;border:none;background:transparent;
+    border-right:1px solid var(--line);transition:all .15s;
+    display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;
+  }
+  .tab:last-child{border-right:none}
+  .tab:hover{background:var(--panel-2);color:var(--ink)}
+  .tab.active{background:var(--panel-2);color:var(--accent)}
+  .tab.active::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent)}
+  .tab svg{width:18px;height:18px}
+  .tab-badge{
+    position:absolute;top:6px;right:8px;font-size:9px;
+    background:var(--accent);color:#0a1610;padding:1px 5px;border-radius:8px;
+    font-family:'IBM Plex Sans',sans-serif;font-weight:700;display:none;
+  }
+  .tab-badge.show{display:block}
+
+  .panel{border:1px solid var(--line);background:var(--panel);position:relative;margin-bottom:14px}
+  .panel-h{
+    padding:10px 14px;border-bottom:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;
+    letter-spacing:.12em;color:var(--ink-dim);text-transform:uppercase;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .panel-h b{color:var(--accent)}
+  .corner{position:absolute;width:8px;height:8px;border:1px solid var(--accent);pointer-events:none}
+  .corner.tl{top:-1px;left:-1px;border-right:none;border-bottom:none}
+  .corner.tr{top:-1px;right:-1px;border-left:none;border-bottom:none}
+  .corner.bl{bottom:-1px;left:-1px;border-right:none;border-top:none}
+  .corner.br{bottom:-1px;right:-1px;border-left:none;border-top:none}
+
+  header.intro{
+    padding:16px 16px 14px;
+    background:linear-gradient(180deg,#1a2028 0%,#11161d 100%);
+    border:1px solid var(--line);margin-bottom:14px;position:relative;overflow:hidden;
+  }
+  header.intro::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--accent) 0%,var(--accent) 30%,var(--accent-2) 30%,var(--accent-2) 60%,var(--ok) 60%,var(--ok) 100%);
+  }
+  .tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .tag{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.08em;
+    padding:3px 7px;border:1px solid var(--line);color:var(--ink-dim);text-transform:uppercase;
+  }
+  .tag.hot{border-color:var(--accent);color:var(--accent)}
+  .tag.ok{border-color:var(--ok);color:var(--ok)}
+  h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(24px,5.5vw,38px);letter-spacing:.02em;line-height:1.05;margin-bottom:4px}
+  h1 .sub{color:var(--accent)}
+  .lead{color:var(--ink-dim);font-size:13px;line-height:1.5;max-width:680px}
+  .meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}
+  .meta span b{color:var(--ink);font-weight:500}
+
+  .stage-wrap{border:1px solid var(--line);background:radial-gradient(ellipse at 50% 40%,#1d2530 0%,#0d1218 70%);position:relative;margin-bottom:14px;overflow:hidden}
+  .stage-bar{padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:var(--ink-dim)}
+  .stage-bar .live{display:flex;align-items:center;gap:6px;color:var(--accent)}
+  .stage-bar .live::before{content:"";width:6px;height:6px;background:var(--accent);border-radius:50%;animation:blink 2s infinite}
+  @keyframes blink{50%{opacity:.3}}
+  .zoom-ctrl{display:flex;gap:4px}
+  .zoom-ctrl button{width:26px;height:22px;border:1px solid var(--line);background:transparent;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s}
+  .zoom-ctrl button:hover{border-color:var(--accent);color:var(--accent)}
+  .stage{padding:10px 6px 6px;overflow:auto;max-height:65vh;-webkit-overflow-scrolling:touch}
+  svg.diagram{width:100%;height:auto;display:block;min-width:600px;touch-action:manipulation}
+
+  .hot-circle{fill:rgba(255,184,77,.2);stroke:var(--accent);stroke-width:2;cursor:pointer;transition:all .2s}
+  .hot-circle:hover,.hot-circle.active{fill:rgba(255,184,77,.5);stroke:#fff;filter:drop-shadow(0 0 10px var(--accent))}
+  .hot-circle.checked{fill:rgba(93,211,158,.3);stroke:var(--ok)}
+  .hot-num{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;fill:#0a1610;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+  .hot-circle.checked + .hot-num{fill:#fff}
+  .lead-line{stroke:var(--accent);stroke-width:1;stroke-dasharray:3 3;opacity:.55}
+  .lead-line.checked{stroke:var(--ok)}
+
+  .grid-2{display:grid;grid-template-columns:1fr;gap:14px}
+  @media(min-width:880px){.grid-2{grid-template-columns:1fr 1fr}}
+
+  .item{padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;gap:12px;align-items:flex-start;transition:background .15s;position:relative}
+  .item:last-child{border-bottom:none}
+  .item:hover{background:var(--panel-2)}
+  .item.active{background:#1f2a38}
+  .item.active::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+  .num{flex-shrink:0;width:30px;height:30px;border:1px solid var(--accent);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .item.active .num{background:var(--accent);color:#0a1610}
+  .item.checked .num{border-color:var(--ok);color:var(--ok)}
+  .item.checked.active .num{background:var(--ok);color:#fff}
+  .it-body{flex:1;min-width:0}
+  .it-title{font-size:14px;font-weight:500;margin-bottom:2px;display:flex;align-items:center;gap:6px}
+  .it-title .chk-mark{color:var(--ok);font-size:14px;display:none}
+  .item.checked .chk-mark{display:inline}
+  .it-sub{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-dim)}
+  .it-arrow{color:var(--ink-faint);font-size:18px;align-self:center}
+
+  .detail{border:1px solid var(--line);background:var(--panel);padding:16px;position:relative}
+  @media(min-width:880px){.detail{position:sticky;top:80px;align-self:start;max-height:calc(100vh - 100px);overflow-y:auto}}
+  .detail-empty{color:var(--ink-dim);font-size:13px;text-align:center;padding:30px 10px}
+  .detail-empty svg{width:40px;height:40px;opacity:.4;margin-bottom:10px}
+  .d-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .d-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border:1px solid var(--accent);color:var(--accent);letter-spacing:.08em}
+  .d-check-btn{border:1px solid var(--line);background:transparent;color:var(--ink-dim);padding:7px 11px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;text-transform:uppercase}
+  .d-check-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .d-check-btn.checked{border-color:var(--ok);color:var(--ok);background:rgba(93,211,158,.08)}
+  .d-check-btn svg{width:14px;height:14px}
+  .d-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.02em;line-height:1.05;margin-bottom:4px}
+  .d-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent-2);margin-bottom:12px}
+  .d-section{margin-top:14px}
+  .d-section h4{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+  .d-section h4::before{content:"";width:10px;height:1px;background:var(--accent)}
+  .d-section p{font-size:13.5px;line-height:1.55;color:var(--ink)}
+  .d-section ul{font-size:13px;line-height:1.55;padding-left:18px}
+  .d-section li{margin-bottom:4px}
+  .d-section li::marker{color:var(--accent)}
+
+  .specs{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);margin-top:4px}
+  .specs div{background:var(--panel);padding:9px 10px}
+  .specs .k{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--ink-dim);letter-spacing:.08em;text-transform:uppercase}
+  .specs .v{font-size:13px;font-weight:500;margin-top:2px}
+
+  .diag-table{width:100%;border-collapse:collapse;margin-top:4px;font-size:12.5px}
+  .diag-table th{background:var(--panel-2);text-align:left;padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);border-bottom:1px solid var(--line)}
+  .diag-table td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+  .diag-table tr:last-child td{border-bottom:none}
+  .sev{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:2px 6px;letter-spacing:.06em;border:1px solid}
+  .sev.A{color:var(--danger);border-color:var(--danger)}
+  .sev.M{color:var(--warn);border-color:var(--warn)}
+  .sev.B{color:var(--ok);border-color:var(--ok)}
+
+  .parts-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:10px 12px;border:1px solid var(--line);background:var(--panel-2);margin-bottom:6px;align-items:center}
+  .parts-row .pn{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);font-weight:500}
+  .parts-row .desc{font-size:12.5px;line-height:1.4}
+  .parts-row .stock{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 6px;border:1px solid;letter-spacing:.05em}
+  .stock.s-ok{color:var(--ok);border-color:var(--ok)}
+  .stock.s-low{color:var(--warn);border-color:var(--warn)}
+  .stock.s-no{color:var(--danger);border-color:var(--danger)}
+
+  .progress-bar{width:100%;height:6px;background:var(--bg-2);border:1px solid var(--line);margin:10px 0 6px;position:relative;overflow:hidden}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--ok));width:0%;transition:width .4s}
+  .progress-meta{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-dim);letter-spacing:.06em}
+  .progress-meta b{color:var(--ok)}
+
+  .check-actions{display:flex;gap:8px;margin:10px 0 14px;flex-wrap:wrap}
+  .btn{border:1px solid var(--line);background:transparent;color:var(--ink-dim);padding:9px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;cursor:pointer;transition:all .15s;text-transform:uppercase;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{border-color:var(--accent);color:var(--accent);background:rgba(255,184,77,.05)}
+  .btn.primary:hover{background:var(--accent);color:#0a1610}
+  .btn.ghost{color:var(--ink-faint)}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .form-grid.full{grid-template-columns:1fr}
+  .form-grid label{display:block;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--ink-dim);letter-spacing:.08em;margin-bottom:4px;text-transform:uppercase}
+  .form-grid input,.form-grid select,.form-grid textarea{width:100%;background:var(--bg-2);border:1px solid var(--line);color:var(--ink);padding:9px 11px;font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;transition:border .15s}
+  .form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus{outline:none;border-color:var(--accent)}
+  .form-grid textarea{resize:vertical;min-height:60px}
+
+  footer{margin-top:18px;padding:14px;border:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-dim);letter-spacing:.04em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  footer b{color:var(--accent)}
+
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ok);color:#0a1610;padding:10px 18px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;z-index:100;transition:transform .3s;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:520px){
+    .tab{padding:10px 4px;font-size:9.5px}
+    .tab svg{width:16px;height:16px}
+    .specs{grid-template-columns:1fr}
+    .parts-row{grid-template-columns:1fr;gap:4px}
+    .parts-row .stock{justify-self:start}
+    .form-grid{grid-template-columns:1fr}
+    h1{font-size:24px}
+    .meta{font-size:10px}
+    .diag-table th,.diag-table td{padding:7px 6px;font-size:11.5px}
+    .diag-table th{font-size:9px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <a href="HUB_consolidado_camion_barredor.html" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,184,77,.15);color:#ffb84d;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid #ffb84d;border-radius:3px;margin-right:10px">← HUB</a><span style="color:#5a6675;font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;margin-right:6px">VER TAMBIÉN</span><a href="plano_circuito_hidraulico.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(255,78,58,.10);color:#ff4e3a;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(255,78,58,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0048 HIDR P&amp;ID</a><a href="plan_lubricacion_fluidos_interactivo.html" style="display:inline-flex;align-items:center;padding:5px 8px;background:rgba(249,115,22,.10);color:#f97316;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;border:1px solid rgba(249,115,22,.4);border-radius:3px;margin-right:5px;white-space:nowrap">0047 LUBRIC</a><div class="logo">DAIG<span>·</span>MNT</div>
+    <div class="topbar-info">
+      <div>DOC-TEC / DAIG-MNT-0043</div>
+      <div><b>● EN LÍNEA</b> · v1.1</div>
+    </div>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="info">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+      INFO
+    </button>
+    <button class="tab" data-tab="diagrama">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 3v18"/></svg>
+      DIAGRAMA
+    </button>
+    <button class="tab" data-tab="checklist">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      CHECKLIST
+      <span class="tab-badge" id="badge-check">0</span>
+    </button>
+    <button class="tab" data-tab="repuestos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      REPUESTOS
+    </button>
+  </nav>
+
+  <!-- ============ INFO ============ -->
+  <section class="tab-content active" data-tab="info">
+    <header class="intro">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="tag-row">
+        <span class="tag hot">● EN SERVICIO</span>
+        <span class="tag">CRÍTICO</span>
+        <span class="tag ok">REV. 2 — 23·MAY·2026</span>
+      </div>
+      <h1>CONJUNTO BARRIDO <span class="sub">/ CEPILLO LATERAL</span></h1>
+      <p class="lead">
+        Brazo articulado del cepillo lateral derecho con motor hidráulico orbital, sistema de riego antipolvo y boca de aspiración. Conjunto frontal de barrido de la Bucher CityFant 6000 en faena PVSA.
+      </p>
+      <div class="meta">
+        <span>EQUIPO · <b>Bucher CityFant 6000</b></span>
+        <span>CHASIS · <b>MB Atego 1729</b></span>
+        <span>SUBSISTEMA · <b>Side broom DER</b></span>
+        <span>OPERACIÓN · <b>PVSA · Puchuncaví</b></span>
+        <span>UBICACIÓN · <b>Entre ejes (frontal)</b></span>
+        <span>CRITICIDAD · <b style="color:var(--accent)">ALTA</b></span>
+      </div>
+    </header>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>FUNCIONAMIENTO GENERAL</span><b>SISTEMA DE BARRIDO</b></div>
+      <div style="padding:14px 16px">
+        <p style="font-size:13.5px;line-height:1.6;color:var(--ink);margin-bottom:10px">
+          El cepillo lateral barre el material desde la cuneta o área de trabajo hacia el centro del vehículo, donde la <b style="color:var(--accent)">boca de aspiración</b> succiona el residuo hacia la tolva por efecto de la turbina principal. El brazo es articulado y desplegable, accionado por <b style="color:var(--accent-2)">cilindros hidráulicos</b> de elevación y extensión gobernados desde el bloque hidráulico (DOC-TEC 0042).
+        </p>
+        <p style="font-size:13.5px;line-height:1.6;color:var(--ink);margin-bottom:10px">
+          El <b style="color:var(--accent-2)">motor hidráulico orbital</b> en el centro del disco hace girar las cerdas a velocidad regulable desde cabina. El <b style="color:var(--accent-2)">sistema de riego</b> aspersa agua mediante boquillas integradas al brazo para suprimir polvo, requisito ambiental obligatorio en PVSA.
+        </p>
+        <p style="font-size:13.5px;line-height:1.6;color:var(--ink)">
+          En reposo el conjunto se eleva y repliega bajo el vehículo. La presión de contacto contra el suelo se regula mediante el muelle de torsión y el setting hidráulico, evitando desgaste prematuro de cerdas.
+        </p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>PARÁMETROS CRÍTICOS</span><b>VALORES NOMINALES</b></div>
+      <div class="specs" style="margin:0">
+        <div><div class="k">Diámetro del cepillo</div><div class="v">650 – 750 mm</div></div>
+        <div><div class="k">Velocidad de rotación</div><div class="v">80 – 140 rpm</div></div>
+        <div><div class="k">Tipo de cerdas</div><div class="v">Mixta acero + PPL</div></div>
+        <div><div class="k">Largo nominal cerda</div><div class="v">300 mm (nueva)</div></div>
+        <div><div class="k">Largo mínimo cerda</div><div class="v">120 mm (cambio)</div></div>
+        <div><div class="k">Presión hidráulica</div><div class="v">160 – 180 bar</div></div>
+        <div><div class="k">Caudal motor orbital</div><div class="v">20 – 30 L/min</div></div>
+        <div><div class="k">Consumo agua riego</div><div class="v">≈ 2 L/min</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>⚠ ADVERTENCIAS DE SEGURIDAD</span><b>OBLIGATORIO LEER</b></div>
+      <div style="padding:14px 16px">
+        <ul style="font-size:13px;line-height:1.65;padding-left:20px">
+          <li style="margin-bottom:6px"><b style="color:var(--danger)">NO acercar manos al cepillo</b> con el motor encendido — riesgo de atrapamiento por las cerdas de acero.</li>
+          <li style="margin-bottom:6px"><b style="color:var(--danger)">Apagar PTO y motor</b> antes de cualquier intervención en el conjunto.</li>
+          <li style="margin-bottom:6px"><b style="color:var(--danger)">Calzar el brazo</b> con caballete o tope mecánico cuando esté elevado — los cilindros pueden ceder si hay fuga interna.</li>
+          <li style="margin-bottom:6px"><b style="color:var(--warn)">EPP obligatorio:</b> guantes cuero/anticorte, lentes, mascarilla (polvo), calzado y casco.</li>
+          <li style="margin-bottom:6px"><b style="color:var(--warn)">Residuos PVSA:</b> en faena pueden contener azufre, concentrados o material abrasivo. Limpiar con agua antes de tocar.</li>
+          <li><b style="color:var(--info)">Reportar:</b> ruidos anormales del motor orbital, vibración excesiva o respuesta lenta del brazo.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DIAGRAMA ============ -->
+  <section class="tab-content" data-tab="diagrama">
+    <div class="stage-wrap">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="stage-bar">
+        <span class="live">VISTA FRONTAL · ENTRE EJES</span>
+        <div class="zoom-ctrl">
+          <button id="zoom-out" title="Alejar">−</button>
+          <button id="zoom-reset" title="Reset">⊙</button>
+          <button id="zoom-in" title="Acercar">+</button>
+        </div>
+      </div>
+      <div class="stage" id="stageScroll">
+        <svg viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" id="diagram" class="diagram">
+          <defs>
+            <pattern id="ground" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="8" stroke="#2a3441" stroke-width="1"/>
+            </pattern>
+            <linearGradient id="chassisGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3a4654"/>
+              <stop offset="100%" stop-color="#1e2731"/>
+            </linearGradient>
+            <linearGradient id="brushGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#5a6370"/>
+              <stop offset="100%" stop-color="#3a4250"/>
+            </linearGradient>
+            <radialGradient id="diskGrad" cx="0.5" cy="0.5" r="0.5">
+              <stop offset="0%" stop-color="#9aa0a8"/>
+              <stop offset="70%" stop-color="#6a7078"/>
+              <stop offset="100%" stop-color="#4a5058"/>
+            </radialGradient>
+            <radialGradient id="residueGrad" cx="0.5" cy="0.5" r="0.5">
+              <stop offset="0%" stop-color="#ffd966"/>
+              <stop offset="100%" stop-color="#c9a02e"/>
+            </radialGradient>
+          </defs>
+
+          <!-- background sky/dirt -->
+          <rect x="0" y="0" width="900" height="450" fill="#0d1218"/>
+          <rect x="0" y="450" width="900" height="150" fill="url(#ground)" opacity=".3"/>
+          <line x1="0" y1="450" x2="900" y2="450" stroke="#3a4654" stroke-width="1"/>
+
+          <!-- red top panel (tolva edge) -->
+          <rect x="180" y="20" width="540" height="40" fill="#c43a2a"/>
+          <rect x="180" y="20" width="540" height="6" fill="#ff5a45" opacity=".6"/>
+
+          <!-- safety stickers -->
+          <g transform="translate(195,30)">
+            <rect width="22" height="22" fill="#ffb84d"/>
+            <text x="11" y="16" font-family="Arial" font-size="14" fill="#000" text-anchor="middle" font-weight="bold">!</text>
+          </g>
+          <g transform="translate(220,30)">
+            <rect width="22" height="22" fill="#ffb84d"/>
+            <text x="11" y="16" font-family="Arial" font-size="11" fill="#000" text-anchor="middle">⚠</text>
+          </g>
+          <g transform="translate(245,30)">
+            <rect width="22" height="22" fill="#ffb84d"/>
+            <text x="11" y="16" font-family="Arial" font-size="11" fill="#000" text-anchor="middle">⚠</text>
+          </g>
+
+          <!-- main chassis body (black bumper area) -->
+          <rect x="180" y="60" width="540" height="140" fill="#1a1f26" stroke="#3a4654"/>
+
+          <!-- wiring harness cluster -->
+          <g opacity=".85">
+            <path d="M 250 70 Q 280 100 320 140 Q 350 180 380 220" stroke="#5ab9ff" stroke-width="3" fill="none"/>
+            <path d="M 270 70 Q 300 110 330 150 Q 360 190 390 230" stroke="#5ab9ff" stroke-width="3" fill="none"/>
+            <path d="M 290 70 Q 320 110 350 160 Q 380 200 410 240" stroke="#e8e0a0" stroke-width="2.5" fill="none"/>
+            <path d="M 310 70 Q 340 115 370 165 Q 400 205 430 245" stroke="#e8e0a0" stroke-width="2.5" fill="none"/>
+            <path d="M 330 70 Q 360 120 390 170 Q 420 215 450 255" stroke="#c43a2a" stroke-width="2" fill="none"/>
+            <path d="M 350 70 Q 380 125 410 175 Q 440 220 470 260" stroke="#1a1f26" stroke-width="2.5" fill="none"/>
+          </g>
+
+          <!-- left exhaust/intake tube (corrugated) -->
+          <g>
+            <ellipse cx="120" cy="100" rx="50" ry="20" fill="#3a4250"/>
+            <path d="M 70 100 Q 60 200 80 300 Q 90 380 100 450" stroke="#3a4250" stroke-width="60" fill="none" stroke-linecap="round"/>
+            <!-- corrugation rings -->
+            <g stroke="#1a1f26" stroke-width="1.5" fill="none">
+              <ellipse cx="73" cy="140" rx="32" ry="6"/>
+              <ellipse cx="73" cy="170" rx="32" ry="6"/>
+              <ellipse cx="76" cy="200" rx="32" ry="6"/>
+              <ellipse cx="78" cy="230" rx="32" ry="6"/>
+              <ellipse cx="80" cy="260" rx="32" ry="6"/>
+              <ellipse cx="82" cy="290" rx="32" ry="6"/>
+              <ellipse cx="84" cy="320" rx="32" ry="6"/>
+              <ellipse cx="86" cy="350" rx="32" ry="6"/>
+              <ellipse cx="88" cy="380" rx="32" ry="6"/>
+              <ellipse cx="90" cy="410" rx="32" ry="6"/>
+              <ellipse cx="92" cy="440" rx="32" ry="6"/>
+            </g>
+          </g>
+
+          <!-- intake mouth (boca aspiración) lower left -->
+          <g>
+            <path d="M 60 460 L 200 460 L 215 510 L 75 510 Z" fill="#2a3441" stroke="#3a4654" stroke-width="1.5"/>
+            <ellipse cx="150" cy="510" rx="70" ry="8" fill="#1a1f26"/>
+            <!-- guide wheel -->
+            <circle cx="220" cy="500" r="14" fill="#3a4250" stroke="#1a1f26" stroke-width="1.5"/>
+            <circle cx="220" cy="500" r="6" fill="#1a1f26"/>
+          </g>
+
+          <!-- BRUSH ASSEMBLY (center) -->
+          <g>
+            <!-- arm structure horizontal -->
+            <rect x="370" y="340" width="220" height="22" fill="url(#brushGrad)" stroke="#1a1f26"/>
+            <rect x="370" y="340" width="220" height="4" fill="#6a7078"/>
+            <!-- pivots -->
+            <circle cx="385" cy="351" r="6" fill="#9aa0a8" stroke="#1a1f26"/>
+            <circle cx="575" cy="351" r="6" fill="#9aa0a8" stroke="#1a1f26"/>
+
+            <!-- vertical lift cylinder -->
+            <rect x="455" y="220" width="14" height="130" fill="#9aa0a8" stroke="#1a1f26"/>
+            <rect x="453" y="215" width="18" height="10" fill="#6a7078" stroke="#1a1f26"/>
+            <rect x="458" y="350" width="8" height="14" fill="#d4d8de" stroke="#1a1f26"/>
+
+            <!-- extension cylinder horizontal -->
+            <rect x="395" y="295" width="120" height="14" fill="#9aa0a8" stroke="#1a1f26"/>
+            <rect x="390" y="293" width="10" height="18" fill="#6a7078" stroke="#1a1f26"/>
+            <rect x="515" y="298" width="14" height="8" fill="#d4d8de" stroke="#1a1f26"/>
+
+            <!-- torsion spring (top of arm) -->
+            <g transform="translate(525,260)">
+              <path d="M 0 0 Q 5 -5 10 0 Q 15 5 20 0 Q 25 -5 30 0 Q 35 5 40 0" stroke="#9aa0a8" stroke-width="3" fill="none"/>
+              <path d="M 0 5 Q 5 0 10 5 Q 15 10 20 5 Q 25 0 30 5 Q 35 10 40 5" stroke="#9aa0a8" stroke-width="3" fill="none"/>
+              <path d="M 0 10 Q 5 5 10 10 Q 15 15 20 10 Q 25 5 30 10 Q 35 15 40 10" stroke="#9aa0a8" stroke-width="3" fill="none"/>
+              <path d="M 0 15 Q 5 10 10 15 Q 15 20 20 15 Q 25 10 30 15 Q 35 20 40 15" stroke="#9aa0a8" stroke-width="3" fill="none"/>
+              <path d="M 0 20 Q 5 15 10 20 Q 15 25 20 20 Q 25 15 30 20 Q 35 25 40 20" stroke="#9aa0a8" stroke-width="3" fill="none"/>
+            </g>
+
+            <!-- brush disk (the side broom) -->
+            <g transform="translate(440,440)">
+              <!-- bristles -->
+              <g stroke="#5a4a3a" stroke-width="1.5" opacity=".9">
+                <line x1="0" y1="0" x2="-50" y2="80"/>
+                <line x1="0" y1="0" x2="-40" y2="85"/>
+                <line x1="0" y1="0" x2="-30" y2="90"/>
+                <line x1="0" y1="0" x2="-20" y2="92"/>
+                <line x1="0" y1="0" x2="-10" y2="93"/>
+                <line x1="0" y1="0" x2="0" y2="95"/>
+                <line x1="0" y1="0" x2="10" y2="93"/>
+                <line x1="0" y1="0" x2="20" y2="92"/>
+                <line x1="0" y1="0" x2="30" y2="90"/>
+                <line x1="0" y1="0" x2="40" y2="85"/>
+                <line x1="0" y1="0" x2="50" y2="80"/>
+                <line x1="0" y1="0" x2="60" y2="70"/>
+                <line x1="0" y1="0" x2="65" y2="55"/>
+                <line x1="0" y1="0" x2="-60" y2="70"/>
+                <line x1="0" y1="0" x2="-65" y2="55"/>
+                <line x1="0" y1="0" x2="-70" y2="40"/>
+                <line x1="0" y1="0" x2="70" y2="40"/>
+              </g>
+              <!-- disk plate -->
+              <circle r="55" fill="url(#diskGrad)" stroke="#1a1f26" stroke-width="1.5"/>
+              <!-- residue (yellow) -->
+              <ellipse cx="-8" cy="-5" rx="32" ry="22" fill="url(#residueGrad)" opacity=".85"/>
+              <!-- orbital motor center -->
+              <circle r="18" fill="#3a4250" stroke="#1a1f26" stroke-width="1.5"/>
+              <circle r="10" fill="#2a3441"/>
+              <rect x="-3" y="-3" width="6" height="6" fill="#1a1f26"/>
+            </g>
+          </g>
+
+          <!-- water lines (white) -->
+          <path d="M 380 200 Q 420 280 460 360 Q 480 400 470 440" stroke="#e8eef5" stroke-width="2" fill="none" opacity=".85"/>
+          <path d="M 400 200 Q 440 280 480 360 Q 500 400 490 440" stroke="#e8eef5" stroke-width="2" fill="none" opacity=".85"/>
+
+          <!-- blue air lines -->
+          <path d="M 340 220 Q 380 290 420 360" stroke="#5ab9ff" stroke-width="2.5" fill="none"/>
+
+          <!-- hydraulic lines (dark) to orbital motor -->
+          <path d="M 460 360 Q 450 400 445 432" stroke="#1a1f26" stroke-width="4" fill="none"/>
+          <path d="M 475 360 Q 465 400 458 432" stroke="#1a1f26" stroke-width="4" fill="none"/>
+
+          <!-- red rubber flap -->
+          <path d="M 580 380 L 620 380 L 625 470 L 615 480 L 590 480 L 585 470 Z" fill="#a82a1a" stroke="#1a1f26" stroke-width="1"/>
+
+          <!-- right side: muffler/silenciador MB -->
+          <g>
+            <rect x="750" y="280" width="120" height="170" fill="#9aa0a8" stroke="#3a4250" stroke-width="1.5" rx="6"/>
+            <!-- perforation pattern -->
+            <g fill="#3a4250">
+              <circle cx="770" cy="305" r="2"/><circle cx="785" cy="305" r="2"/><circle cx="800" cy="305" r="2"/><circle cx="815" cy="305" r="2"/><circle cx="830" cy="305" r="2"/><circle cx="845" cy="305" r="2"/>
+              <circle cx="770" cy="325" r="2"/><circle cx="785" cy="325" r="2"/><circle cx="800" cy="325" r="2"/><circle cx="815" cy="325" r="2"/><circle cx="830" cy="325" r="2"/><circle cx="845" cy="325" r="2"/>
+              <circle cx="770" cy="345" r="2"/><circle cx="785" cy="345" r="2"/><circle cx="800" cy="345" r="2"/><circle cx="815" cy="345" r="2"/><circle cx="830" cy="345" r="2"/><circle cx="845" cy="345" r="2"/>
+              <circle cx="770" cy="365" r="2"/><circle cx="785" cy="365" r="2"/><circle cx="800" cy="365" r="2"/><circle cx="815" cy="365" r="2"/><circle cx="830" cy="365" r="2"/><circle cx="845" cy="365" r="2"/>
+              <circle cx="770" cy="385" r="2"/><circle cx="785" cy="385" r="2"/><circle cx="800" cy="385" r="2"/><circle cx="815" cy="385" r="2"/><circle cx="830" cy="385" r="2"/><circle cx="845" cy="385" r="2"/>
+            </g>
+            <!-- MB logo -->
+            <g transform="translate(810,415)">
+              <circle r="18" fill="none" stroke="#3a4250" stroke-width="1.5"/>
+              <line x1="0" y1="-18" x2="0" y2="18" stroke="#3a4250" stroke-width="1.5"/>
+              <line x1="-15.6" y1="9" x2="15.6" y2="-9" stroke="#3a4250" stroke-width="1.5"/>
+              <line x1="-15.6" y1="-9" x2="15.6" y2="9" stroke="#3a4250" stroke-width="1.5"/>
+            </g>
+          </g>
+
+          <!-- yellow sensor circle -->
+          <circle cx="260" cy="120" r="14" fill="#d9b54a" stroke="#1a1f26" stroke-width="1.5"/>
+          <circle cx="260" cy="120" r="6" fill="#2a3441"/>
+
+          <!-- HOTSPOTS -->
+          <g id="hotspots"></g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel" style="margin-bottom:0">
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <span class="corner bl"></span><span class="corner br"></span>
+        <div class="panel-h"><span>COMPONENTES</span><b id="comp-count">11 PUNTOS</b></div>
+        <div id="items"></div>
+      </div>
+
+      <div class="detail" id="detail">
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <span class="corner bl"></span><span class="corner br"></span>
+        <div class="detail-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>
+          </svg>
+          <div>Toca un número en el diagrama o un componente del listado para ver su ficha técnica.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CHECKLIST ============ -->
+  <section class="tab-content" data-tab="checklist">
+    <header class="intro">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <h1 style="font-size:28px">INSPECCIÓN <span class="sub">/ CHECKLIST</span></h1>
+      <p class="lead">Lista de verificación del conjunto de barrido lateral. Los cambios se guardan automáticamente.</p>
+
+      <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+      <div class="progress-meta">
+        <span>PROGRESO</span>
+        <span><b id="progCount">0</b> / <span id="progTotal">11</span> · <span id="progPct">0%</span></span>
+      </div>
+
+      <div class="check-actions">
+        <button class="btn primary" id="btn-export">📋 Exportar reporte</button>
+        <button class="btn ghost" id="btn-reset">↻ Limpiar todo</button>
+      </div>
+    </header>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>DATOS DE LA INSPECCIÓN</span><b>OBLIGATORIO</b></div>
+      <div style="padding:14px 16px">
+        <div class="form-grid">
+          <div>
+            <label>Patente</label>
+            <select id="f-patente">
+              <option value="">— Seleccionar —</option>
+              <option value="SR·XF·37">SR·XF·37</option>
+              <option value="RR·KH·97">RR·KH·97</option>
+            </select>
+          </div>
+          <div>
+            <label>Fecha</label>
+            <input type="date" id="f-fecha"/>
+          </div>
+          <div>
+            <label>Operador / Mecánico</label>
+            <input type="text" id="f-operador" placeholder="Nombre completo"/>
+          </div>
+          <div>
+            <label>Horómetro (h)</label>
+            <input type="number" id="f-horometro" placeholder="0000"/>
+          </div>
+          <div>
+            <label>Largo cerda actual (mm)</label>
+            <input type="number" id="f-cerda" placeholder="000"/>
+          </div>
+          <div>
+            <label>Lado inspeccionado</label>
+            <select id="f-lado">
+              <option value="">— Seleccionar —</option>
+              <option value="DER">Derecho</option>
+              <option value="IZQ">Izquierdo</option>
+              <option value="AMB">Ambos</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid full">
+          <div>
+            <label>Observaciones generales</label>
+            <textarea id="f-obs" placeholder="Anomalías, ruidos del motor orbital, desgaste irregular, vibración..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>VERIFICACIONES POR COMPONENTE</span><b>MARCAR AL COMPLETAR</b></div>
+      <div id="check-items"></div>
+    </div>
+  </section>
+
+  <!-- ============ REPUESTOS ============ -->
+  <section class="tab-content" data-tab="repuestos">
+    <header class="intro">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <h1 style="font-size:28px">CATÁLOGO <span class="sub">/ REPUESTOS</span></h1>
+      <p class="lead">Repuestos del conjunto de barrido lateral. Stock referencial bodega DAIG · Puchuncaví.</p>
+    </header>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>CEPILLO Y MOTOR</span><b>CONSUMO ALTO</b></div>
+      <div style="padding:10px 12px" id="parts-cep"></div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>HIDRÁULICA</span><b>BUCHER / HYDRAFORCE</b></div>
+      <div style="padding:10px 12px" id="parts-hyd"></div>
+    </div>
+
+    <div class="panel">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="panel-h"><span>RIEGO Y ASPIRACIÓN</span><b>SISTEMA AGUA / AIRE</b></div>
+      <div style="padding:10px 12px" id="parts-agua"></div>
+    </div>
+
+    <div class="panel" style="background:rgba(255,184,77,.05);border-color:var(--accent)">
+      <div class="panel-h" style="color:var(--accent)"><span>⚠ NOTA</span><b>PROCEDIMIENTO</b></div>
+      <div style="padding:14px 16px;font-size:13px;line-height:1.55">
+        El kit de cerdas se reemplaza completo (no parcial) cuando alcanza largo mínimo de 120 mm. Solicitudes de repuesto vía supervisor con número de OT. Contacto compras: <b style="color:var(--ink)">daniel.mena@serviciosdaig.com</b>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>DAIG SpA · <b>RUT 77.702.886-3</b> · Puchuncaví</span>
+    <span>USO INTERNO · DOC-TEC v1.1</span>
+  </footer>
+</div>
+
+<div class="toast" id="toast">Guardado</div>
+
+<script>
+const DATA = {
+  1: {
+    tag:"BRUSH",
+    title:"Disco y cerdas del cepillo",
+    sub:"Side broom · Ø 650-750 mm · mixta",
+    func:"Disco rotativo con cerdas mixtas (acero + polipropileno) que barre el material desde la cuneta hacia la boca de aspiración. El acero rompe la suciedad compactada y el PPL recoge el polvo fino.",
+    inspect:[
+      "Medir largo de cerda — cambiar kit completo si < 120 mm.",
+      "Verificar uniformidad del desgaste (desgaste irregular = problema de altura).",
+      "Limpiar residuo acumulado en el disco con presión de agua.",
+      "Inspeccionar fijación de cerdas al disco — pernos M8."
+    ],
+    diag:[
+      ["Cerdas muy cortas","Desgaste normal por horas de operación","A","Cambio completo de kit de cerdas"],
+      ["Desgaste irregular","Brazo descalibrado / presión excesiva","M","Ajustar altura y precarga del muelle"],
+      ["Residuo amarillo trabado","Material PVSA endurecido (azufre/concentrado)","B","Limpieza con agua caliente + cepillado"],
+      ["Cerdas sueltas","Pernos del disco flojos","M","Reapretar pernos · si rosca dañada, reemplazar"]
+    ],
+    specs:[["Ø DISCO","650 – 750 mm"],["Nº CERDAS","32 mechones"],["MATERIAL","Acero + PPL"],["LARGO NUEVO","300 mm"]]
+  },
+  2: {
+    tag:"MOTOR",
+    title:"Motor hidráulico orbital",
+    sub:"WHITE Drive 200 · P/N 110-9356",
+    func:"Motor hidráulico tipo orbital (geroler) marca WHITE Drive modelo Drive 200, P/N 110-9356. Ubicado en el centro del disco del cepillo, convierte la presión hidráulica en rotación a velocidad regulable. Es el componente más solicitado y crítico del conjunto. Fijado a la brida mediante 8 pernos hexagonales.",
+    inspect:[
+      "Verificar ausencia de fugas por sellos del eje (mancha de aceite en disco).",
+      "Escuchar ruidos anormales (cavitación = aire en el sistema).",
+      "Medir presión de trabajo (manómetro): 160–180 bar nominal.",
+      "Revisar par de apriete de los 8 pernos del motor a la brida.",
+      "Conservar limpia y legible la etiqueta de identificación (P/N + serie)."
+    ],
+    diag:[
+      ["Motor no gira","Cartridge de la válvula no abre","A","Verificar bobina solenoide DOC-0042"],
+      ["Gira lento","Caudal insuficiente / motor desgastado","M","Medir caudal · si caudal OK, reemplazar motor"],
+      ["Fuga por sellos del eje","Retenes del eje vencidos","A","Kit de sellos · si carcasa rayada, reemplazar"],
+      ["Ruido cavitación","Aire en circuito / aceite bajo","A","Purgar circuito · rellenar estanque"],
+      ["Pernos flojos","Vibración prolongada / falta torque","M","Reapretar a 75 Nm con Loctite 243"]
+    ],
+    specs:[["MARCA","WHITE Drive"],["MODELO","Drive 200"],["P/N OEM","110-9356"],["SERIE","W2172234A2"],["TIPO","Geroler orbital"],["DESPLAZ.","≈ 200 cm³/rev"],["P. TRAB.","160 – 180 bar"],["RPM","80 – 140"]]
+  },
+  3: {
+    tag:"ARM",
+    title:"Brazo articulado",
+    sub:"Estructura de acero · pivotes engrasables",
+    func:"Brazo principal que soporta el cepillo y permite su despliegue lateral, retracción y oscilación vertical. Cuenta con múltiples puntos de pivote engrasables.",
+    inspect:[
+      "Engrase semanal de todos los pivotes con grasa litio EP2.",
+      "Verificar holguras en bujes (mover el brazo a mano con motor apagado).",
+      "Inspeccionar soldaduras y ausencia de fisuras.",
+      "Pintura y protección anticorrosiva."
+    ],
+    diag:[
+      ["Holgura excesiva","Buje pivote desgastado","M","Reemplazar buje · medir eje"],
+      ["Brazo trabado","Falta engrase / suciedad en pivote","B","Engrasar · si persiste, desarmar y limpiar"],
+      ["Fisura en soldadura","Fatiga / golpe estructural","A","Detener uso · evaluación con soldador certificado"],
+      ["Pintura desprendida","Abrasión ambiental","B","Lijar · imprimar · pintar"]
+    ],
+    specs:[["MATERIAL","Acero S355"],["PIVOTES","6 puntos"],["GRASA","Litio EP2"],["FREC. ENGRASE","Semanal"]]
+  },
+  4: {
+    tag:"CIL-EXT",
+    title:"Cilindro de extensión",
+    sub:"Doble efecto · despliegue lateral",
+    func:"Cilindro hidráulico horizontal que despliega el brazo del cepillo hacia el lado del vehículo en posición de trabajo, y lo retrae bajo el chasis en reposo.",
+    inspect:[
+      "Inspección visual del vástago (sin rayas/picado).",
+      "Verificar ausencia de fugas en sellos.",
+      "Funcionamiento suave en ambos sentidos.",
+      "Limpieza del vástago — la suciedad PVSA daña los sellos."
+    ],
+    diag:[
+      ["No extiende","Fuga interna / falla bobina","A","Test de presión · reemplazar sellos o cilindro"],
+      ["Movimiento brusco","Aire en circuito / válvula sucia","M","Purgar · limpiar válvula"],
+      ["Fuga externa","Sello del vástago vencido","M","Kit de sellos · cuidar el cromado del vástago"],
+      ["Vástago picado","Falta de limpieza / corrosión","A","Reemplazar cilindro completo"]
+    ],
+    specs:[["TIPO","Doble efecto"],["Ø PISTÓN","40 mm"],["CARRERA","≈ 350 mm"],["P. MÁX","180 bar"]]
+  },
+  5: {
+    tag:"CIL-LIFT",
+    title:"Cilindro de elevación",
+    sub:"Sube/baja el conjunto cepillo",
+    func:"Cilindro vertical que eleva el conjunto del cepillo a la posición de transporte y lo desciende a la posición de trabajo. Trabaja en conjunto con el muelle de torsión.",
+    inspect:[
+      "Verificar mantenimiento de altura sin descenso por fuga interna.",
+      "Inspección de fugas externas.",
+      "Apoyar con caballete antes de intervenir.",
+      "Cromado del vástago sin daños."
+    ],
+    diag:[
+      ["Brazo cae solo","Fuga interna del pistón","A","Reemplazar sellos · revisar válvula de retención"],
+      ["Sube lento","Caudal bajo / fuga interna","M","Medir caudal y presión"],
+      ["No baja completo","Tope mecánico / aire","M","Verificar tope · purgar"],
+      ["Goteo en base","Sello inferior vencido","M","Kit de sellos"]
+    ],
+    specs:[["TIPO","Doble efecto"],["Ø PISTÓN","32 mm"],["CARRERA","≈ 200 mm"],["P. MÁX","180 bar"]]
+  },
+  6: {
+    tag:"SPRING",
+    title:"Muelle de torsión",
+    sub:"Compensación presión de contacto",
+    func:"Resorte helicoidal que compensa el peso del conjunto del cepillo y regula la presión de contacto contra el suelo. Evita desgaste prematuro de cerdas y daño al pavimento.",
+    inspect:[
+      "Inspección visual de fisuras o deformación.",
+      "Verificar tensión/precarga según manual Bucher.",
+      "Engrasar superficie con grasa para evitar corrosión.",
+      "Fijación de los puntos de anclaje."
+    ],
+    diag:[
+      ["Cepillo presiona demasiado","Muelle desgastado / precarga baja","M","Ajustar precarga · si persiste, reemplazar"],
+      ["Cepillo no toca el piso","Precarga excesiva","B","Ajustar precarga al valor nominal"],
+      ["Resorte fisurado","Fatiga del material","A","Reemplazar inmediatamente"],
+      ["Corrosión visible","Ambiente salino PVSA","B","Limpiar + aplicar grasa protectora"]
+    ],
+    specs:[["TIPO","Helicoidal compresión"],["MATERIAL","Acero SAE 9254"],["PRECARGA","Según manual"],["TRATAMIENTO","Zincado"]]
+  },
+  7: {
+    tag:"WATER",
+    title:"Líneas y boquillas de riego",
+    sub:"Supresión de polvo · obligatorio PVSA",
+    func:"Sistema de aspersión de agua con boquillas integradas al brazo del cepillo. Suprime el polvo levantado durante el barrido, requisito ambiental obligatorio en planta PVSA.",
+    inspect:[
+      "Desarmar y limpiar boquillas con aguja — sedimento de Ventanas las obstruye.",
+      "Verificar caudal: ≈ 2 L/min nominal.",
+      "Revisar mangueras blancas (PA) sin cortes ni dobleces.",
+      "Test funcional antes de cada faena."
+    ],
+    diag:[
+      ["Sin agua","Boquilla obstruida / línea cortada","A","Limpiar boquilla · revisar bomba y línea"],
+      ["Caudal débil","Filtro de agua sucio","M","Limpiar filtro · revisar bomba"],
+      ["Goteo en racor","Push-in suelto","B","Reapretar · si persiste, cambiar racor"],
+      ["Fuga en manguera","Roce con elemento metálico","M","Cambiar tramo · fijar con bridas"]
+    ],
+    specs:[["FLUIDO","Agua industrial"],["P. TRAB.","2 – 4 bar"],["CAUDAL","≈ 2 L/min"],["BOQUILLAS","2 ud. plásticas"]]
+  },
+  8: {
+    tag:"INTAKE",
+    title:"Boca de aspiración",
+    sub:"Conducto principal hacia tolva",
+    func:"Boca metálica con labios de goma que aspira el material barrido. La manguera corrugada flexible la conecta con la turbina y tolva del implemento. Es el punto de captura del residuo.",
+    inspect:[
+      "Verificar altura de la boca respecto al suelo (5–15 mm).",
+      "Estado de los labios de goma (sello).",
+      "Revisar manguera corrugada — sin cortes ni colapsos.",
+      "Limpieza interior — atascos por residuo grande."
+    ],
+    diag:[
+      ["Mala aspiración","Manguera obstruida / corrugada colapsada","A","Limpieza interior · revisar turbina"],
+      ["Labios de goma rotos","Desgaste / impacto con objeto","M","Reemplazar labios · revisar altura"],
+      ["Manguera con cortes","Roce con suelo / objeto cortante","A","Reemplazar tramo · proteger"],
+      ["Atasco frecuente","Material muy grande / faldón mal puesto","M","Revisar faldones · ajustar altura"]
+    ],
+    specs:[["Ø MANGUERA","200 mm"],["MATERIAL","Caucho corrugado"],["P. SUCC.","-0.3 bar"],["LARGO","≈ 1.8 m"]]
+  },
+  9: {
+    tag:"WHEEL",
+    title:"Rueda guía de la boca",
+    sub:"Mantiene altura constante",
+    func:"Pequeña rueda metálica con rodamiento que rueda sobre el pavimento y mantiene la boca de aspiración a la altura correcta. Compensa irregularidades del suelo.",
+    inspect:[
+      "Verificar giro libre del rodamiento.",
+      "Engrasar rodamiento (grasera lateral).",
+      "Estado de la banda de rodadura (no plana por arrastre).",
+      "Fijación del eje sin holguras."
+    ],
+    diag:[
+      ["Rueda no gira","Rodamiento agarrotado","M","Reemplazar rodamiento · limpiar eje"],
+      ["Rueda con plano","Arrastre con rueda bloqueada","M","Cambiar rueda · revisar rodamiento"],
+      ["Holgura en el eje","Buje desgastado","B","Reemplazar buje"],
+      ["Chirrido constante","Falta engrase","B","Engrasar con grasera lateral"]
+    ],
+    specs:[["Ø RUEDA","≈ 150 mm"],["MATERIAL","Acero macizo"],["RODAMIENTO","6204-2RS"],["FREC. ENGRASE","Mensual"]]
+  },
+  10: {
+    tag:"FLAP",
+    title:"Faldón de goma",
+    sub:"Aleta canalizadora roja",
+    func:"Aleta flexible de goma roja que canaliza el material barrido hacia la boca de aspiración y evita que escape lateralmente. Crítica para la eficiencia del barrido.",
+    inspect:[
+      "Verificar fijación al brazo (pernos M6).",
+      "Estado del borde inferior (sin cortes mayores).",
+      "Altura correcta respecto al suelo.",
+      "Reemplazar si pérdida > 50% del largo original."
+    ],
+    diag:[
+      ["Faldón doblado","Impacto con objeto / desgaste","B","Enderezar o reemplazar"],
+      ["Goma rota","Fatiga / corte por objeto","M","Reemplazar faldón"],
+      ["Material escapa por el lado","Faldón corto / mal posicionado","M","Ajustar altura · reemplazar si corto"],
+      ["Pernos sueltos","Vibración","B","Reapretar · usar Loctite 243"]
+    ],
+    specs:[["MATERIAL","Goma SBR"],["ESPESOR","8 mm"],["DUREZA","65 Shore A"],["FIJACIÓN","Pernos M6"]]
+  },
+  11: {
+    tag:"WIRING",
+    title:"Mazo eléctrico/neumático",
+    sub:"Sensores · bobinas · aire de control",
+    func:"Conjunto de cables y mangueras que conectan los sensores de posición, las electroválvulas y las líneas neumáticas de control del conjunto de barrido con el sistema central del implemento.",
+    inspect:[
+      "Verificar todas las bridas de fijación.",
+      "Ausencia de roce con elementos móviles.",
+      "Estado de los conectores (sin verdín ni humedad).",
+      "Continuidad eléctrica de cada conductor (multímetro)."
+    ],
+    diag:[
+      ["Falla intermitente","Conector con humedad","M","Limpiar contactos · resellar con vaselina dieléctrica"],
+      ["Cable cortado","Roce con elemento móvil","A","Reparar/reemplazar tramo · agregar protección"],
+      ["Manguera de aire suelta","Racor push-in dañado","M","Reemplazar racor"],
+      ["Sensor amarillo no responde","Cable cortado / sensor dañado","M","Test del sensor · reemplazar si necesario"]
+    ],
+    specs:[["TENSIÓN","24 VDC"],["NORMA","DIN 72551"],["CONECTORES","Deutsch DT"],["P. AIRE","8 – 10 bar"]]
+  }
+};
+
+const PARTS = {
+  cep:[
+    ["BU-BR-750","Kit cerdas completo Ø750 mm mixta","s-ok","2 kits"],
+    ["BU-BR-DISK","Disco metálico soporte de cerdas","s-low","1 ud."],
+    ["WD-110-9356","Motor WHITE Drive 200 P/N 110-9356","s-no","0 ud."],
+    ["WD-SEAL-200","Kit sellos motor WHITE Drive 200","s-low","1 kit"],
+    ["TORN-M10-35","Perno M10×35 10.9 motor a brida (set 8)","s-ok","3 sets"]
+  ],
+  hyd:[
+    ["BU-CIL-EXT","Cilindro extensión brazo (350 mm carrera)","s-low","1 ud."],
+    ["BU-CIL-LIFT","Cilindro elevación cepillo (200 mm)","s-low","1 ud."],
+    ["KIT-CIL-40","Kit sellos cilindro Ø40 mm","s-ok","3 kits"],
+    ["KIT-CIL-32","Kit sellos cilindro Ø32 mm","s-ok","2 kits"],
+    ["HF-2SC-K240","Manguera Hansa-Flex K2-40SC 2SC WP330 (m)","s-ok","15 m"],
+    ["RAC-JIC-08","Racor JIC-08 hidráulico","s-ok","10 ud."]
+  ],
+  agua:[
+    ["BOQ-FAN","Boquilla abanico riego (1.5 mm)","s-ok","8 ud."],
+    ["MANG-PA8","Manguera PA8 transparente agua (m)","s-ok","20 m"],
+    ["FILTRO-AG","Filtro agua 80 mesh","s-low","2 ud."],
+    ["FLAP-ROJO","Faldón goma roja completo","s-ok","4 ud."],
+    ["MANG-CORR","Manguera corrugada Ø200 mm (m)","s-no","0 m"],
+    ["LABIO-BOCA","Labio de goma boca aspiración","s-low","2 ud."],
+    ["ROD-6204","Rodamiento 6204-2RS rueda guía","s-ok","6 ud."]
+  ]
+};
+
+const STORAGE_KEY = 'daig-mnt-0043';
+let state = { checks:{}, form:{} };
+
+async function loadState(){
+  try{
+    const r = await window.storage.get(STORAGE_KEY);
+    if(r && r.value) state = JSON.parse(r.value);
+  }catch(e){}
+}
+async function saveState(){
+  try{ await window.storage.set(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+const itemsEl = document.getElementById('items');
+const detailEl = document.getElementById('detail');
+const ORDER = [1,2,3,4,5,6,7,8,9,10,11];
+
+function renderItems(){
+  itemsEl.innerHTML = '';
+  ORDER.forEach(id=>{
+    const d = DATA[id];
+    const el = document.createElement('div');
+    el.className = 'item' + (state.checks[id]?' checked':'');
+    el.dataset.id = id;
+    el.innerHTML = `
+      <div class="num">${String(id).padStart(2,'0')}</div>
+      <div class="it-body">
+        <div class="it-title">${d.title} <span class="chk-mark">✓</span></div>
+        <div class="it-sub">${d.sub}</div>
+      </div>
+      <div class="it-arrow">›</div>`;
+    el.addEventListener('click',()=>select(id));
+    itemsEl.appendChild(el);
+  });
+}
+
+function select(id){
+  document.querySelectorAll('.item').forEach(el=>{
+    el.classList.toggle('active', el.dataset.id==String(id));
+  });
+  document.querySelectorAll('.hot-group').forEach(g=>{
+    g.querySelector('.hot-circle').classList.toggle('active', g.dataset.id==String(id));
+  });
+  renderDetail(id);
+}
+
+function renderDetail(id){
+  const d = DATA[id];
+  const isChecked = !!state.checks[id];
+  detailEl.innerHTML = `
+    <span class="corner tl"></span><span class="corner tr"></span>
+    <span class="corner bl"></span><span class="corner br"></span>
+    <div class="d-head">
+      <span class="d-tag">PUNTO ${String(id).padStart(2,'0')} · ${d.tag}</span>
+      <button class="d-check-btn ${isChecked?'checked':''}" id="detail-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          ${isChecked?'<path d="M5 12l5 5L20 7"/>':'<rect x="4" y="4" width="16" height="16" rx="1"/>'}
+        </svg>
+        ${isChecked?'VERIFICADO':'MARCAR'}
+      </button>
+    </div>
+    <div class="d-title">${d.title}</div>
+    <div class="d-sub">${d.sub}</div>
+
+    <div class="d-section">
+      <h4>Función</h4>
+      <p>${d.func}</p>
+    </div>
+
+    <div class="d-section">
+      <h4>Inspección / Mantención</h4>
+      <ul>${d.inspect.map(x=>`<li>${x}</li>`).join('')}</ul>
+    </div>
+
+    <div class="d-section">
+      <h4>Diagnóstico de fallas</h4>
+      <table class="diag-table">
+        <thead><tr><th>Síntoma</th><th>Causa probable</th><th>Sev.</th><th>Acción</th></tr></thead>
+        <tbody>
+          ${d.diag.map(([s,c,sev,a])=>`
+            <tr>
+              <td><b>${s}</b></td>
+              <td>${c}</td>
+              <td><span class="sev ${sev}">${sev}</span></td>
+              <td>${a}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="d-section">
+      <h4>Especificación técnica</h4>
+      <div class="specs">
+        ${d.specs.map(([k,v])=>`<div><div class="k">${k}</div><div class="v">${v}</div></div>`).join('')}
+      </div>
+    </div>
+  `;
+  document.getElementById('detail-check').addEventListener('click',()=>toggleCheck(id));
+}
+
+const hotspotsCfg = [
+  {id:1, lead:[440,440,580,540], cx:600, cy:550, r:18},
+  {id:2, lead:[440,440,310,520], cx:290, cy:530, r:18},
+  {id:3, lead:[480,351,720,310], cx:740, cy:300, r:18},
+  {id:4, lead:[455,302,365,260], cx:345, cy:250, r:18},
+  {id:5, lead:[462,280,365,180], cx:345, cy:170, r:18},
+  {id:6, lead:[545,275,680,200], cx:700, cy:190, r:18},
+  {id:7, lead:[400,200,520,140], cx:540, cy:130, r:18},
+  {id:8, lead:[150,480,30,530], cx:25, cy:545, r:16},
+  {id:9, lead:[220,500,80,440], cx:60, cy:430, r:16},
+  {id:10, lead:[605,430,725,475], cx:745, cy:480, r:16},
+  {id:11, lead:[310,140,180,80], cx:160, cy:70, r:16}
+];
+
+function renderHotspots(){
+  const g = document.getElementById('hotspots');
+  g.innerHTML = '';
+  hotspotsCfg.forEach(h=>{
+    const checked = state.checks[h.id];
+    const group = document.createElementNS('http://www.w3.org/2000/svg','g');
+    group.setAttribute('class','hot-group');
+    group.dataset.id = h.id;
+    group.style.cursor = 'pointer';
+    group.innerHTML = `
+      <line class="lead-line ${checked?'checked':''}" x1="${h.lead[0]}" y1="${h.lead[1]}" x2="${h.lead[2]}" y2="${h.lead[3]}"/>
+      <circle class="hot-circle ${checked?'checked':''}" cx="${h.cx}" cy="${h.cy}" r="${h.r}"/>
+      <text class="hot-num" x="${h.cx}" y="${h.cy}" style="${checked?'fill:#fff':''}">${h.id}</text>
+    `;
+    group.addEventListener('click',()=>select(h.id));
+    g.appendChild(group);
+  });
+}
+
+function renderChecklist(){
+  const el = document.getElementById('check-items');
+  el.innerHTML = '';
+  ORDER.forEach(id=>{
+    const d = DATA[id];
+    const checked = !!state.checks[id];
+    const row = document.createElement('div');
+    row.className = 'item' + (checked?' checked':'');
+    row.dataset.id = id;
+    row.style.cursor = 'pointer';
+    row.innerHTML = `
+      <div class="num">${String(id).padStart(2,'0')}</div>
+      <div class="it-body">
+        <div class="it-title">${d.title} <span class="chk-mark">✓</span></div>
+        <div class="it-sub" style="margin-bottom:6px">${d.sub}</div>
+        <div style="font-size:12px;color:var(--ink-dim);line-height:1.5">
+          ${d.inspect.map(x=>`• ${x}`).join('<br>')}
+        </div>
+      </div>
+      <div class="d-check-btn ${checked?'checked':''}" style="align-self:center">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px">
+          ${checked?'<path d="M5 12l5 5L20 7"/>':'<rect x="4" y="4" width="16" height="16" rx="1"/>'}
+        </svg>
+        ${checked?'OK':'PEND.'}
+      </div>`;
+    row.addEventListener('click',()=>toggleCheck(id));
+    el.appendChild(row);
+  });
+}
+
+async function toggleCheck(id){
+  state.checks[id] = !state.checks[id];
+  await saveState();
+  renderItems();
+  renderHotspots();
+  renderDetail(id);
+  renderChecklist();
+  updateProgress();
+  showToast(state.checks[id]?'Verificado ✓':'Pendiente');
+}
+
+function updateProgress(){
+  const total = ORDER.length;
+  const done = ORDER.filter(id=>state.checks[id]).length;
+  const pct = Math.round(done/total*100);
+  document.getElementById('progFill').style.width = pct+'%';
+  document.getElementById('progCount').textContent = done;
+  document.getElementById('progTotal').textContent = total;
+  document.getElementById('progPct').textContent = pct+'%';
+  const badge = document.getElementById('badge-check');
+  if(done>0){ badge.classList.add('show'); badge.textContent = done; }
+  else badge.classList.remove('show');
+}
+
+function renderParts(){
+  ['cep','hyd','agua'].forEach(k=>{
+    const el = document.getElementById('parts-'+k);
+    el.innerHTML = PARTS[k].map(([pn,desc,stock,qty])=>{
+      const label = stock==='s-ok'?'EN STOCK':stock==='s-low'?'BAJO':'AGOTADO';
+      return `
+        <div class="parts-row">
+          <div class="pn">${pn}</div>
+          <div class="desc">${desc}</div>
+          <div class="stock ${stock}">${label} · ${qty}</div>
+        </div>`;
+    }).join('');
+  });
+}
+
+function bindForm(){
+  ['f-patente','f-fecha','f-operador','f-horometro','f-cerda','f-lado','f-obs'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(state.form[id]) el.value = state.form[id];
+    el.addEventListener('change',async ()=>{
+      state.form[id] = el.value;
+      await saveState();
+    });
+    el.addEventListener('input',async ()=>{
+      state.form[id] = el.value;
+      await saveState();
+    });
+  });
+}
+
+function exportReport(){
+  const f = state.form;
+  const done = ORDER.filter(id=>state.checks[id]);
+  const pend = ORDER.filter(id=>!state.checks[id]);
+  let txt = `═══════════════════════════════════════\n`;
+  txt += `REPORTE DE INSPECCIÓN · DAIG SpA\n`;
+  txt += `Conjunto Barrido Lateral · CityFant 6000\n`;
+  txt += `═══════════════════════════════════════\n\n`;
+  txt += `Patente:       ${f['f-patente']||'—'}\n`;
+  txt += `Fecha:         ${f['f-fecha']||'—'}\n`;
+  txt += `Operador:      ${f['f-operador']||'—'}\n`;
+  txt += `Horómetro:     ${f['f-horometro']||'—'} h\n`;
+  txt += `Largo cerda:   ${f['f-cerda']||'—'} mm\n`;
+  txt += `Lado:          ${f['f-lado']||'—'}\n\n`;
+  txt += `─── COMPONENTES VERIFICADOS (${done.length}/${ORDER.length}) ───\n`;
+  done.forEach(id=>{ txt += `  ✓ [${String(id).padStart(2,'0')}] ${DATA[id].title}\n`; });
+  if(pend.length){
+    txt += `\n─── PENDIENTES ───\n`;
+    pend.forEach(id=>{ txt += `  ☐ [${String(id).padStart(2,'0')}] ${DATA[id].title}\n`; });
+  }
+  if(f['f-obs']){
+    txt += `\n─── OBSERVACIONES ───\n${f['f-obs']}\n`;
+  }
+  txt += `\n═══════════════════════════════════════\n`;
+  txt += `Generado: ${new Date().toLocaleString('es-CL')}\n`;
+  txt += `DOC-TEC / DAIG-MNT-0043 v1.1\n`;
+
+  const blob = new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `inspeccion_cepillo_${f['f-patente']||'sin-patente'}_${f['f-fecha']||new Date().toISOString().slice(0,10)}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Reporte exportado');
+}
+
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const target = btn.dataset.tab;
+    document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b===btn));
+    document.querySelectorAll('.tab-content').forEach(c=>{
+      c.classList.toggle('active', c.dataset.tab===target);
+    });
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+let zoom = 1;
+const svg = document.getElementById('diagram');
+function applyZoom(){ svg.style.width = (100*zoom)+'%'; svg.style.minWidth = (600*zoom)+'px'; }
+document.getElementById('zoom-in').addEventListener('click',()=>{ zoom=Math.min(zoom+0.25,2.5); applyZoom(); });
+document.getElementById('zoom-out').addEventListener('click',()=>{ zoom=Math.max(zoom-0.25,0.75); applyZoom(); });
+document.getElementById('zoom-reset').addEventListener('click',()=>{ zoom=1; applyZoom(); });
+
+document.getElementById('btn-export').addEventListener('click',exportReport);
+document.getElementById('btn-reset').addEventListener('click',async ()=>{
+  if(confirm('¿Limpiar todas las verificaciones y datos del formulario?')){
+    state = { checks:{}, form:{} };
+    await saveState();
+    ['f-patente','f-fecha','f-operador','f-horometro','f-cerda','f-lado','f-obs'].forEach(id=>document.getElementById(id).value='');
+    renderItems();renderHotspots();renderChecklist();updateProgress();
+    detailEl.innerHTML = `
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="detail-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>
+        </svg>
+        <div>Toca un número en el diagrama o un componente del listado para ver su ficha técnica.</div>
+      </div>`;
+    showToast('Limpiado');
+  }
+});
+
+(async function init(){
+  await loadState();
+  if(!state.form['f-fecha']) state.form['f-fecha'] = new Date().toISOString().slice(0,10);
+  renderItems();
+  renderHotspots();
+  renderChecklist();
+  renderParts();
+  bindForm();
+  updateProgress();
+  select(1);
+})();
+</script>
+</body>
+</html>
