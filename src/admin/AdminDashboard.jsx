@@ -2,6 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from './AuthContext'
 import GalleryManager from './GalleryManager'
+import UserManager from './UserManager'
 import logoImg from '../assets/logo.jpeg'
 
 function AdminDashboard() {
@@ -38,6 +39,8 @@ function AdminDashboard() {
           </div>
 
           <GalleryManager />
+
+          <UserManager />
 
           <div className="admin-section admin-info">
             <h3>Información</h3>

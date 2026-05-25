@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from './AuthContext'
 
 function AuthGuard({ children }) {
-  const { isAuthenticated, loading } = useAuth()
+  const { isAuthenticated, loading, role } = useAuth()
 
   if (loading) {
     return (
@@ -15,6 +15,10 @@ function AuthGuard({ children }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/admin" replace />
+  }
+
+  if (role !== 'admin') {
+    return <Navigate to="/" replace />
   }
 
   return children
