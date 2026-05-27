@@ -1,10 +1,14 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../admin/AuthContext'
 
 function TechDocsViewer() {
   const { isAuthenticated, loading, role, logout } = useAuth()
   const navigate = useNavigate()
+  const docsUrl = useMemo(
+    () => `/docs/HUB_consolidado_camion_barredor.html?t=${Date.now()}`,
+    []
+  )
 
   if (loading) {
     return (
@@ -18,17 +22,8 @@ function TechDocsViewer() {
     return <Navigate to="/admin" state={{ from: '/tecnico' }} replace />
   }
 
-  // Role todavía no cargó — esperar sin redirigir
-  if (role === null) {
-    return (
-      <div className="admin-loading">
-        <div className="admin-spinner"></div>
-      </div>
-    )
-  }
-
   if (!['admin', 'tecnico'].includes(role)) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/admin" replace />
   }
 
   const handleLogout = async () => {
@@ -61,7 +56,7 @@ function TechDocsViewer() {
         Cerrar sesión
       </button>
       <iframe
-        src="/docs/HUB_consolidado_camion_barredor.html"
+        src={docsUrl}
         style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
         title="Portal Técnico · Camión Barredor Bucher CityFant 6000 · DAIG SpA"
       />

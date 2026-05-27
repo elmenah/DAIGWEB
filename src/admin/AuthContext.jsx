@@ -9,18 +9,58 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   const fetchRole = async (userId) => {
-    if (!userId) { setRole(null); return }
-    const { data } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single()
-    setRole(data?.role ?? null)
+    if (!userId) {
+      setRole(null)
+      return
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single()
+
+      if (error) {
+        setRole(null)
+        return
+      }
+
+      setRole(data?.role ?? null)
+    } catch {
+      setRole(null)
+    }
   }
 
   useEffect(() => {
+    let isMounted = true
+
+    const initializeSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const u = session?.user ?? null
+
+        if (!isMounted) return
+
+        setUser(u)
+
+        if (!u) {
+          setRole(null)
+          return
+        }
+
+        await fetchRole(u.id)
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+
+    initializeSession()
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!isMounted) return
+
         // Token refresh: solo actualizar usuario, sin re-fetch de rol
         if (event === 'TOKEN_REFRESHED') {
           setUser(session?.user ?? null)
@@ -44,7 +84,10 @@ export function AuthProvider({ children }) {
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const login = async (email, password) => {
