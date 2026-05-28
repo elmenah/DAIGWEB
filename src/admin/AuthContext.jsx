@@ -2,6 +2,16 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
+const AUTH_TIMEOUT_MS = 8000
+
+const withTimeout = (promise, ms, label) => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(`${label} timeout`)), ms)
+    }),
+  ])
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -15,11 +25,15 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single()
+      const { data, error } = await withTimeout(
+        supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .single(),
+        AUTH_TIMEOUT_MS,
+        'fetchRole'
+      )
 
       if (error) {
         setRole(null)
@@ -36,8 +50,15 @@ export function AuthProvider({ children }) {
     let isMounted = true
 
     const initializeSession = async () => {
+      if (isMounted) setLoading(true)
+
       try {
-        const { data: { session } } = await supabase.auth.getSession()
+        const sessionResponse = await withTimeout(
+          supabase.auth.getSession(),
+          AUTH_TIMEOUT_MS,
+          'getSession'
+        )
+        const session = sessionResponse?.data?.session ?? null
         const u = session?.user ?? null
 
         if (!isMounted) return
@@ -75,6 +96,8 @@ export function AuthProvider({ children }) {
           setLoading(false)
           return
         }
+
+        setLoading(true)
 
         try {
           await fetchRole(u.id)
