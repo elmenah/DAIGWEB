@@ -6,6 +6,7 @@ function UserManager() {
   const [loadingUsers, setLoadingUsers] = useState(true)
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState(null)
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -15,7 +16,7 @@ function UserManager() {
     setLoadingUsers(true)
     const { data } = await supabase
       .from('profiles')
-      .select('id, email, created_at')
+      .select('id, username, email, created_at')
       .eq('role', 'tecnico')
       .order('created_at', { ascending: false })
     setUsers(data || [])
@@ -39,13 +40,19 @@ function UserManager() {
       return
     }
 
+    const normalizedUsername = username.trim().toLowerCase()
+    if (!/^[a-z0-9._-]{3,30}$/.test(normalizedUsername)) {
+      setError('El nombre de usuario debe tener 3-30 caracteres (a-z, 0-9, punto, guion o guion bajo)')
+      return
+    }
+
     setCreating(true)
     const token = await getToken()
 
     const res = await fetch('/.netlify/functions/manage-users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ action: 'create', email, password }),
+      body: JSON.stringify({ action: 'create', username: normalizedUsername, email, password }),
     })
 
     const result = await res.json()
@@ -54,7 +61,8 @@ function UserManager() {
     if (!res.ok) {
       setError(result.error || 'Error al crear usuario')
     } else {
-      setSuccess(`Usuario ${email} creado correctamente`)
+      setSuccess(`Usuario ${normalizedUsername} (${email}) creado correctamente`)
+      setUsername('')
       setEmail('')
       setPassword('')
       loadUsers()
@@ -98,7 +106,19 @@ function UserManager() {
         {error && <div className="admin-alert admin-alert-error" style={{ marginBottom: '1rem' }}>{error}</div>}
         {success && <div className="admin-alert admin-alert-success" style={{ marginBottom: '1rem' }}>{success}</div>}
 
-        <form onSubmit={handleCreate} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.75rem', alignItems: 'end' }}>
+        <form onSubmit={handleCreate} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '0.75rem', alignItems: 'end' }}>
+          <div className="admin-field" style={{ marginBottom: 0 }}>
+            <label htmlFor="tech-username">Nombre de usuario</label>
+            <input
+              id="tech-username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              placeholder="tecnico01"
+              autoComplete="off"
+            />
+          </div>
           <div className="admin-field" style={{ marginBottom: 0 }}>
             <label htmlFor="tech-email">Email</label>
             <input
@@ -141,6 +161,7 @@ function UserManager() {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+              <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem', color: '#9a9ab0', fontWeight: 500 }}>Usuario</th>
               <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem', color: '#9a9ab0', fontWeight: 500 }}>Email</th>
               <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem', color: '#9a9ab0', fontWeight: 500 }}>Creado</th>
               <th style={{ textAlign: 'right', padding: '0.5rem 0.75rem', color: '#9a9ab0', fontWeight: 500 }}>Acciones</th>
@@ -149,6 +170,7 @@ function UserManager() {
           <tbody>
             {users.map((u) => (
               <tr key={u.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                <td style={{ padding: '0.65rem 0.75rem' }}>{u.username || '-'}</td>
                 <td style={{ padding: '0.65rem 0.75rem' }}>{u.email}</td>
                 <td style={{ padding: '0.65rem 0.75rem', color: '#9a9ab0' }}>
                   {new Date(u.created_at).toLocaleDateString('es-CL')}

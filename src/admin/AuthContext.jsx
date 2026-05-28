@@ -91,7 +91,34 @@ export function AuthProvider({ children }) {
   }, [])
 
   const login = async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const identifier = String(email || '').trim()
+    if (!identifier || !password) {
+      return { success: false, error: 'Usuario/correo y contraseña son requeridos' }
+    }
+
+    let emailToLogin = identifier.toLowerCase()
+
+    // Si no parece email, intentar resolverlo desde profiles.username
+    if (!identifier.includes('@')) {
+      try {
+        const normalizedUsername = identifier.toLowerCase()
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('username', normalizedUsername)
+          .single()
+
+        if (error || !data?.email) {
+          return { success: false, error: 'Usuario no encontrado' }
+        }
+
+        emailToLogin = String(data.email).toLowerCase()
+      } catch {
+        return { success: false, error: 'No fue posible validar el usuario' }
+      }
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({ email: emailToLogin, password })
     if (error) return { success: false, error: error.message }
     return { success: true }
   }

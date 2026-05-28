@@ -4,7 +4,7 @@ import { useAuth } from './AuthContext'
 import logoImg from '../assets/logo.jpeg'
 
 function AdminLogin() {
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -33,7 +33,7 @@ function AdminLogin() {
     setError('')
     setLoading(true)
 
-    const result = await login(email, password)
+    const result = await login(identifier, password)
     setLoading(false)
 
     if (result.success) {
@@ -56,15 +56,15 @@ function AdminLogin() {
 
         <form onSubmit={handleSubmit} className="admin-login-form">
           <div className="admin-field">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="identifier">Correo o nombre de usuario</label>
             <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="identifier"
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               required
-              autoComplete="email"
-              placeholder="tu@email.com"
+              autoComplete="username"
+              placeholder="tu@email.com o usuario"
             />
           </div>
           <div className="admin-field">

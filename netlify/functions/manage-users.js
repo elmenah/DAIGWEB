@@ -74,16 +74,30 @@ exports.handler = async (event) => {
 
   // ── CREAR USUARIO TÉCNICO ──────────────────────────────────────────────────
   if (action === 'create') {
-    const { email, password } = body
+    const { username, email, password } = body
+    const normalizedUsername = String(username || '').trim().toLowerCase()
 
-    if (!email || !password) {
-      return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Email y contraseña requeridos' }) }
+    if (!normalizedUsername || !email || !password) {
+      return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Usuario, email y contraseña son requeridos' }) }
+    }
+    if (!/^[a-z0-9._-]{3,30}$/.test(normalizedUsername)) {
+      return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Nombre de usuario inválido' }) }
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Email inválido' }) }
     }
     if (String(password).length < 8) {
       return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Contraseña debe tener al menos 8 caracteres' }) }
+    }
+
+    const { data: existingUsername } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('username', normalizedUsername)
+      .maybeSingle()
+
+    if (existingUsername) {
+      return { statusCode: 409, headers: corsHeaders, body: JSON.stringify({ error: 'El nombre de usuario ya existe' }) }
     }
 
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
@@ -98,7 +112,12 @@ exports.handler = async (event) => {
 
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .insert({ id: newUser.user.id, email: String(email).trim().toLowerCase(), role: 'tecnico' })
+      .insert({
+        id: newUser.user.id,
+        username: normalizedUsername,
+        email: String(email).trim().toLowerCase(),
+        role: 'tecnico',
+      })
 
     if (profileError) {
       await supabaseAdmin.auth.admin.deleteUser(newUser.user.id)
