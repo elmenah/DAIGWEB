@@ -48,6 +48,9 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let isMounted = true
+    const failsafeTimer = setTimeout(() => {
+      if (isMounted) setLoading(false)
+    }, AUTH_TIMEOUT_MS + 2000)
 
     const initializeSession = async () => {
       if (isMounted) setLoading(true)
@@ -71,6 +74,10 @@ export function AuthProvider({ children }) {
         }
 
         await fetchRole(u.id)
+      } catch {
+        if (!isMounted) return
+        setUser(null)
+        setRole(null)
       } finally {
         if (isMounted) setLoading(false)
       }
@@ -84,7 +91,22 @@ export function AuthProvider({ children }) {
 
         // Token refresh: solo actualizar usuario, sin re-fetch de rol
         if (event === 'TOKEN_REFRESHED') {
-          setUser(session?.user ?? null)
+          const refreshedUser = session?.user ?? null
+          setUser(refreshedUser)
+
+          // Si llega token valido, resolver rol para evitar estado incompleto.
+          if (refreshedUser) {
+            try {
+              await fetchRole(refreshedUser.id)
+            } finally {
+              if (isMounted) setLoading(false)
+            }
+          } else {
+            if (isMounted) {
+              setRole(null)
+              setLoading(false)
+            }
+          }
           return
         }
 
@@ -109,6 +131,7 @@ export function AuthProvider({ children }) {
 
     return () => {
       isMounted = false
+      clearTimeout(failsafeTimer)
       subscription.unsubscribe()
     }
   }, [])

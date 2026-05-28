@@ -10,7 +10,7 @@ function TechDocsViewer() {
     []
   )
 
-  if (loading) {
+  if (loading || (isAuthenticated && role === null)) {
     return (
       <div className="admin-loading">
         <div className="admin-spinner"></div>
@@ -23,7 +23,7 @@ function TechDocsViewer() {
   }
 
   if (!['admin', 'tecnico'].includes(role)) {
-    return <Navigate to="/admin" replace />
+    return <Navigate to="/" replace />
   }
 
   const handleLogout = async () => {

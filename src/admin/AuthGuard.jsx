@@ -5,7 +5,7 @@ import { useAuth } from './AuthContext'
 function AuthGuard({ children }) {
   const { isAuthenticated, loading, role } = useAuth()
 
-  if (loading) {
+  if (loading || (isAuthenticated && role === null)) {
     return (
       <div className="admin-loading">
         <div className="admin-spinner"></div>
@@ -15,6 +15,10 @@ function AuthGuard({ children }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/admin" replace />
+  }
+
+  if (role === 'tecnico') {
+    return <Navigate to="/tecnico" replace />
   }
 
   if (role !== 'admin') {

@@ -8,16 +8,19 @@ function AdminLogin() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login, isAuthenticated, loading: authLoading } = useAuth()
+  const { login, isAuthenticated, loading: authLoading, role } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const from = location.state?.from || '/admin/dashboard'
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      navigate(from, { replace: true })
+      if (role === 'admin') {
+        navigate('/admin/dashboard', { replace: true })
+      } else if (role === 'tecnico') {
+        navigate('/tecnico', { replace: true })
+      }
     }
-  }, [isAuthenticated, authLoading])
+  }, [isAuthenticated, authLoading, role, navigate])
 
   // Mostrar spinner mientras se verifica sesión existente
   if (authLoading) {
@@ -36,9 +39,7 @@ function AdminLogin() {
     const result = await login(identifier, password)
     setLoading(false)
 
-    if (result.success) {
-      navigate(from, { replace: true })
-    } else {
+    if (!result.success) {
       setError(result.error || 'Credenciales incorrectas')
     }
   }
