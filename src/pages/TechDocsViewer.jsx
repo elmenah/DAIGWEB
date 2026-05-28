@@ -1,30 +1,14 @@
 import React, { useMemo } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../admin/AuthContext'
 
 function TechDocsViewer() {
-  const { isAuthenticated, loading, role, logout } = useAuth()
+  const { logout } = useAuth()
   const navigate = useNavigate()
   const docsUrl = useMemo(
     () => `/docs/HUB_consolidado_camion_barredor.html?t=${Date.now()}`,
     []
   )
-
-  if (loading || (isAuthenticated && role === null)) {
-    return (
-      <div className="admin-loading">
-        <div className="admin-spinner"></div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/admin" state={{ from: '/tecnico' }} replace />
-  }
-
-  if (!['admin', 'tecnico'].includes(role)) {
-    return <Navigate to="/" replace />
-  }
 
   const handleLogout = async () => {
     await logout()

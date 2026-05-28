@@ -4,13 +4,19 @@ import { supabase } from '../lib/supabase'
 const AuthContext = createContext(null)
 const AUTH_TIMEOUT_MS = 8000
 
-const withTimeout = (promise, ms, label) => {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => {
-      setTimeout(() => reject(new Error(`${label} timeout`)), ms)
-    }),
-  ])
+const withTimeout = async (promise, ms, label) => {
+  let timeoutId
+
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error(`${label} timeout`)), ms)
+      }),
+    ])
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId)
+  }
 }
 
 export function AuthProvider({ children }) {
@@ -21,7 +27,7 @@ export function AuthProvider({ children }) {
   const fetchRole = async (userId) => {
     if (!userId) {
       setRole(null)
-      return
+      return false
     }
 
     try {
@@ -36,13 +42,13 @@ export function AuthProvider({ children }) {
       )
 
       if (error) {
-        setRole(null)
-        return
+        return false
       }
 
       setRole(data?.role ?? null)
+      return true
     } catch {
-      setRole(null)
+      return false
     }
   }
 
@@ -76,8 +82,7 @@ export function AuthProvider({ children }) {
         await fetchRole(u.id)
       } catch {
         if (!isMounted) return
-        setUser(null)
-        setRole(null)
+        // Mantener estado actual y solo finalizar loading.
       } finally {
         if (isMounted) setLoading(false)
       }

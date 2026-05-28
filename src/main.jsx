@@ -35,7 +35,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             path="/admin/dashboard"
             element={
               <Suspense fallback={<AdminLoader />}>
-                <AuthGuard>
+                <AuthGuard allowedRoles={['admin']}>
                   <AdminDashboard />
                 </AuthGuard>
               </Suspense>
@@ -45,7 +45,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             path="/tecnico"
             element={
               <Suspense fallback={<AdminLoader />}>
-                <TechDocsViewer />
+                <AuthGuard allowedRoles={['admin', 'tecnico']}>
+                  <TechDocsViewer />
+                </AuthGuard>
               </Suspense>
             }
           />

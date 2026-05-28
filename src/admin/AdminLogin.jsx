@@ -11,16 +11,20 @@ function AdminLogin() {
   const { login, isAuthenticated, loading: authLoading, role } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const requestedPath = location.state?.from
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
       if (role === 'admin') {
-        navigate('/admin/dashboard', { replace: true })
+        const nextPath = requestedPath === '/tecnico' ? '/tecnico' : '/admin/dashboard'
+        navigate(nextPath, { replace: true })
       } else if (role === 'tecnico') {
         navigate('/tecnico', { replace: true })
+      } else {
+        navigate('/', { replace: true })
       }
     }
-  }, [isAuthenticated, authLoading, role, navigate])
+  }, [isAuthenticated, authLoading, role, navigate, requestedPath])
 
   // Mostrar spinner mientras se verifica sesión existente
   if (authLoading) {

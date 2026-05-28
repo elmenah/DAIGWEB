@@ -30,6 +30,48 @@ function UserManager() {
     return session?.access_token
   }
 
+  const parseApiResponse = async (res) => {
+    const raw = await res.text()
+    let body = null
+
+    if (raw) {
+      try {
+        body = JSON.parse(raw)
+      } catch {
+        body = { raw }
+      }
+    }
+
+    return body
+  }
+
+  const callManageUsers = async (payload) => {
+    const token = await getToken()
+    if (!token) {
+      throw new Error('Sesion expirada. Inicia sesion nuevamente.')
+    }
+
+    const res = await fetch('/.netlify/functions/manage-users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(payload),
+    })
+
+    const result = await parseApiResponse(res)
+
+    if (!res.ok) {
+      if (res.status === 404) {
+        throw new Error('Funcion /manage-users no encontrada (404). Revisa deploy de Netlify Functions.')
+      }
+
+      const apiError = result?.error || result?.message
+      const fallback = `Error ${res.status} al procesar la solicitud.`
+      throw new Error(apiError || fallback)
+    }
+
+    return result
+  }
+
   const handleCreate = async (e) => {
     e.preventDefault()
     setError('')
@@ -47,25 +89,17 @@ function UserManager() {
     }
 
     setCreating(true)
-    const token = await getToken()
-
-    const res = await fetch('/.netlify/functions/manage-users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ action: 'create', username: normalizedUsername, email, password }),
-    })
-
-    const result = await res.json()
-    setCreating(false)
-
-    if (!res.ok) {
-      setError(result.error || 'Error al crear usuario')
-    } else {
+    try {
+      await callManageUsers({ action: 'create', username: normalizedUsername, email, password })
       setSuccess(`Usuario ${normalizedUsername} (${email}) creado correctamente`)
       setUsername('')
       setEmail('')
       setPassword('')
       loadUsers()
+    } catch (err) {
+      setError(err?.message || 'Error al crear usuario')
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -73,21 +107,13 @@ function UserManager() {
     if (!confirm(`¿Eliminar al usuario ${userEmail}? Esta acción no se puede deshacer.`)) return
 
     setDeleting(userId)
-    const token = await getToken()
-
-    const res = await fetch('/.netlify/functions/manage-users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ action: 'delete', userId }),
-    })
-
-    const result = await res.json()
-    setDeleting(null)
-
-    if (!res.ok) {
-      alert(result.error || 'Error al eliminar usuario')
-    } else {
+    try {
+      await callManageUsers({ action: 'delete', userId })
       loadUsers()
+    } catch (err) {
+      alert(err?.message || 'Error al eliminar usuario')
+    } finally {
+      setDeleting(null)
     }
   }
 
