@@ -1,4 +1,4 @@
-const { Resend } = require('resend')
+import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -21,7 +21,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:4173',
 ]
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   let fromEmail
 
   try {

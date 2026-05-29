@@ -3,31 +3,56 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from './AuthContext'
 import logoImg from '../assets/logo.jpeg'
 
+const isAuthDebugEnabled = () => {
+  if (!import.meta.env.DEV) return false
+  if (typeof window === 'undefined') return false
+  return window.localStorage.getItem('authDebug') === '1'
+}
+
+const authDebugLog = (...args) => {
+  if (isAuthDebugEnabled()) {
+    console.info('[AUTH_DEBUG][LOGIN]', ...args)
+  }
+}
+
 function AdminLogin() {
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login, isAuthenticated, loading: authLoading, role } = useAuth()
+  const { login, isAuthenticated, loading: authLoading, hasHydratedSession, role } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const requestedPath = location.state?.from
 
   useEffect(() => {
-    if (!authLoading && isAuthenticated) {
+    authDebugLog('effect', {
+      authLoading,
+      hasHydratedSession,
+      isAuthenticated,
+      role,
+      requestedPath: requestedPath || null,
+    })
+
+    if (!authLoading && hasHydratedSession && isAuthenticated) {
+      if (!role) return
+
       if (role === 'admin') {
         const nextPath = requestedPath === '/tecnico' ? '/tecnico' : '/admin/dashboard'
+        authDebugLog('navigate', { reason: 'admin-role', to: nextPath })
         navigate(nextPath, { replace: true })
       } else if (role === 'tecnico') {
+        authDebugLog('navigate', { reason: 'tecnico-role', to: '/tecnico' })
         navigate('/tecnico', { replace: true })
       } else {
+        authDebugLog('navigate', { reason: 'unknown-role', to: '/' })
         navigate('/', { replace: true })
       }
     }
-  }, [isAuthenticated, authLoading, role, navigate, requestedPath])
+  }, [isAuthenticated, authLoading, hasHydratedSession, role, navigate, requestedPath])
 
   // Mostrar spinner mientras se verifica sesión existente
-  if (authLoading) {
+  if (authLoading || !hasHydratedSession) {
     return (
       <div className="admin-loading">
         <div className="admin-spinner"></div>
