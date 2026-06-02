@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+﻿import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -6,8 +6,6 @@ const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const ALLOWED_ORIGINS = [
   'https://daigchile.cl',
   'https://www.daigchile.cl',
-  'https://serviciosdaig.com',
-  'https://www.serviciosdaig.com',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:4173',

@@ -1,4 +1,4 @@
-[build]
+﻿[build]
   command = "npm run build"
   publish = "dist"
   functions = "netlify/functions"
@@ -8,6 +8,18 @@
   targetPort = 5174
   port = 5173
   functions = "netlify/functions"
+
+[[redirects]]
+  from = "https://daigchile.cl/*"
+  to = "https://www.daigchile.cl/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://daigchile.cl/*"
+  to = "https://www.daigchile.cl/:splat"
+  status = 301
+  force = true
 
 [[redirects]]
   from = "/*"

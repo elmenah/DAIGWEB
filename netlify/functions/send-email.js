@@ -1,4 +1,4 @@
-import { Resend } from 'resend'
+﻿import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -15,8 +15,6 @@ const MAX_SERVICE_LENGTH = 120
 const ALLOWED_ORIGINS = [
   'https://daigchile.cl',
   'https://www.daigchile.cl',
-  'https://serviciosdaig.com',
-  'https://www.serviciosdaig.com',
   'http://localhost:5173',
   'http://localhost:4173',
 ]
