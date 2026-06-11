@@ -40,12 +40,13 @@ function Footer() {
             <div className="footer-col">
               <h4>Servicios</h4>
               <ul className="footer-links">
-                <li><a href="#servicios">Piping Industrial</a></li>
-                <li><a href="#servicios">Estructuras Metálicas</a></li>
-                <li><a href="#servicios">Obras Civiles</a></li>
-                <li><a href="#servicios">Modelamiento 3D</a></li>
-                <li><a href="#servicios">Protección de Tuberías</a></li>
-                <li><a href="#cnc">CNC Router y Láser</a></li>
+                <li><a href="/servicios/piping-industrial">Piping Industrial</a></li>
+                <li><a href="/servicios/estructuras-metalicas">Estructuras Metálicas</a></li>
+                <li><a href="/servicios/obras-civiles-industriales">Obras Civiles</a></li>
+                <li><a href="/servicios/modelamiento-3d-industrial">Modelamiento 3D</a></li>
+                <li><a href="/servicios/proteccion-de-tuberias">Protección de Tuberías</a></li>
+                <li><a href="/servicios/cnc-router-y-laser">CNC Router y Láser</a></li>
+                <li><a href="/servicios/diseno-mecanico">Diseño Mecánico</a></li>
               </ul>
             </div>
 
