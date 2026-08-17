@@ -58,6 +58,11 @@ function AuthGuard({ children, allowedRoles = [] }) {
     return <Navigate to="/tecnico" replace />
   }
 
+  if (role === 'trabajador') {
+    authDebugLog('decision', { result: 'redirect-trabajadores', from: location.pathname })
+    return <Navigate to="/trabajadores/panel" replace />
+  }
+
   authDebugLog('decision', { result: 'redirect-login-fallback', path: location.pathname })
   return <Navigate to="/admin" state={{ from: location.pathname }} replace />
 }

@@ -7,13 +7,17 @@ const services = [
   {
     icon: (
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z" />
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z" />
       </svg>
     ),
-    tag: 'Desarrollo Web',
-    title: 'Sitios Web Corporativos',
-    description: 'Landing pages, portafolios y sitios institucionales diseñados para captar clientes. Optimizados para SEO, rápidos y adaptados a cualquier dispositivo.',
-    items: ['Landing pages y portafolios', 'Catálogos digitales de servicios', 'Blogs y gestión de contenido', 'Optimización SEO'],
+    tag: 'Analítica',
+    priority: true,
+    title: 'Dashboards y Reportería',
+    price: 'desde $490.000',
+    description: 'Visualiza MTBF, MTTR, órdenes de trabajo activas y KPIs de mantención en tiempo real. Deja de construir reportes manuales en Excel: tu gerencia recibe el informe semanal de forma automática.',
+    items: ['Panel de MTBF/MTTR y disponibilidad de activos', 'KPIs de mantención preventiva y correctiva', 'Reportes automáticos para gerencia (PDF/correo)', 'Alertas por desviaciones o anomalías en planta'],
+    cta: 'Agenda diagnóstico gratuito de 20 min',
+    ctaHref: '#contacto-digital',
   },
   {
     icon: (
@@ -22,42 +26,13 @@ const services = [
       </svg>
     ),
     tag: 'Automatización',
+    priority: true,
     title: 'Automatización de Procesos',
-    description: 'Reducí el tiempo invertido en tareas repetitivas. Automatizamos cotizaciones, flujos de aprobación, notificaciones y la integración entre tus sistemas.',
-    items: ['Cotizaciones y presupuestos automáticos', 'Flujos de aprobación internos', 'Integración ERP / CRM / contabilidad', 'Alertas automáticas por email y WhatsApp'],
-  },
-  {
-    icon: (
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
-      </svg>
-    ),
-    tag: 'IA Conversacional',
-    title: 'Chatbots Inteligentes',
-    description: 'Atiende consultas las 24 horas sin costo adicional. Nuestros chatbots responden preguntas frecuentes, califican leads y escalan al equipo humano cuando es necesario.',
-    items: ['Atención 24/7 automatizada', 'Calificación de leads entrantes', 'Integración con WhatsApp y web', 'Respuestas entrenadas en tu negocio'],
-  },
-  {
-    icon: (
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M21 10.12h-6.78l2.74-2.82c-2.73-2.7-7.15-2.8-9.88-.1-2.73 2.71-2.73 7.08 0 9.79 2.73 2.71 7.15 2.71 9.88 0C18.32 15.65 19 14.08 19 12.1h2c0 1.98-.88 4.55-2.64 6.29-3.51 3.48-9.21 3.48-12.72 0-3.5-3.47-3.53-9.11-.02-12.58 3.51-3.47 9.14-3.47 12.65 0L21 3v7.12zM12.5 8v4.25l3.5 2.08-.72 1.21L11 13V8h1.5z" />
-      </svg>
-    ),
-    tag: 'Inteligencia Artificial',
-    title: 'Agentes IA para tu Negocio',
-    description: 'Agentes autónomos que pueden responder cotizaciones, procesar documentos, clasificar correos y tomar decisiones simples sin intervención humana.',
-    items: ['Respuesta automática de cotizaciones', 'Procesamiento de documentos PDF', 'Clasificación de emails y solicitudes', 'Integración con tus sistemas actuales'],
-  },
-  {
-    icon: (
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z" />
-      </svg>
-    ),
-    tag: 'Analítica',
-    title: 'Dashboards y Reportería',
-    description: 'Visualiza el estado de tus proyectos, producción y equipo en tiempo real. Toma decisiones con datos, no con suposiciones.',
-    items: ['Panel de control de proyectos', 'KPIs de producción y mantenimiento', 'Reportes automáticos para gerencia', 'Alertas por desviaciones o anomalías'],
+    price: 'desde $590.000',
+    description: 'Eliminamos las tareas manuales repetitivas: generación de órdenes de trabajo, cotizaciones técnicas, flujos de aprobación y notificaciones entre sistemas. Tu equipo se enfoca en lo que importa.',
+    items: ['Generación automática de órdenes de trabajo', 'Cotizaciones técnicas y presupuestos automáticos', 'Integración ERP / CMMS / contabilidad', 'Alertas automáticas por email y WhatsApp'],
+    cta: 'Agenda diagnóstico gratuito de 20 min',
+    ctaHref: '#contacto-digital',
   },
   {
     icon: (
@@ -66,9 +41,58 @@ const services = [
       </svg>
     ),
     tag: 'Sistemas',
+    priority: true,
     title: 'Sistemas de Gestión Interna',
-    description: 'Reemplaza planillas Excel y procesos manuales por sistemas a medida que gestionen órdenes de trabajo, inventario, personal y mucho más.',
-    items: ['Órdenes de trabajo digitales', 'Control de inventario en tiempo real', 'Gestión de personal y asistencia', 'Historial de mantenimiento de equipos'],
+    price: 'desde $890.000',
+    description: 'Reemplaza planillas Excel por un sistema a medida que gestione órdenes de trabajo, inventario de repuestos, mantención preventiva/correctiva y el historial completo de tus activos críticos.',
+    items: ['Órdenes de trabajo digitales con firma y evidencia', 'Control de repuestos e inventario en bodega', 'Mantención preventiva programada por activo', 'Historial técnico de equipos y activos críticos'],
+    cta: 'Agenda diagnóstico gratuito de 20 min',
+    ctaHref: '#contacto-digital',
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
+      </svg>
+    ),
+    tag: 'IA Conversacional',
+    priority: false,
+    title: 'Chatbots Inteligentes',
+    price: 'desde $290.000',
+    description: 'Atiende consultas las 24 horas sin costo adicional. Nuestros chatbots responden preguntas frecuentes, califican leads y escalan al equipo humano cuando es necesario.',
+    items: ['Atención 24/7 automatizada', 'Calificación de leads entrantes', 'Integración con WhatsApp y web', 'Respuestas entrenadas en tu negocio'],
+    cta: 'Cotizar chatbot',
+    ctaHref: '#contacto-digital',
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 10.12h-6.78l2.74-2.82c-2.73-2.7-7.15-2.8-9.88-.1-2.73 2.71-2.73 7.08 0 9.79 2.73 2.71 7.15 2.71 9.88 0C18.32 15.65 19 14.08 19 12.1h2c0 1.98-.88 4.55-2.64 6.29-3.51 3.48-9.21 3.48-12.72 0-3.5-3.47-3.53-9.11-.02-12.58 3.51-3.47 9.14-3.47 12.65 0L21 3v7.12zM12.5 8v4.25l3.5 2.08-.72 1.21L11 13V8h1.5z" />
+      </svg>
+    ),
+    tag: 'Inteligencia Artificial',
+    priority: false,
+    title: 'Agentes IA para tu Negocio',
+    price: 'desde $490.000',
+    description: 'Agentes autónomos que responden cotizaciones, procesan documentos, clasifican correos y toman decisiones simples sin intervención humana.',
+    items: ['Respuesta automática de cotizaciones', 'Procesamiento de documentos PDF', 'Clasificación de emails y solicitudes', 'Integración con tus sistemas actuales'],
+    cta: 'Cotizar agente IA',
+    ctaHref: '#contacto-digital',
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z" />
+      </svg>
+    ),
+    tag: 'Desarrollo Web',
+    priority: false,
+    title: 'Sitios Web Corporativos',
+    price: 'desde $390.000',
+    description: 'Landing pages, portafolios y sitios institucionales diseñados para captar clientes. Optimizados para SEO, rápidos y adaptados a cualquier dispositivo.',
+    items: ['Landing pages y portafolios', 'Catálogos digitales de servicios', 'Blogs y gestión de contenido', 'Optimización SEO'],
+    cta: 'Cotizar sitio web',
+    ctaHref: '#contacto-digital',
   },
 ]
 
@@ -205,8 +229,39 @@ function DigitalPage() {
             <p>Desde una página web hasta un agente IA que cotiza por ti, construimos exactamente lo que tu empresa necesita.</p>
           </div>
 
+          <div className="digital-services-label">
+            <span className="digital-services-group-label">Soluciones para planta e industria</span>
+          </div>
           <div className="digital-services-grid">
-            {services.map((s, i) => (
+            {services.filter(s => s.priority).map((s, i) => (
+              <div className="digital-service-card digital-service-card--priority" key={i}>
+                <div className="digital-service-tag">{s.tag}</div>
+                <div className="digital-service-icon">{s.icon}</div>
+                <h3>{s.title}</h3>
+                <p>{s.description}</p>
+                <ul className="digital-service-items">
+                  {s.items.map((item, j) => (
+                    <li key={j}>
+                      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                      </svg>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <div className="digital-service-footer">
+                  <span className="digital-service-price">{s.price}</span>
+                  <a href={s.ctaHref} className="digital-service-cta">{s.cta}</a>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="digital-services-label" style={{ marginTop: '48px' }}>
+            <span className="digital-services-group-label">Soluciones complementarias</span>
+          </div>
+          <div className="digital-services-grid digital-services-grid--secondary">
+            {services.filter(s => !s.priority).map((s, i) => (
               <div className="digital-service-card" key={i}>
                 <div className="digital-service-tag">{s.tag}</div>
                 <div className="digital-service-icon">{s.icon}</div>
@@ -222,8 +277,61 @@ function DigitalPage() {
                     </li>
                   ))}
                 </ul>
+                <div className="digital-service-footer">
+                  <span className="digital-service-price">{s.price}</span>
+                  <a href={s.ctaHref} className="digital-service-cta digital-service-cta--secondary">{s.cta}</a>
+                </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Prueba social ────────────────────────────── */}
+      <section className="digital-proof-section">
+        <div className="container">
+          <div className="section-header">
+            <span className="section-eyebrow">Resultados reales</span>
+            <h2>Lo que logramos<br /><span style={{ color: 'var(--accent)' }}>en terreno</span></h2>
+            <div className="accent-line"></div>
+          </div>
+          <div className="digital-proof-grid">
+            <div className="digital-proof-card">
+              <div className="digital-proof-metric">
+                <span className="digital-proof-before">6 horas</span>
+                <span className="digital-proof-arrow">→</span>
+                <span className="digital-proof-after">20 min</span>
+              </div>
+              <p className="digital-proof-desc">
+                Reducimos el tiempo de generación del reporte semanal de mantención para una empresa del rubro industrial.
+                El jefe de mantención ahora recibe el PDF automáticamente todos los lunes a las 7:00 AM.
+              </p>
+              <span className="digital-proof-tag">Dashboard + Automatización</span>
+            </div>
+            <div className="digital-proof-card">
+              <div className="digital-proof-metric">
+                <span className="digital-proof-before">Planillas Excel</span>
+                <span className="digital-proof-arrow">→</span>
+                <span className="digital-proof-after">Sistema digital</span>
+              </div>
+              <p className="digital-proof-desc">
+                Digitalizamos las órdenes de trabajo y el historial de activos críticos de una empresa de servicios mineros.
+                Cero planillas, trazabilidad completa y firma digital desde terreno.
+              </p>
+              <span className="digital-proof-tag">Sistema de Gestión</span>
+            </div>
+            <div className="digital-proof-card">
+              <div className="digital-proof-metric">
+                <span className="digital-proof-before">3 días</span>
+                <span className="digital-proof-arrow">→</span>
+                <span className="digital-proof-after">2 horas</span>
+              </div>
+              <p className="digital-proof-desc">
+                Automatizamos el proceso de cotización técnica para un proveedor industrial.
+                Lo que antes requería ida y vuelta de correos, hoy se genera y envía automáticamente.
+              </p>
+              <span className="digital-proof-tag">Automatización de Procesos</span>
+            </div>
           </div>
         </div>
       </section>

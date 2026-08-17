@@ -14,6 +14,8 @@ const TechDocsViewer = lazy(() => import('./pages/TechDocsViewer'))
 const ServicesHubPage = lazy(() => import('./pages/ServicesHubPage'))
 const ServicePage = lazy(() => import('./pages/ServicePage'))
 const CotizarPage = lazy(() => import('./pages/CotizarPage'))
+const TrabajadoresLogin = lazy(() => import('./pages/TrabajadoresLogin'))
+const TrabajadoresPanel = lazy(() => import('./pages/TrabajadoresPanel'))
 
 const AdminLoader = () => (
   <div className="admin-loading"><div className="admin-spinner"></div></div>
@@ -97,6 +99,24 @@ root.render(
             <Suspense fallback={<AdminLoader />}>
               <AuthGuard allowedRoles={['admin', 'tecnico']}>
                 <TechDocsViewer />
+              </AuthGuard>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/trabajadores"
+          element={
+            <Suspense fallback={<AdminLoader />}>
+              <TrabajadoresLogin />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/trabajadores/panel"
+          element={
+            <Suspense fallback={<AdminLoader />}>
+              <AuthGuard allowedRoles={['admin', 'trabajador']}>
+                <TrabajadoresPanel />
               </AuthGuard>
             </Suspense>
           }

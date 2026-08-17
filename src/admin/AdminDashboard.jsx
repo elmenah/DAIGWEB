@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from './AuthContext'
 import GalleryManager from './GalleryManager'
 import UserManager from './UserManager'
+import RegistrosManager from './RegistrosManager'
 import logoImg from '../assets/logo.jpeg'
 
 function AdminDashboard() {
@@ -37,6 +38,8 @@ function AdminDashboard() {
             <h2>Bienvenido, Administrador</h2>
             <p>Desde aquí puedes gestionar las imágenes del portafolio de tu sitio web.</p>
           </div>
+
+          <RegistrosManager />
 
           <GalleryManager />
 
