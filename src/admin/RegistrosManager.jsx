@@ -180,9 +180,10 @@ function RegistrosManager() {
               <tr>
                 <th>Trabajador</th>
                 <th>Fecha</th>
-                <th>Hora</th>
-                <th>Tarea</th>
-                <th>Ubicación</th>
+                <th>Tipo</th>
+                <th>Tarea / Equipo</th>
+                <th>Estado</th>
+                <th>Hrs</th>
                 <th>Fotos</th>
                 <th></th>
               </tr>
@@ -198,16 +199,21 @@ function RegistrosManager() {
                       {r.trabajador_nombre || r.trabajador_id?.slice(0, 8)}
                     </td>
                     <td className="reg-td-fecha">{r.fecha}</td>
-                    <td className="reg-td-hora">{r.hora?.slice(0, 5)}</td>
-                    <td className="reg-td-tarea">{r.tarea}</td>
-                    <td className="reg-td-ubicacion">
-                      {r.ubicacion_texto
-                        ? <span className="reg-ubicacion-pill" title={r.ubicacion_texto}>
-                            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                            {r.ubicacion_texto.length > 20 ? r.ubicacion_texto.slice(0, 20) + '…' : r.ubicacion_texto}
+                    <td className="reg-td-tipo">{r.tipo_trabajo || <span className="reg-empty-cell">—</span>}</td>
+                    <td className="reg-td-tarea">
+                      <div>{r.tarea}</div>
+                      {r.equipo_intervenido && <div className="reg-equipo-sub">{r.equipo_intervenido}</div>}
+                    </td>
+                    <td>
+                      {r.estado
+                        ? <span className={`reg-estado-badge reg-estado-badge--${r.estado === 'Completado' ? 'ok' : r.estado === 'En progreso' ? 'wip' : 'pending'}`}>
+                            {r.estado}
                           </span>
                         : <span className="reg-empty-cell">—</span>
                       }
+                    </td>
+                    <td className="reg-td-hrs">
+                      {r.horas_trabajadas ? `${r.horas_trabajadas}h` : <span className="reg-empty-cell">—</span>}
                     </td>
                     <td className="reg-td-fotos">
                       {r.fotos?.length > 0
@@ -241,12 +247,24 @@ function RegistrosManager() {
 
                   {expandedId === r.id && (
                     <tr className="reg-expanded-row">
-                      <td colSpan={7}>
+                      <td colSpan={8}>
                         <div className="reg-expanded-body">
+                          {r.equipo_intervenido && (
+                            <div className="reg-field">
+                              <span className="reg-label">Equipo / Activo intervenido</span>
+                              <p>{r.equipo_intervenido}</p>
+                            </div>
+                          )}
                           {r.descripcion && (
                             <div className="reg-field">
                               <span className="reg-label">Descripción</span>
                               <p>{r.descripcion}</p>
+                            </div>
+                          )}
+                          {r.material_utilizado && (
+                            <div className="reg-field">
+                              <span className="reg-label">Material utilizado</span>
+                              <p>{r.material_utilizado}</p>
                             </div>
                           )}
                           {r.ubicacion_texto && (

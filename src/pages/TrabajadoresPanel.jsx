@@ -18,7 +18,12 @@ function TrabajadoresPanel() {
   const [fecha, setFecha] = useState(today())
   const [hora, setHora] = useState(nowTime())
   const [tarea, setTarea] = useState('')
+  const [tipoTrabajo, setTipoTrabajo] = useState('')
+  const [equipoIntervenido, setEquipoIntervenido] = useState('')
   const [descripcion, setDescripcion] = useState('')
+  const [materialUtilizado, setMaterialUtilizado] = useState('')
+  const [horasTrabajadas, setHorasTrabajadas] = useState('')
+  const [estado, setEstado] = useState('Completado')
   const [ubicacion, setUbicacion] = useState('')
   const [ubicacionLat, setUbicacionLat] = useState(null)
   const [ubicacionLng, setUbicacionLng] = useState(null)
@@ -131,8 +136,13 @@ function TrabajadoresPanel() {
         trabajador_nombre: workerName,
         fecha,
         hora,
+        tipo_trabajo: tipoTrabajo,
+        equipo_intervenido: equipoIntervenido.trim(),
         tarea: tarea.trim(),
         descripcion: descripcion.trim(),
+        material_utilizado: materialUtilizado.trim(),
+        horas_trabajadas: horasTrabajadas ? parseFloat(horasTrabajadas) : null,
+        estado,
         ubicacion_texto: ubicacion.trim(),
         ubicacion_lat: ubicacionLat,
         ubicacion_lng: ubicacionLng,
@@ -142,7 +152,12 @@ function TrabajadoresPanel() {
       setSendStatus('ok')
       // reset form
       setTarea('')
+      setTipoTrabajo('')
+      setEquipoIntervenido('')
       setDescripcion('')
+      setMaterialUtilizado('')
+      setHorasTrabajadas('')
+      setEstado('Completado')
       setUbicacion('')
       setUbicacionLat(null)
       setUbicacionLng(null)
@@ -235,6 +250,41 @@ function TrabajadoresPanel() {
                 </div>
               </div>
 
+              <div className="trab-row">
+                <div className="trab-field">
+                  <label htmlFor="t-tipo">Tipo de trabajo</label>
+                  <select id="t-tipo" value={tipoTrabajo} onChange={e => setTipoTrabajo(e.target.value)}>
+                    <option value="">Seleccionar...</option>
+                    <option>Mantención preventiva</option>
+                    <option>Mantención correctiva</option>
+                    <option>Instalación</option>
+                    <option>Inspección</option>
+                    <option>Soldadura</option>
+                    <option>Piping</option>
+                    <option>Otro</option>
+                  </select>
+                </div>
+                <div className="trab-field">
+                  <label htmlFor="t-estado">Estado</label>
+                  <select id="t-estado" value={estado} onChange={e => setEstado(e.target.value)}>
+                    <option>Completado</option>
+                    <option>En progreso</option>
+                    <option>Pendiente repuesto</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="trab-field">
+                <label htmlFor="t-equipo">Equipo / Activo intervenido</label>
+                <input
+                  id="t-equipo"
+                  type="text"
+                  value={equipoIntervenido}
+                  onChange={e => setEquipoIntervenido(e.target.value)}
+                  placeholder="Ej: Bomba centrífuga B-03, Compresor sector norte"
+                />
+              </div>
+
               <div className="trab-field">
                 <label htmlFor="t-tarea">Tarea realizada *</label>
                 <input
@@ -242,7 +292,7 @@ function TrabajadoresPanel() {
                   type="text"
                   value={tarea}
                   onChange={e => setTarea(e.target.value)}
-                  placeholder="Ej: Mantención preventiva bomba sector 3"
+                  placeholder="Ej: Cambio de rodamiento y sello mecánico"
                   required
                 />
               </div>
@@ -253,9 +303,35 @@ function TrabajadoresPanel() {
                   id="t-desc"
                   value={descripcion}
                   onChange={e => setDescripcion(e.target.value)}
-                  placeholder="Describe el trabajo realizado, repuestos usados, observaciones..."
-                  rows={4}
+                  placeholder="Describe el trabajo realizado, observaciones, dificultades..."
+                  rows={3}
                 />
+              </div>
+
+              <div className="trab-row">
+                <div className="trab-field">
+                  <label htmlFor="t-material">Material utilizado</label>
+                  <textarea
+                    id="t-material"
+                    value={materialUtilizado}
+                    onChange={e => setMaterialUtilizado(e.target.value)}
+                    placeholder="Ej: Rodamiento 6205, 2m tubo 2&quot;, cinta teflón"
+                    rows={2}
+                  />
+                </div>
+                <div className="trab-field">
+                  <label htmlFor="t-horas">Horas trabajadas</label>
+                  <input
+                    id="t-horas"
+                    type="number"
+                    min="0.5"
+                    max="24"
+                    step="0.5"
+                    value={horasTrabajadas}
+                    onChange={e => setHorasTrabajadas(e.target.value)}
+                    placeholder="Ej: 3.5"
+                  />
+                </div>
               </div>
 
               <div className="trab-field">
@@ -294,7 +370,6 @@ function TrabajadoresPanel() {
                     type="file"
                     accept="image/*"
                     multiple
-                    capture="environment"
                     onChange={handleFotos}
                     style={{ display: 'none' }}
                   />
@@ -358,6 +433,11 @@ function TrabajadoresPanel() {
                     <div className="trab-hist-header-left">
                       <span className="trab-hist-fecha">{r.fecha}</span>
                       <span className="trab-hist-hora">{r.hora?.slice(0, 5)}</span>
+                      {r.estado && (
+                        <span className={`trab-estado-pill trab-estado-pill--${r.estado === 'Completado' ? 'ok' : r.estado === 'En progreso' ? 'wip' : 'pending'}`}>
+                          {r.estado}
+                        </span>
+                      )}
                       <span className="trab-hist-tarea">{r.tarea}</span>
                     </div>
                     <svg
@@ -371,10 +451,34 @@ function TrabajadoresPanel() {
 
                   {expandedId === r.id && (
                     <div className="trab-hist-body">
+                      {r.tipo_trabajo && (
+                        <div className="trab-hist-field">
+                          <span className="trab-hist-label">Tipo de trabajo</span>
+                          <p>{r.tipo_trabajo}</p>
+                        </div>
+                      )}
+                      {r.equipo_intervenido && (
+                        <div className="trab-hist-field">
+                          <span className="trab-hist-label">Equipo / Activo</span>
+                          <p>{r.equipo_intervenido}</p>
+                        </div>
+                      )}
                       {r.descripcion && (
                         <div className="trab-hist-field">
                           <span className="trab-hist-label">Descripción</span>
                           <p>{r.descripcion}</p>
+                        </div>
+                      )}
+                      {r.material_utilizado && (
+                        <div className="trab-hist-field">
+                          <span className="trab-hist-label">Material utilizado</span>
+                          <p>{r.material_utilizado}</p>
+                        </div>
+                      )}
+                      {r.horas_trabajadas && (
+                        <div className="trab-hist-field">
+                          <span className="trab-hist-label">Horas trabajadas</span>
+                          <p>{r.horas_trabajadas} hrs</p>
                         </div>
                       )}
                       {r.ubicacion_texto && (
