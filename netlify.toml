@@ -10,18 +10,6 @@
   functions = "netlify/functions"
 
 [[redirects]]
-  from = "https://daigchile.cl/*"
-  to = "https://www.daigchile.cl/:splat"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "http://daigchile.cl/*"
-  to = "https://www.daigchile.cl/:splat"
-  status = 301
-  force = true
-
-[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
