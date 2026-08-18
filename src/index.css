@@ -5430,6 +5430,27 @@ header.scrolled .navbar {
   font-size: 0.82rem;
 }
 
+/* Edit record button */
+.trab-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(232,150,46,0.1);
+  border: 1px solid rgba(232,150,46,0.35);
+  color: var(--color-accent, #e8962e);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.trab-edit-btn svg {
+  width: 15px; height: 15px;
+  fill: currentColor;
+}
+.trab-edit-btn:hover { background: rgba(232,150,46,0.2); }
+
 /* Drop zone fotos */
 .trab-drop-zone {
   background: var(--darker-bg);
