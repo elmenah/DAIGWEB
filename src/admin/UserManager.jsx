@@ -62,6 +62,7 @@ function UserManager() {
   const [showCreate, setShowCreate] = useState(false)
   const [editUser, setEditUser] = useState(null)
   const [deleting, setDeleting] = useState(null)
+  const [successMsg, setSuccessMsg] = useState('')
 
   // Create form
   const [cNombre, setCNombre] = useState('')
@@ -128,6 +129,8 @@ function UserManager() {
       })
       setShowCreate(false)
       setCNombre(''); setCUsername(''); setCEmail(''); setCPassword(''); setCRole('trabajador')
+      setSuccessMsg(`Usuario "${cNombre || cUsername}" creado correctamente.`)
+      setTimeout(() => setSuccessMsg(''), 5000)
       loadUsers()
     } catch (err) {
       setCError(err.message)
@@ -158,6 +161,8 @@ function UserManager() {
         password: ePassword || undefined,
       })
       setEditUser(null)
+      setSuccessMsg(`Usuario "${eNombre || editUser.username}" actualizado correctamente.`)
+      setTimeout(() => setSuccessMsg(''), 5000)
       loadUsers()
     } catch (err) {
       setEError(err.message)
@@ -171,6 +176,8 @@ function UserManager() {
     setDeleting(u.id)
     try {
       await callAPI({ action: 'delete', userId: u.id })
+      setSuccessMsg(`Usuario "${u.nombre || u.username}" eliminado.`)
+      setTimeout(() => setSuccessMsg(''), 5000)
       loadUsers()
     } catch (err) {
       alert(err.message)
@@ -269,6 +276,12 @@ function UserManager() {
             </div>
           </form>
         </Modal>
+      )}
+
+      {successMsg && (
+        <div className="admin-alert admin-alert-success" style={{ marginBottom: '1rem' }}>
+          ✓ {successMsg}
+        </div>
       )}
 
       <div className="admin-section-header">
