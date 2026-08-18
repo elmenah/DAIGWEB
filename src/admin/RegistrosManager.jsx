@@ -42,6 +42,23 @@ function PhotoModal({ url, onClose }) {
   )
 }
 
+const COLUMNS = [
+  { key: 'trabajador_nombre', label: 'Trabajador' },
+  { key: 'fecha',             label: 'Fecha' },
+  { key: 'tipo_trabajo',      label: 'Tipo' },
+  { key: 'tarea',             label: 'Tarea / Equipo' },
+  { key: 'estado',            label: 'Estado' },
+  { key: 'horas_trabajadas',  label: 'Hrs' },
+]
+
+function SortIcon({ active, asc }) {
+  return (
+    <span style={{ marginLeft: 4, opacity: active ? 1 : 0.3, fontSize: '0.7rem' }}>
+      {active ? (asc ? '▲' : '▼') : '▲▼'}
+    </span>
+  )
+}
+
 function RegistrosManager() {
   const [registros, setRegistros]       = useState([])
   const [loading, setLoading]           = useState(true)
@@ -54,6 +71,9 @@ function RegistrosManager() {
   const [filtroFechaDesde, setFiltroFechaDesde] = useState('')
   const [filtroFechaHasta, setFiltroFechaHasta] = useState('')
   const [quickActive, setQuickActive]           = useState(null)
+
+  const [sortCol, setSortCol]   = useState('fecha')
+  const [sortAsc, setSortAsc]   = useState(false)
 
   const [trabajadores, setTrabajadores] = useState([])
   const [page, setPage]   = useState(0)
@@ -68,13 +88,23 @@ function RegistrosManager() {
     return () => clearTimeout(debounceRef.current)
   }, [filtroTexto])
 
+  const handleSort = (col) => {
+    if (sortCol === col) {
+      setSortAsc(a => !a)
+    } else {
+      setSortCol(col)
+      setSortAsc(false)
+    }
+    setPage(0)
+  }
+
   const load = useCallback(async () => {
     setLoading(true)
     let query = supabase
       .from('registros_trabajo')
       .select('*', { count: 'exact' })
-      .order('fecha', { ascending: false })
-      .order('hora', { ascending: false })
+      .order(sortCol, { ascending: sortAsc })
+      .order('hora', { ascending: sortAsc })
       .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1)
 
     if (filtroTrabajador) query = query.eq('trabajador_id', filtroTrabajador)
@@ -92,7 +122,7 @@ function RegistrosManager() {
     setRegistros(data || [])
     setTotal(count || 0)
     setLoading(false)
-  }, [filtroTrabajador, filtroEstado, filtroFechaDesde, filtroFechaHasta, textoDebounced, page])
+  }, [filtroTrabajador, filtroEstado, filtroFechaDesde, filtroFechaHasta, textoDebounced, sortCol, sortAsc, page])
 
   useEffect(() => { load() }, [load])
 
@@ -220,12 +250,16 @@ function RegistrosManager() {
           <table className="reg-table">
             <thead>
               <tr>
-                <th>Trabajador</th>
-                <th>Fecha</th>
-                <th>Tipo</th>
-                <th>Tarea / Equipo</th>
-                <th>Estado</th>
-                <th>Hrs</th>
+                {COLUMNS.map(col => (
+                  <th
+                    key={col.key}
+                    onClick={() => handleSort(col.key)}
+                    style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
+                  >
+                    {col.label}
+                    <SortIcon active={sortCol === col.key} asc={sortAsc} />
+                  </th>
+                ))}
                 <th>Fotos</th>
                 <th></th>
               </tr>
