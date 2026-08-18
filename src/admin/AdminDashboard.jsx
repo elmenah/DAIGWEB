@@ -1,14 +1,28 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from './AuthContext'
+import { supabase } from '../lib/supabase'
 import GalleryManager from './GalleryManager'
 import UserManager from './UserManager'
 import RegistrosManager from './RegistrosManager'
 import logoImg from '../assets/logo.jpeg'
 
 function AdminDashboard() {
-  const { logout, role } = useAuth()
+  const { logout, role, user } = useAuth()
   const navigate = useNavigate()
+  const [nombreUsuario, setNombreUsuario] = useState('')
+
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('profiles')
+      .select('nombre, username')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) setNombreUsuario(data.nombre || data.username || '')
+      })
+  }, [user])
 
   const handleLogout = () => {
     logout()
@@ -26,6 +40,11 @@ function AdminDashboard() {
           <h1>Panel de Administración</h1>
         </div>
         <div className="admin-header-right">
+          {nombreUsuario && (
+            <span style={{ color: '#9a9ab0', fontSize: '0.875rem' }}>
+              {nombreUsuario}
+            </span>
+          )}
           {isAdmin && (
             <a href="/" className="admin-btn-outline" target="_blank" rel="noopener noreferrer">
               Ver Sitio
@@ -40,8 +59,8 @@ function AdminDashboard() {
       <main className="admin-main">
         <div className="admin-container">
           <div className="admin-welcome">
-            {isAdmin && <h2>Bienvenido, Administrador</h2>}
-            {isDirectiva && <h2>Panel Directiva</h2>}
+            {isAdmin && <h2>Bienvenido{nombreUsuario ? `, ${nombreUsuario}` : ''}</h2>}
+            {isDirectiva && <h2>Panel Directiva{nombreUsuario ? ` — ${nombreUsuario}` : ''}</h2>}
             <p>
               {isAdmin && 'Gestión de registros de trabajadores, portafolio de imágenes y usuarios del sistema.'}
               {isDirectiva && 'Visualización de registros fotográficos y de trabajo del equipo en terreno.'}

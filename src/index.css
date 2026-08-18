@@ -4691,6 +4691,15 @@ header.scrolled .navbar {
   border-color: var(--primary);
 }
 
+.reg-filter-group--wide {
+  flex: 1 1 220px;
+}
+
+.reg-filter-group--wide input {
+  min-width: unset;
+  width: 100%;
+}
+
 .reg-clear-btn {
   padding: 7px 14px;
   background: none;

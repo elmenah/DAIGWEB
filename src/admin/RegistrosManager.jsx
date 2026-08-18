@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
 const PAGE_SIZE = 25
@@ -14,10 +14,18 @@ const lunesDeEstaSemana = () => {
 }
 
 const QUICK_FILTERS = [
-  { label: 'Hoy',        desde: hoy,               hasta: hoy },
-  { label: 'Ayer',       desde: ayer,               hasta: ayer },
-  { label: 'Esta semana',desde: lunesDeEstaSemana,  hasta: hoy },
+  { label: 'Hoy',         desde: hoy,              hasta: hoy },
+  { label: 'Ayer',        desde: ayer,              hasta: ayer },
+  { label: 'Esta semana', desde: lunesDeEstaSemana, hasta: hoy },
 ]
+
+const ESTADOS = ['Terminado', 'En Proceso', 'Pendiente repuesto']
+
+function estadoClass(estado) {
+  if (['Terminado', 'Completado'].includes(estado)) return 'ok'
+  if (['En Proceso', 'En progreso'].includes(estado)) return 'wip'
+  return 'pending'
+}
 
 function PhotoModal({ url, onClose }) {
   useEffect(() => {
@@ -29,30 +37,36 @@ function PhotoModal({ url, onClose }) {
   return (
     <div className="reg-modal-overlay" onClick={onClose}>
       <button className="reg-modal-close" onClick={onClose} aria-label="Cerrar">×</button>
-      <img
-        src={url}
-        className="reg-modal-img"
-        onClick={(e) => e.stopPropagation()}
-        alt="foto registro"
-      />
+      <img src={url} className="reg-modal-img" onClick={(e) => e.stopPropagation()} alt="foto registro" />
     </div>
   )
 }
 
 function RegistrosManager() {
-  const [registros, setRegistros] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [expandedId, setExpandedId] = useState(null)
-  const [modalUrl, setModalUrl] = useState(null)
+  const [registros, setRegistros]       = useState([])
+  const [loading, setLoading]           = useState(true)
+  const [expandedId, setExpandedId]     = useState(null)
+  const [modalUrl, setModalUrl]         = useState(null)
 
   const [filtroTrabajador, setFiltroTrabajador] = useState('')
+  const [filtroEstado, setFiltroEstado]         = useState('')
+  const [filtroTexto, setFiltroTexto]           = useState('')
   const [filtroFechaDesde, setFiltroFechaDesde] = useState('')
   const [filtroFechaHasta, setFiltroFechaHasta] = useState('')
-  const [quickActive, setQuickActive] = useState(null)
+  const [quickActive, setQuickActive]           = useState(null)
 
   const [trabajadores, setTrabajadores] = useState([])
-  const [page, setPage] = useState(0)
+  const [page, setPage]   = useState(0)
   const [total, setTotal] = useState(0)
+
+  // Debounce texto para no disparar query en cada tecla
+  const [textoDebounced, setTextoDebounced] = useState('')
+  const debounceRef = useRef(null)
+  useEffect(() => {
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => setTextoDebounced(filtroTexto), 350)
+    return () => clearTimeout(debounceRef.current)
+  }, [filtroTexto])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -64,22 +78,30 @@ function RegistrosManager() {
       .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1)
 
     if (filtroTrabajador) query = query.eq('trabajador_id', filtroTrabajador)
+    if (filtroEstado)     query = query.eq('estado', filtroEstado)
     if (filtroFechaDesde) query = query.gte('fecha', filtroFechaDesde)
     if (filtroFechaHasta) query = query.lte('fecha', filtroFechaHasta)
+    if (textoDebounced) {
+      const t = textoDebounced.trim()
+      query = query.or(
+        `tarea.ilike.%${t}%,descripcion.ilike.%${t}%,equipo_intervenido.ilike.%${t}%,trabajador_nombre.ilike.%${t}%,material_utilizado.ilike.%${t}%`
+      )
+    }
 
     const { data, count } = await query
     setRegistros(data || [])
     setTotal(count || 0)
     setLoading(false)
-  }, [filtroTrabajador, filtroFechaDesde, filtroFechaHasta, page])
+  }, [filtroTrabajador, filtroEstado, filtroFechaDesde, filtroFechaHasta, textoDebounced, page])
 
   useEffect(() => { load() }, [load])
 
   useEffect(() => {
     supabase
       .from('profiles')
-      .select('id, username, email')
+      .select('id, username, nombre')
       .eq('role', 'trabajador')
+      .order('nombre')
       .then(({ data }) => setTrabajadores(data || []))
   }, [])
 
@@ -99,6 +121,8 @@ function RegistrosManager() {
 
   const clearAll = () => {
     setFiltroTrabajador('')
+    setFiltroEstado('')
+    setFiltroTexto('')
     setFiltroFechaDesde('')
     setFiltroFechaHasta('')
     setQuickActive(null)
@@ -106,6 +130,7 @@ function RegistrosManager() {
   }
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
+  const hayFiltros = filtroTrabajador || filtroEstado || filtroTexto || filtroFechaDesde || filtroFechaHasta
 
   return (
     <div className="admin-section">
@@ -118,39 +143,54 @@ function RegistrosManager() {
 
       {/* Filtros */}
       <div className="reg-filters">
+        {/* Búsqueda de texto */}
+        <div className="reg-filter-group reg-filter-group--wide">
+          <label>Buscar</label>
+          <input
+            type="text"
+            value={filtroTexto}
+            onChange={(e) => { setFiltroTexto(e.target.value); setPage(0) }}
+            placeholder="Tarea, equipo, descripción, trabajador..."
+          />
+        </div>
+
+        {/* Trabajador */}
         <div className="reg-filter-group">
           <label>Trabajador</label>
-          <select
-            value={filtroTrabajador}
-            onChange={(e) => { setFiltroTrabajador(e.target.value); setPage(0) }}
-          >
-            <option value="">Todos</option>
-            {trabajadores.map(t => (
-              <option key={t.id} value={t.id}>
-                {t.username || t.email}
-              </option>
-            ))}
+          <select value={filtroTrabajador} onChange={(e) => { setFiltroTrabajador(e.target.value); setPage(0) }}>
+            <option value="">Todos (A–Z)</option>
+            {[...trabajadores]
+              .sort((a, b) => (a.nombre || a.username || '').localeCompare(b.nombre || b.username || '', 'es'))
+              .map(t => (
+                <option key={t.id} value={t.id}>
+                  {t.nombre || t.username}
+                </option>
+              ))}
           </select>
         </div>
 
+        {/* Estado */}
+        <div className="reg-filter-group">
+          <label>Estado</label>
+          <select value={filtroEstado} onChange={(e) => { setFiltroEstado(e.target.value); setPage(0) }}>
+            <option value="">Todos</option>
+            {ESTADOS.map(e => <option key={e} value={e}>{e}</option>)}
+          </select>
+        </div>
+
+        {/* Fechas */}
         <div className="reg-filter-group">
           <label>Desde</label>
-          <input
-            type="date"
-            value={filtroFechaDesde}
-            onChange={(e) => { setFiltroFechaDesde(e.target.value); setQuickActive(null); setPage(0) }}
-          />
+          <input type="date" value={filtroFechaDesde}
+            onChange={(e) => { setFiltroFechaDesde(e.target.value); setQuickActive(null); setPage(0) }} />
         </div>
-
         <div className="reg-filter-group">
           <label>Hasta</label>
-          <input
-            type="date"
-            value={filtroFechaHasta}
-            onChange={(e) => { setFiltroFechaHasta(e.target.value); setQuickActive(null); setPage(0) }}
-          />
+          <input type="date" value={filtroFechaHasta}
+            onChange={(e) => { setFiltroFechaHasta(e.target.value); setQuickActive(null); setPage(0) }} />
         </div>
 
+        {/* Quick filters + limpiar */}
         <div className="reg-quick-filters">
           {QUICK_FILTERS.map((qf, i) => (
             <button
@@ -163,7 +203,9 @@ function RegistrosManager() {
           ))}
         </div>
 
-        <button className="reg-clear-btn" onClick={clearAll}>Limpiar</button>
+        {hayFiltros && (
+          <button className="reg-clear-btn" onClick={clearAll}>Limpiar</button>
+        )}
       </div>
 
       {/* Tabla */}
@@ -206,9 +248,7 @@ function RegistrosManager() {
                     </td>
                     <td>
                       {r.estado
-                        ? <span className={`reg-estado-badge reg-estado-badge--${['Terminado', 'Completado'].includes(r.estado) ? 'ok' : ['En Proceso', 'En progreso'].includes(r.estado) ? 'wip' : 'pending'}`}>
-                            {r.estado}
-                          </span>
+                        ? <span className={`reg-estado-badge reg-estado-badge--${estadoClass(r.estado)}`}>{r.estado}</span>
                         : <span className="reg-empty-cell">—</span>
                       }
                     </td>
@@ -219,27 +259,17 @@ function RegistrosManager() {
                       {r.fotos?.length > 0
                         ? <div className="reg-thumb-row">
                             {r.fotos.slice(0, 3).map((url, i) => (
-                              <img
-                                key={i}
-                                src={url}
-                                className="reg-thumb"
-                                alt=""
-                                onClick={(e) => { e.stopPropagation(); setModalUrl(url) }}
-                              />
+                              <img key={i} src={url} className="reg-thumb" alt=""
+                                onClick={(e) => { e.stopPropagation(); setModalUrl(url) }} />
                             ))}
-                            {r.fotos.length > 3 && (
-                              <span className="reg-thumb-more">+{r.fotos.length - 3}</span>
-                            )}
+                            {r.fotos.length > 3 && <span className="reg-thumb-more">+{r.fotos.length - 3}</span>}
                           </div>
                         : <span className="reg-empty-cell">—</span>
                       }
                     </td>
                     <td>
-                      <svg
-                        className="reg-chevron"
-                        viewBox="0 0 24 24"
-                        style={{ transform: expandedId === r.id ? 'rotate(180deg)' : 'none' }}
-                      >
+                      <svg className="reg-chevron" viewBox="0 0 24 24"
+                        style={{ transform: expandedId === r.id ? 'rotate(180deg)' : 'none' }}>
                         <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
                       </svg>
                     </td>
@@ -269,15 +299,11 @@ function RegistrosManager() {
                           )}
                           {r.ubicacion_texto && (
                             <div className="reg-field">
-                              <span className="reg-label">Ubicación completa</span>
+                              <span className="reg-label">Ubicación</span>
                               <p>{r.ubicacion_texto}</p>
                               {r.ubicacion_lat && (
-                                <a
-                                  href={`https://maps.google.com/?q=${r.ubicacion_lat},${r.ubicacion_lng}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="reg-maps-link"
-                                >
+                                <a href={`https://maps.google.com/?q=${r.ubicacion_lat},${r.ubicacion_lng}`}
+                                  target="_blank" rel="noopener noreferrer" className="reg-maps-link">
                                   Ver en Google Maps →
                                 </a>
                               )}
@@ -288,13 +314,8 @@ function RegistrosManager() {
                               <span className="reg-label">Todas las fotos ({r.fotos.length})</span>
                               <div className="reg-foto-grid">
                                 {r.fotos.map((url, i) => (
-                                  <img
-                                    key={i}
-                                    src={url}
-                                    className="reg-foto"
-                                    alt=""
-                                    onClick={() => setModalUrl(url)}
-                                  />
+                                  <img key={i} src={url} className="reg-foto" alt=""
+                                    onClick={() => setModalUrl(url)} />
                                 ))}
                               </div>
                             </div>
@@ -310,7 +331,6 @@ function RegistrosManager() {
         </div>
       )}
 
-      {/* Paginación */}
       {totalPages > 1 && (
         <div className="reg-pagination">
           <button disabled={page === 0} onClick={() => setPage(p => p - 1)}>← Anterior</button>
