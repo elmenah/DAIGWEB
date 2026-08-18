@@ -444,7 +444,7 @@ function TrabajadoresPanel() {
                       <span className="trab-hist-fecha">{r.fecha}</span>
                       <span className="trab-hist-hora">{r.hora?.slice(0, 5)}</span>
                       {r.estado && (
-                        <span className={`trab-estado-pill trab-estado-pill--${r.estado === 'Terminado' ? 'ok' : r.estado === 'En Proceso' ? 'wip' : 'pending'}`}>
+                        <span className={`trab-estado-pill trab-estado-pill--${['Terminado', 'Completado'].includes(r.estado) ? 'ok' : ['En Proceso', 'En progreso'].includes(r.estado) ? 'wip' : 'pending'}`}>
                           {r.estado}
                         </span>
                       )}

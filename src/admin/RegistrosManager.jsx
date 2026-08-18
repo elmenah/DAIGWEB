@@ -206,7 +206,7 @@ function RegistrosManager() {
                     </td>
                     <td>
                       {r.estado
-                        ? <span className={`reg-estado-badge reg-estado-badge--${r.estado === 'Terminado' ? 'ok' : r.estado === 'En Proceso' ? 'wip' : 'pending'}`}>
+                        ? <span className={`reg-estado-badge reg-estado-badge--${['Terminado', 'Completado'].includes(r.estado) ? 'ok' : ['En Proceso', 'En progreso'].includes(r.estado) ? 'wip' : 'pending'}`}>
                             {r.estado}
                           </span>
                         : <span className="reg-empty-cell">—</span>
