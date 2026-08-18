@@ -43,8 +43,8 @@ function AdminDashboard() {
             {isAdmin && <h2>Bienvenido, Administrador</h2>}
             {isDirectiva && <h2>Panel Directiva</h2>}
             <p>
-              {isAdmin && 'Gestión completa del sitio, registros de trabajadores y usuarios.'}
-              {isDirectiva && 'Visualización de registros fotográficos y de trabajo del equipo.'}
+              {isAdmin && 'Gestión de registros de trabajadores, portafolio de imágenes y usuarios del sistema.'}
+              {isDirectiva && 'Visualización de registros fotográficos y de trabajo del equipo en terreno.'}
             </p>
           </div>
 
