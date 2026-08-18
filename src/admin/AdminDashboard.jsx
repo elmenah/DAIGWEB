@@ -69,9 +69,9 @@ function AdminDashboard() {
 
           <RegistrosManager />
 
+          {isAdmin && <UserManager />}
           {isAdmin && <GalleryManager />}
 
-          {isAdmin && <UserManager />}
         </div>
       </main>
     </div>

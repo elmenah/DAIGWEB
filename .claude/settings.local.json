@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "PowerShell(python \"C:\\\\Users\\\\menan\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-menan-Documents-GitHub-DAIGWEB\\\\096b7c6f-931c-4cd6-9e8b-9b2791b6aee3\\\\scratchpad\\\\gen_pdf.py\" 2>&1)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git commit *)"
     ]
   }
 }
