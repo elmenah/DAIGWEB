@@ -5402,6 +5402,25 @@ header.scrolled .navbar {
   cursor: not-allowed;
 }
 
+.trab-gps-btn--full {
+  width: 100%;
+  justify-content: center;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+}
+
+.trab-gps-btn--ok {
+  background: rgba(74, 222, 128, 0.12);
+  border-color: #4ade80;
+  color: #4ade80;
+}
+
+.trab-gps-error {
+  margin-top: 6px;
+  color: #f87171;
+  font-size: 0.82rem;
+}
+
 /* Drop zone fotos */
 .trab-drop-zone {
   background: var(--darker-bg);

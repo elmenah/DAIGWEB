@@ -19,14 +19,15 @@ function TrabajadoresPanel() {
   const [hora, setHora] = useState(nowTime())
   const [tarea, setTarea] = useState('')
   const [tipoTrabajo, setTipoTrabajo] = useState('')
+  const [tipoTrabajoOtro, setTipoTrabajoOtro] = useState('')
   const [equipoIntervenido, setEquipoIntervenido] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [materialUtilizado, setMaterialUtilizado] = useState('')
   const [horasTrabajadas, setHorasTrabajadas] = useState('')
-  const [estado, setEstado] = useState('Completado')
-  const [ubicacion, setUbicacion] = useState('')
+  const [estado, setEstado] = useState('Terminado')
   const [ubicacionLat, setUbicacionLat] = useState(null)
   const [ubicacionLng, setUbicacionLng] = useState(null)
+  const [gpsError, setGpsError] = useState('')
   const [fotos, setFotos] = useState([])
   const [fotosPreviews, setFotosPreviews] = useState([])
   const [gpsLoading, setGpsLoading] = useState(false)
@@ -70,20 +71,20 @@ function TrabajadoresPanel() {
 
   const getGPS = () => {
     if (!navigator.geolocation) {
-      setUbicacion('Geolocalización no disponible en este dispositivo')
+      setGpsError('Geolocalización no disponible en este dispositivo')
       return
     }
     setGpsLoading(true)
+    setGpsError('')
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setUbicacionLat(pos.coords.latitude)
         setUbicacionLng(pos.coords.longitude)
-        setUbicacion(`${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`)
         setGpsLoading(false)
       },
       () => {
         setGpsLoading(false)
-        setUbicacion('No se pudo obtener ubicación — ingresa manualmente')
+        setGpsError('No se pudo obtener la ubicación. Verifica que el GPS esté activado.')
       },
       { timeout: 10000, enableHighAccuracy: true }
     )
@@ -126,8 +127,14 @@ function TrabajadoresPanel() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!tarea.trim()) return
+    if (!ubicacionLat) {
+      setGpsError('La ubicación es obligatoria. Toca "Capturar ubicación" antes de enviar.')
+      return
+    }
     setSending(true)
     setSendStatus(null)
+
+    const tipoFinal = tipoTrabajo === 'Otro' ? tipoTrabajoOtro.trim() || 'Otro' : tipoTrabajo
 
     try {
       const fotosUrls = fotos.length > 0 ? await uploadFotos() : []
@@ -136,14 +143,14 @@ function TrabajadoresPanel() {
         trabajador_nombre: workerName,
         fecha,
         hora,
-        tipo_trabajo: tipoTrabajo,
+        tipo_trabajo: tipoFinal,
         equipo_intervenido: equipoIntervenido.trim(),
         tarea: tarea.trim(),
         descripcion: descripcion.trim(),
         material_utilizado: materialUtilizado.trim(),
         horas_trabajadas: horasTrabajadas ? parseFloat(horasTrabajadas) : null,
         estado,
-        ubicacion_texto: ubicacion.trim(),
+        ubicacion_texto: `${ubicacionLat.toFixed(6)}, ${ubicacionLng.toFixed(6)}`,
         ubicacion_lat: ubicacionLat,
         ubicacion_lng: ubicacionLng,
         fotos: fotosUrls,
@@ -153,14 +160,15 @@ function TrabajadoresPanel() {
       // reset form
       setTarea('')
       setTipoTrabajo('')
+      setTipoTrabajoOtro('')
       setEquipoIntervenido('')
       setDescripcion('')
       setMaterialUtilizado('')
       setHorasTrabajadas('')
-      setEstado('Completado')
-      setUbicacion('')
+      setEstado('Terminado')
       setUbicacionLat(null)
       setUbicacionLng(null)
+      setGpsError('')
       setFotos([])
       setFotosPreviews([])
       setFecha(today())
@@ -263,12 +271,21 @@ function TrabajadoresPanel() {
                     <option>Piping</option>
                     <option>Otro</option>
                   </select>
+                  {tipoTrabajo === 'Otro' && (
+                    <input
+                      type="text"
+                      value={tipoTrabajoOtro}
+                      onChange={e => setTipoTrabajoOtro(e.target.value)}
+                      placeholder="Describe el tipo de trabajo..."
+                      style={{ marginTop: '8px' }}
+                    />
+                  )}
                 </div>
                 <div className="trab-field">
                   <label htmlFor="t-estado">Estado</label>
                   <select id="t-estado" value={estado} onChange={e => setEstado(e.target.value)}>
-                    <option>Completado</option>
-                    <option>En progreso</option>
+                    <option>Terminado</option>
+                    <option>En Proceso</option>
                     <option>Pendiente repuesto</option>
                   </select>
                 </div>
@@ -335,24 +352,17 @@ function TrabajadoresPanel() {
               </div>
 
               <div className="trab-field">
-                <label>Ubicación</label>
-                <div className="trab-location-row">
-                  <input
-                    type="text"
-                    value={ubicacion}
-                    onChange={e => setUbicacion(e.target.value)}
-                    placeholder="Ej: Planta norte, sector 2 — o usa el GPS"
-                  />
-                  <button
-                    type="button"
-                    className="trab-gps-btn"
-                    onClick={getGPS}
-                    disabled={gpsLoading}
-                  >
-                    <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
-                    {gpsLoading ? 'Obteniendo...' : 'GPS'}
-                  </button>
-                </div>
+                <label>Ubicación GPS <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>*</span></label>
+                <button
+                  type="button"
+                  className={`trab-gps-btn trab-gps-btn--full ${ubicacionLat ? 'trab-gps-btn--ok' : ''}`}
+                  onClick={getGPS}
+                  disabled={gpsLoading}
+                >
+                  <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+                  {gpsLoading ? 'Obteniendo ubicación...' : ubicacionLat ? `✓ Ubicación capturada (${ubicacionLat.toFixed(4)}, ${ubicacionLng.toFixed(4)})` : 'Capturar ubicación actual'}
+                </button>
+                {gpsError && <p className="trab-gps-error">{gpsError}</p>}
               </div>
 
               {/* Fotos */}
@@ -434,7 +444,7 @@ function TrabajadoresPanel() {
                       <span className="trab-hist-fecha">{r.fecha}</span>
                       <span className="trab-hist-hora">{r.hora?.slice(0, 5)}</span>
                       {r.estado && (
-                        <span className={`trab-estado-pill trab-estado-pill--${r.estado === 'Completado' ? 'ok' : r.estado === 'En progreso' ? 'wip' : 'pending'}`}>
+                        <span className={`trab-estado-pill trab-estado-pill--${r.estado === 'Terminado' ? 'ok' : r.estado === 'En Proceso' ? 'wip' : 'pending'}`}>
                           {r.estado}
                         </span>
                       )}
