@@ -1,4 +1,4 @@
-﻿import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -10,6 +10,8 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5174',
   'http://localhost:4173',
 ]
+
+const ALLOWED_ROLES = ['directiva', 'tecnico', 'trabajador']
 
 export const handler = async (event) => {
   const origin = event.headers.origin || ''
@@ -30,11 +32,9 @@ export const handler = async (event) => {
   }
 
   if (!SERVICE_ROLE_KEY) {
-    console.error('SUPABASE_SERVICE_ROLE_KEY no configurado')
     return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: 'Servidor no configurado' }) }
   }
 
-  // Verificar token del caller
   const authHeader = event.headers.authorization || ''
   const token = authHeader.replace('Bearer ', '').trim()
   if (!token) {
@@ -45,13 +45,11 @@ export const handler = async (event) => {
     auth: { autoRefreshToken: false, persistSession: false },
   })
 
-  // Verificar que el caller es un usuario válido
   const { data: { user: caller }, error: authError } = await supabaseAdmin.auth.getUser(token)
   if (authError || !caller) {
     return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ error: 'Token inválido' }) }
   }
 
-  // Verificar que el caller tiene rol 'admin'
   const { data: callerProfile } = await supabaseAdmin
     .from('profiles')
     .select('role')
@@ -62,7 +60,6 @@ export const handler = async (event) => {
     return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ error: 'Sin permisos de administrador' }) }
   }
 
-  // Parsear body
   let body
   try { body = JSON.parse(event.body) } catch {
     return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'JSON inválido' }) }
@@ -70,35 +67,39 @@ export const handler = async (event) => {
 
   const { action } = body
 
-  // ── CREAR USUARIO TÉCNICO ──────────────────────────────────────────────────
+  // ── CREAR USUARIO ─────────────────────────────────────────────────────────
   if (action === 'create') {
-    const { username, email, password } = body
+    const { username, nombre, email, password, role } = body
     const normalizedUsername = String(username || '').trim().toLowerCase()
+    const normalizedNombre = String(nombre || '').trim()
     const normalizedEmail = String(email || '').trim().toLowerCase()
-    const generatedEmail = `${normalizedUsername}@tecnico.daig.local`
-    const emailToUse = normalizedEmail || generatedEmail
+    const normalizedRole = String(role || '').trim()
 
-    if (!normalizedUsername || !password) {
-      return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Usuario y contraseña son requeridos' }) }
+    if (!normalizedUsername || !password || !normalizedRole) {
+      return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Usuario, contraseña y rol son requeridos' }) }
     }
-    if (!/^[a-z0-9._-]{3,30}$/.test(normalizedUsername)) {
-      return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Nombre de usuario inválido' }) }
+    if (!ALLOWED_ROLES.includes(normalizedRole)) {
+      return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Rol no válido' }) }
     }
+    if (String(password).length < 6) {
+      return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Contraseña debe tener al menos 6 caracteres' }) }
+    }
+
+    // Para trabajadores el username es el RUT; para otros es un login
+    const emailToUse = normalizedEmail || `${normalizedUsername}@daig.local`
+
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailToUse)) {
       return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Email inválido' }) }
     }
-    if (String(password).length < 8) {
-      return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Contraseña debe tener al menos 8 caracteres' }) }
-    }
 
-    const { data: existingUsername } = await supabaseAdmin
+    const { data: existing } = await supabaseAdmin
       .from('profiles')
       .select('id')
       .eq('username', normalizedUsername)
       .maybeSingle()
 
-    if (existingUsername) {
-      return { statusCode: 409, headers: corsHeaders, body: JSON.stringify({ error: 'El nombre de usuario ya existe' }) }
+    if (existing) {
+      return { statusCode: 409, headers: corsHeaders, body: JSON.stringify({ error: 'El usuario/RUT ya existe' }) }
     }
 
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
@@ -116,36 +117,73 @@ export const handler = async (event) => {
       .insert({
         id: newUser.user.id,
         username: normalizedUsername,
+        nombre: normalizedNombre || null,
         email: emailToUse,
-        role: 'tecnico',
+        role: normalizedRole,
       })
 
     if (profileError) {
       await supabaseAdmin.auth.admin.deleteUser(newUser.user.id)
-      return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: 'Error al crear perfil del usuario' }) }
+      return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: 'Error al crear perfil' }) }
     }
 
     return {
       statusCode: 200,
       headers: corsHeaders,
-      body: JSON.stringify({ ok: true, email: emailToUse, emailAutoGenerated: !normalizedEmail }),
+      body: JSON.stringify({ ok: true, email: emailToUse }),
     }
   }
 
-  // ── ELIMINAR USUARIO TÉCNICO ───────────────────────────────────────────────
+  // ── ACTUALIZAR USUARIO ────────────────────────────────────────────────────
+  if (action === 'update') {
+    const { userId, role, nombre, password } = body
+
+    if (!userId) {
+      return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'userId requerido' }) }
+    }
+
+    const { data: targetProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+
+    if (targetProfile?.role === 'admin' && userId !== caller.id) {
+      return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ error: 'No se puede modificar a otro administrador' }) }
+    }
+
+    const profileUpdates = {}
+    if (role && ALLOWED_ROLES.includes(role)) profileUpdates.role = role
+    if (nombre !== undefined) profileUpdates.nombre = String(nombre).trim() || null
+
+    if (Object.keys(profileUpdates).length > 0) {
+      await supabaseAdmin.from('profiles').update(profileUpdates).eq('id', userId)
+    }
+
+    if (password) {
+      if (String(password).length < 6) {
+        return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Contraseña debe tener al menos 6 caracteres' }) }
+      }
+      const { error: pwError } = await supabaseAdmin.auth.admin.updateUserById(userId, { password })
+      if (pwError) {
+        return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: pwError.message }) }
+      }
+    }
+
+    return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ ok: true }) }
+  }
+
+  // ── ELIMINAR USUARIO ──────────────────────────────────────────────────────
   if (action === 'delete') {
     const { userId } = body
 
     if (!userId) {
       return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'userId requerido' }) }
     }
-
-    // No permitir que un admin se elimine a sí mismo
     if (userId === caller.id) {
       return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'No puedes eliminar tu propio usuario' }) }
     }
 
-    // Verificar que el usuario a eliminar es técnico (no admin)
     const { data: targetProfile } = await supabaseAdmin
       .from('profiles')
       .select('role')

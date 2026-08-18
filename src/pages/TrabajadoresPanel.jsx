@@ -44,11 +44,11 @@ function TrabajadoresPanel() {
     if (!user) return
     supabase
       .from('profiles')
-      .select('username')
+      .select('username, nombre')
       .eq('id', user.id)
       .single()
       .then(({ data }) => {
-        if (data?.username) setWorkerName(data.username)
+        if (data) setWorkerName(data.nombre || data.username)
       })
   }, [user])
 

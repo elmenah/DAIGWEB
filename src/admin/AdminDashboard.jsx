@@ -7,13 +7,16 @@ import RegistrosManager from './RegistrosManager'
 import logoImg from '../assets/logo.jpeg'
 
 function AdminDashboard() {
-  const { logout } = useAuth()
+  const { logout, role } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = () => {
     logout()
     navigate('/admin', { replace: true })
   }
+
+  const isAdmin = role === 'admin'
+  const isDirectiva = role === 'directiva'
 
   return (
     <div className="admin-layout">
@@ -23,9 +26,11 @@ function AdminDashboard() {
           <h1>Panel de Administración</h1>
         </div>
         <div className="admin-header-right">
-          <a href="/" className="admin-btn-outline" target="_blank" rel="noopener noreferrer">
-            Ver Sitio
-          </a>
+          {isAdmin && (
+            <a href="/" className="admin-btn-outline" target="_blank" rel="noopener noreferrer">
+              Ver Sitio
+            </a>
+          )}
           <button onClick={handleLogout} className="admin-btn-danger">
             Cerrar Sesión
           </button>
@@ -35,25 +40,19 @@ function AdminDashboard() {
       <main className="admin-main">
         <div className="admin-container">
           <div className="admin-welcome">
-            <h2>Bienvenido, Administrador</h2>
-            <p>Desde aquí puedes gestionar las imágenes del portafolio de tu sitio web.</p>
+            {isAdmin && <h2>Bienvenido, Administrador</h2>}
+            {isDirectiva && <h2>Panel Directiva</h2>}
+            <p>
+              {isAdmin && 'Gestión completa del sitio, registros de trabajadores y usuarios.'}
+              {isDirectiva && 'Visualización de registros fotográficos y de trabajo del equipo.'}
+            </p>
           </div>
 
           <RegistrosManager />
 
-          <GalleryManager />
+          {isAdmin && <GalleryManager />}
 
-          <UserManager />
-
-          <div className="admin-section admin-info">
-            <h3>Información</h3>
-            <ul>
-              <li>Las imágenes se almacenan en <strong>Supabase Storage</strong> (bucket: gallery).</li>
-              <li>Tamaño máximo por imagen: 5MB.</li>
-              <li>Las imágenes agregadas aquí se mostrarán junto a las del portafolio por defecto.</li>
-              <li>La autenticación se gestiona a través de <strong>Supabase Auth</strong>.</li>
-            </ul>
-          </div>
+          {isAdmin && <UserManager />}
         </div>
       </main>
     </div>

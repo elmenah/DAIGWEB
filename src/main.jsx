@@ -87,7 +87,7 @@ root.render(
           path="/admin/dashboard"
           element={
             <Suspense fallback={<AdminLoader />}>
-              <AuthGuard allowedRoles={['admin']}>
+              <AuthGuard allowedRoles={['admin', 'directiva']}>
                 <AdminDashboard />
               </AuthGuard>
             </Suspense>

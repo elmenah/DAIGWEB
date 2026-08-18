@@ -48,7 +48,7 @@ function AuthGuard({ children, allowedRoles = [] }) {
     return children
   }
 
-  if (role === 'admin') {
+  if (role === 'admin' || role === 'directiva') {
     authDebugLog('decision', { result: 'redirect-admin-dashboard', from: location.pathname })
     return <Navigate to="/admin/dashboard" replace />
   }
