@@ -5708,3 +5708,292 @@ header.scrolled .navbar {
   display: block;
 }
 
+
+/* ======= Módulo Permisos de Trabajo ======= */
+
+/* Pills de estado */
+.permisos-pill {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+.permisos-pill--borrador   { background: rgba(234,179,8,0.12);  color: #fbbf24; border-color: rgba(234,179,8,0.3); }
+.permisos-pill--pendiente  { background: rgba(167,139,250,0.12);color: #a78bfa; border-color: rgba(167,139,250,0.3); }
+.permisos-pill--activo     { background: rgba(34,197,94,0.12);  color: #4ade80; border-color: rgba(34,197,94,0.3); }
+.permisos-pill--completado { background: rgba(56,189,248,0.12); color: #38bdf8; border-color: rgba(56,189,248,0.3); }
+.permisos-pill--rechazado  { background: rgba(239,68,68,0.12);  color: #f87171; border-color: rgba(239,68,68,0.3); }
+.permisos-pill--caducado   { background: rgba(148,163,184,0.1); color: #94a3b8; border-color: rgba(148,163,184,0.2); }
+
+/* Stats bar */
+.permisos-stats-bar {
+  display: flex;
+  gap: 0;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  overflow-x: auto;
+}
+.permisos-stat {
+  flex: 1;
+  min-width: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  cursor: default;
+}
+.permisos-stat-num   { font-size: 1.6rem; font-weight: 900; line-height: 1; }
+.permisos-stat-label { font-size: 0.68rem; font-weight: 600; color: var(--gray-text); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.03em; }
+.permisos-stat--pendiente  .permisos-stat-num { color: #a78bfa; }
+.permisos-stat--activo     .permisos-stat-num { color: #4ade80; }
+.permisos-stat--completado .permisos-stat-num { color: #38bdf8; }
+.permisos-stat--rechazado  .permisos-stat-num { color: #f87171; }
+.permisos-stat--caducado   .permisos-stat-num { color: #94a3b8; }
+
+/* Buscador */
+.permisos-search-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.permisos-search-input {
+  flex: 1;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  color: var(--white);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.permisos-search-input::placeholder { color: var(--gray-text); }
+.permisos-search-input:focus { border-color: var(--primary); }
+
+/* Lista de permisos */
+.permisos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.permisos-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.permisos-card:hover {
+  background: rgba(232,150,46,0.06);
+  border-color: rgba(232,150,46,0.25);
+}
+.permisos-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.permisos-card-id {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gray-text);
+  font-family: monospace;
+}
+.permisos-card-empresa {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+.permisos-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: 0.78rem;
+  color: var(--gray-text);
+}
+.permisos-card-meta b { color: rgba(255,255,255,0.6); }
+.permisos-card-footer {
+  margin-top: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-align: right;
+}
+
+/* Detalle */
+.permisos-back-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 16px;
+  display: inline-block;
+}
+.permisos-back-btn:hover { color: var(--primary-light); }
+
+.permisos-detalle-header-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.permisos-detalle-id     { font-size: 1.3rem; font-weight: 900; color: var(--white); letter-spacing: 0.05em; }
+.permisos-detalle-empresa{ font-size: 0.9rem; color: var(--gray-text); margin-top: 2px; }
+.permisos-detalle-fecha  { font-size: 0.75rem; color: var(--gray-text); margin-top: 4px; }
+
+.permisos-detalle-section {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.permisos-detalle-section-title {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.permisos-detalle-row {
+  display: flex;
+  padding: 9px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  gap: 12px;
+}
+.permisos-detalle-label {
+  width: 160px;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-text);
+  padding-top: 1px;
+}
+.permisos-detalle-value {
+  font-size: 0.875rem;
+  color: var(--white);
+  font-weight: 500;
+}
+
+/* Chips */
+.permisos-chips {
+  padding: 12px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.permisos-chips-label {
+  width: 100%;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--gray-text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.permisos-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(232,150,46,0.1);
+  border: 1px solid rgba(232,150,46,0.3);
+  color: var(--primary-light);
+}
+.permisos-chip--warning {
+  background: rgba(234,179,8,0.1);
+  border-color: rgba(234,179,8,0.3);
+  color: #fbbf24;
+}
+
+/* Firmas */
+.permisos-firmas-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 16px;
+}
+.permisos-firma-card {
+  flex: 1;
+  min-width: 150px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.permisos-firma-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.permisos-firma-ok      { color: var(--success); }
+.permisos-firma-pending { color: var(--gray-text); }
+.permisos-firma-body {
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  padding: 8px;
+}
+.permisos-firma-empty { color: #ccc; font-size: 0.8rem; }
+
+/* Acciones aprobar/rechazar */
+.permisos-acciones {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  margin-bottom: 32px;
+}
+.permisos-btn-rechazar {
+  flex: 1;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--danger);
+  background: transparent;
+  color: var(--danger);
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.permisos-btn-rechazar:hover:not(:disabled) { background: rgba(231,76,60,0.1); }
+.permisos-btn-aprobar {
+  flex: 1;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  border: none;
+  background: var(--success);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.permisos-btn-aprobar:hover:not(:disabled) { opacity: 0.9; }
+.permisos-btn-rechazar:disabled,
+.permisos-btn-aprobar:disabled { opacity: 0.5; cursor: not-allowed; }

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import App from './App'
 import { AuthProvider } from './admin/AuthContext'
+import { PermisosAuthProvider } from './permisos/PermisosAuthContext'
 import RouteSeo from './components/RouteSeo'
 import './index.css'
 
@@ -16,6 +17,9 @@ const ServicePage = lazy(() => import('./pages/ServicePage'))
 const CotizarPage = lazy(() => import('./pages/CotizarPage'))
 const TrabajadoresLogin = lazy(() => import('./pages/TrabajadoresLogin'))
 const TrabajadoresPanel = lazy(() => import('./pages/TrabajadoresPanel'))
+const PermisosLogin      = lazy(() => import('./pages/PermisosLogin'))
+const PermisosPanel      = lazy(() => import('./pages/PermisosPanel'))
+const PermisoDetallePage = lazy(() => import('./pages/PermisoDetallePage'))
 
 const AdminLoader = () => (
   <div className="admin-loading"><div className="admin-spinner"></div></div>
@@ -118,6 +122,37 @@ root.render(
               <AuthGuard allowedRoles={['admin', 'trabajador']}>
                 <TrabajadoresPanel />
               </AuthGuard>
+            </Suspense>
+          }
+        />
+        {/* Módulo de Permisos de Trabajo (adv_profiles) */}
+        <Route
+          path="/permisos"
+          element={
+            <Suspense fallback={<AdminLoader />}>
+              <PermisosAuthProvider>
+                <PermisosLogin />
+              </PermisosAuthProvider>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/permisos/panel"
+          element={
+            <Suspense fallback={<AdminLoader />}>
+              <PermisosAuthProvider>
+                <PermisosPanel />
+              </PermisosAuthProvider>
+            </Suspense>
+          }
+        />
+        <Route
+          path="/permisos/panel/:id"
+          element={
+            <Suspense fallback={<AdminLoader />}>
+              <PermisosAuthProvider>
+                <PermisoDetallePage />
+              </PermisosAuthProvider>
             </Suspense>
           }
         />
