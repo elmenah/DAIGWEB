@@ -7,7 +7,12 @@
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
       "Bash(git commit *)",
-      "Bash(C:/Users/menan/AppData/Local/Python/bin/python.exe \"C:/Users/menan/AppData/Local/Temp/claude/C--Users-menan-Documents-GitHub-DAIGWEB/096b7c6f-931c-4cd6-9e8b-9b2791b6aee3/scratchpad/gen_manual.py\")"
+      "Bash(C:/Users/menan/AppData/Local/Python/bin/python.exe \"C:/Users/menan/AppData/Local/Temp/claude/C--Users-menan-Documents-GitHub-DAIGWEB/096b7c6f-931c-4cd6-9e8b-9b2791b6aee3/scratchpad/gen_manual.py\")",
+      "Bash(git rm *)",
+      "Bash(rmdir src/permisos)",
+      "Bash(npm install *)",
+      "Read(//tmp/**)",
+      "Bash(npm run *)"
     ]
   }
 }

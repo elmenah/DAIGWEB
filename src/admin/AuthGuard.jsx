@@ -58,6 +58,11 @@ function AuthGuard({ children, allowedRoles = [] }) {
     return <Navigate to="/tecnico" replace />
   }
 
+  if (role === 'supervisor' || role === 'seguridad') {
+    authDebugLog('decision', { result: 'redirect-permisos', from: location.pathname })
+    return <Navigate to="/permisos/panel" replace />
+  }
+
   if (role === 'trabajador') {
     authDebugLog('decision', { result: 'redirect-trabajadores', from: location.pathname })
     return <Navigate to="/trabajadores/panel" replace />

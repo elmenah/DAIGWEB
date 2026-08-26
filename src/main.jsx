@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import App from './App'
 import { AuthProvider } from './admin/AuthContext'
-import { PermisosAuthProvider } from './permisos/PermisosAuthContext'
 import RouteSeo from './components/RouteSeo'
 import './index.css'
 
@@ -125,14 +124,12 @@ root.render(
             </Suspense>
           }
         />
-        {/* Módulo de Permisos de Trabajo (adv_profiles) */}
+        {/* Módulo de Permisos de Trabajo */}
         <Route
           path="/permisos"
           element={
             <Suspense fallback={<AdminLoader />}>
-              <PermisosAuthProvider>
-                <PermisosLogin />
-              </PermisosAuthProvider>
+              <PermisosLogin />
             </Suspense>
           }
         />
@@ -140,9 +137,9 @@ root.render(
           path="/permisos/panel"
           element={
             <Suspense fallback={<AdminLoader />}>
-              <PermisosAuthProvider>
+              <AuthGuard allowedRoles={['supervisor', 'seguridad', 'admin']}>
                 <PermisosPanel />
-              </PermisosAuthProvider>
+              </AuthGuard>
             </Suspense>
           }
         />
@@ -150,9 +147,9 @@ root.render(
           path="/permisos/panel/:id"
           element={
             <Suspense fallback={<AdminLoader />}>
-              <PermisosAuthProvider>
+              <AuthGuard allowedRoles={['supervisor', 'seguridad', 'admin']}>
                 <PermisoDetallePage />
-              </PermisosAuthProvider>
+              </AuthGuard>
             </Suspense>
           }
         />

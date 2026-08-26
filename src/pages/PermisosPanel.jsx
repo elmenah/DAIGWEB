@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import * as XLSX from 'xlsx'
 import { supabase } from '../lib/supabase'
-import { usePermisosAuth } from '../permisos/PermisosAuthContext'
+import { useAuth } from '../admin/AuthContext'
 import logoImg from '../assets/logo.jpeg'
 
 const ESTADO = {
@@ -28,7 +28,7 @@ function EstadoPill({ estado }) {
 }
 
 export default function PermisosPanel() {
-  const { nombre, role, logout } = usePermisosAuth()
+  const { nombre, role, logout } = useAuth()
   const navigate = useNavigate()
 
   const [tab, setTab]             = useState('pendientes')

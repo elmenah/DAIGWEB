@@ -34,6 +34,7 @@ const withTimeout = async (promise, ms, label) => {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [role, setRole] = useState(null)
+  const [nombre, setNombre] = useState(null)
   const [loading, setLoading] = useState(true)
   const [hasHydratedSession, setHasHydratedSession] = useState(false)
   const userRef = useRef(user)
@@ -50,6 +51,7 @@ export function AuthProvider({ children }) {
   const fetchRole = async (userId) => {
     if (!userId) {
       setRole(null)
+      setNombre(null)
       return false
     }
 
@@ -58,7 +60,7 @@ export function AuthProvider({ children }) {
       const { data, error } = await withTimeout(
         supabase
           .from('profiles')
-          .select('role')
+          .select('role, nombre')
           .eq('id', userId)
           .single(),
         AUTH_TIMEOUT_MS,
@@ -71,6 +73,7 @@ export function AuthProvider({ children }) {
       }
 
       setRole(data?.role ?? null)
+      setNombre(data?.nombre ?? null)
       authDebugLog('fetchRole:ok', { userId, role: data?.role ?? null })
       return true
     } catch {
@@ -84,6 +87,7 @@ export function AuthProvider({ children }) {
     const clearAuthState = () => {
       setUser(null)
       setRole(null)
+      setNombre(null)
       setLoading(false)
     }
 
@@ -114,6 +118,7 @@ export function AuthProvider({ children }) {
 
         if (!u) {
           setRole(null)
+          setNombre(null)
           return
         }
 
@@ -166,6 +171,7 @@ export function AuthProvider({ children }) {
           } else {
             if (isMounted) {
               setRole(null)
+              setNombre(null)
               setLoading(false)
             }
           }
@@ -249,10 +255,12 @@ export function AuthProvider({ children }) {
 
     let emailToLogin = identifier.toLowerCase()
 
-    // Si no parece email, intentar resolverlo desde profiles.username
+    // Si no parece email, intentar resolverlo desde profiles.username.
+    // Se aceptan RUT (con o sin puntos/guion) y nombres de usuario; los RUT
+    // se guardan sin formato, por eso normalizamos quitando puntos y guiones.
     if (!identifier.includes('@')) {
       try {
-        const normalizedUsername = identifier.toLowerCase()
+        const normalizedUsername = identifier.toLowerCase().replace(/[.\-\s]/g, '')
         const { data, error } = await supabase
           .from('profiles')
           .select('email')
@@ -280,13 +288,14 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut()
     setUser(null)
     setRole(null)
+    setNombre(null)
     authDebugLog('logout:done')
   }
 
   const isAuthenticated = !!user
 
   return (
-    <AuthContext.Provider value={{ user, role, isAuthenticated, loading, hasHydratedSession, login, logout }}>
+    <AuthContext.Provider value={{ user, role, nombre, isAuthenticated, loading, hasHydratedSession, login, logout }}>
       {children}
     </AuthContext.Provider>
   )

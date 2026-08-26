@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../admin/AuthContext'
-import { supabase } from '../lib/supabase'
 import logoImg from '../assets/logo.jpeg'
 
+// Identificador libre: RUT (con o sin formato) o correo. Solo aplicamos la
+// mascara de RUT cuando el texto parece un RUT (sin @ ni letras salvo la K del dv).
+const looksLikeRut = (value) => !/@/.test(value) && !/[a-jl-z]/i.test(value)
+
+const formatRut = (value) => {
+  const clean = value.replace(/[^0-9kK]/g, '').toUpperCase()
+  if (clean.length <= 1) return clean
+  const body = clean.slice(0, -1)
+  const dv = clean.slice(-1)
+  const formatted = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  return `${formatted}-${dv}`
+}
+
 function TrabajadoresLogin() {
-  const [rut, setRut] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -15,8 +27,9 @@ function TrabajadoresLogin() {
   useEffect(() => {
     if (!authLoading && hasHydratedSession && isAuthenticated) {
       if (role === 'trabajador') navigate('/trabajadores/panel', { replace: true })
-      else if (role === 'admin') navigate('/admin/dashboard', { replace: true })
+      else if (role === 'admin' || role === 'directiva') navigate('/admin/dashboard', { replace: true })
       else if (role === 'tecnico') navigate('/tecnico', { replace: true })
+      else if (role === 'supervisor' || role === 'seguridad') navigate('/permisos/panel', { replace: true })
     }
   }, [isAuthenticated, authLoading, hasHydratedSession, role, navigate])
 
@@ -24,45 +37,19 @@ function TrabajadoresLogin() {
     return <div className="admin-loading"><div className="admin-spinner"></div></div>
   }
 
-  const formatRut = (value) => {
-    const clean = value.replace(/[^0-9kK]/g, '').toUpperCase()
-    if (clean.length <= 1) return clean
-    const body = clean.slice(0, -1)
-    const dv = clean.slice(-1)
-    const formatted = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-    return `${formatted}-${dv}`
-  }
-
-  const handleRutChange = (e) => {
-    const raw = e.target.value.replace(/[^0-9kK.-]/g, '')
-    setRut(formatRut(raw.replace(/[.-]/g, '')))
+  const handleIdentifierChange = (e) => {
+    const raw = e.target.value
+    setIdentifier(looksLikeRut(raw) ? formatRut(raw) : raw)
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const rutClean = rut.replace(/\./g, '').replace(/-/g, '')
-    // Buscar el email real del trabajador por username (RUT sin formato)
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('email')
-      .eq('username', rutClean)
-      .single()
-    if (profileError || !profile?.email) {
-      setError('RUT no registrado. Consulta a tu supervisor.')
-      setLoading(false)
-      return
-    }
-    console.log('[TRAB LOGIN] email usado:', profile.email)
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email: profile.email,
-      password,
-    })
+    const result = await login(identifier, password)
     setLoading(false)
-    if (authError) {
-      console.log('[TRAB LOGIN] auth error:', authError.message)
-      setError(`Error: ${authError.message}`)
+    if (!result.success) {
+      setError(result.error || 'Credenciales incorrectas. Consulta a tu supervisor.')
     }
   }
 
@@ -73,22 +60,21 @@ function TrabajadoresLogin() {
           <img src={logoImg} alt="DAIG" />
         </div>
         <h2>Portal Trabajadores</h2>
-        <p className="admin-login-subtitle">Ingresa con tu RUT y clave</p>
+        <p className="admin-login-subtitle">Ingresa con tu RUT o correo y clave</p>
 
         {error && <div className="admin-alert admin-alert-error">{error}</div>}
 
         <form onSubmit={handleSubmit} className="admin-login-form">
           <div className="admin-field">
-            <label htmlFor="t-rut">RUT</label>
+            <label htmlFor="t-id">RUT o correo</label>
             <input
-              id="t-rut"
+              id="t-id"
               type="text"
-              value={rut}
-              onChange={handleRutChange}
+              value={identifier}
+              onChange={handleIdentifierChange}
               required
               autoComplete="username"
-              placeholder="12.345.678-9"
-              inputMode="numeric"
+              placeholder="12.345.678-9 o tu@correo.cl"
             />
           </div>
           <div className="admin-field">

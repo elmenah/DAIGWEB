@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { usePermisosAuth } from '../permisos/PermisosAuthContext'
+import { useAuth } from '../admin/AuthContext'
 import logoImg from '../assets/logo.jpeg'
 
 const ESTADO = {
@@ -66,7 +66,7 @@ function FirmaCard({ label, uri }) {
 export default function PermisoDetallePage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { role, logout } = usePermisosAuth()
+  const { role, logout } = useAuth()
 
   const [permiso, setPermiso] = useState(null)
   const [loading, setLoading] = useState(true)
