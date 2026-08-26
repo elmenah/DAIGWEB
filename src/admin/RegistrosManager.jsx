@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './AuthContext'
+import HeicImage from '../components/HeicImage'
 
 const PAGE_SIZE = 25
 
@@ -65,7 +66,7 @@ function PhotoModal({ url, onClose }) {
   return (
     <div className="reg-modal-overlay" onClick={onClose}>
       <button className="reg-modal-close" onClick={onClose}>×</button>
-      <img src={url} className="reg-modal-img" onClick={e => e.stopPropagation()} alt="" />
+      <HeicImage src={url} className="reg-modal-img" onClick={e => e.stopPropagation()} alt="" />
     </div>
   )
 }
@@ -392,7 +393,7 @@ function RegistrosManager() {
                       {r.fotos?.length > 0
                         ? <div className="reg-thumb-row">
                             {r.fotos.slice(0,3).map((url,i) => (
-                              <img key={i} src={url} className="reg-thumb" alt=""
+                              <HeicImage key={i} src={url} className="reg-thumb" alt=""
                                 onClick={e => { e.stopPropagation(); setModalUrl(url) }} />
                             ))}
                             {r.fotos.length > 3 && <span className="reg-thumb-more">+{r.fotos.length-3}</span>}
@@ -446,7 +447,7 @@ function RegistrosManager() {
                               <span className="reg-label">Todas las fotos ({r.fotos.length})</span>
                               <div className="reg-foto-grid">
                                 {r.fotos.map((url,i) => (
-                                  <img key={i} src={url} className="reg-foto" alt="" onClick={() => setModalUrl(url)} />
+                                  <HeicImage key={i} src={url} className="reg-foto" alt="" onClick={() => setModalUrl(url)} />
                                 ))}
                               </div>
                             </div>

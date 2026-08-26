@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../admin/AuthContext'
 import { supabase } from '../lib/supabase'
+import { isHeicFile, heicBlobToJpeg } from '../lib/heic'
 import logoImg from '../assets/logo.jpeg'
 
 const today = () => new Date().toISOString().split('T')[0]
@@ -141,10 +142,27 @@ function TrabajadoresPanel() {
 
   const uploadFotos = async () => {
     const urls = []
-    for (const file of fotos) {
-      const ext = file.name.split('.').pop()
+    for (const original of fotos) {
+      let file = original
+      let ext = (original.name.split('.').pop() || 'jpg').toLowerCase()
+      let contentType = original.type || undefined
+
+      // Las fotos de iPhone suelen venir en HEIC/HEIF, formato que los
+      // navegadores no muestran. Las convertimos a JPEG antes de subir.
+      if (isHeicFile(original)) {
+        try {
+          file = await heicBlobToJpeg(original)
+          ext = 'jpg'
+          contentType = 'image/jpeg'
+        } catch {
+          // Si la conversión falla, subimos el archivo original tal cual.
+        }
+      }
+
       const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-      const { error } = await supabase.storage.from('registros-fotos').upload(path, file, { cacheControl: '3600', upsert: false })
+      const { error } = await supabase.storage
+        .from('registros-fotos')
+        .upload(path, file, { cacheControl: '3600', upsert: false, contentType })
       if (!error) {
         const { data: urlData } = supabase.storage.from('registros-fotos').getPublicUrl(path)
         urls.push(urlData.publicUrl)
