@@ -21,15 +21,45 @@ export async function heicBlobToJpeg(blob, quality = 0.85) {
   return Array.isArray(out) ? out[0] : out
 }
 
+// Cola de concurrencia: heic2any decodifica en el hilo principal, así que
+// convertir muchas fotos a la vez congela la pestaña. Limitamos cuántas
+// conversiones corren en paralelo para que aparezcan de a poco sin trabar la UI.
+const MAX_CONCURRENT = 2
+let active = 0
+const waiters = []
+
+function acquireSlot() {
+  if (active < MAX_CONCURRENT) {
+    active++
+    return Promise.resolve()
+  }
+  return new Promise((resolve) => waiters.push(resolve))
+}
+
+function releaseSlot() {
+  active--
+  const next = waiters.shift()
+  if (next) {
+    active++
+    next()
+  }
+}
+
 // Convierte una URL de imagen HEIC a un object URL JPEG que el <img> sí puede
-// mostrar. Cachea por URL para no reconvertir el mismo archivo dos veces.
+// mostrar. Cachea por URL para no reconvertir el mismo archivo dos veces y
+// pasa por la cola para no saturar el hilo principal.
 export function heicUrlToJpegUrl(url) {
   if (urlCache.has(url)) return urlCache.get(url)
   const promise = (async () => {
-    const res = await fetch(url)
-    const blob = await res.blob()
-    const jpeg = await heicBlobToJpeg(blob)
-    return URL.createObjectURL(jpeg)
+    await acquireSlot()
+    try {
+      const res = await fetch(url)
+      const blob = await res.blob()
+      const jpeg = await heicBlobToJpeg(blob)
+      return URL.createObjectURL(jpeg)
+    } finally {
+      releaseSlot()
+    }
   })()
   urlCache.set(url, promise)
   return promise
