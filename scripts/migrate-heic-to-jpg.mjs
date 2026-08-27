@@ -74,9 +74,13 @@ async function main() {
 
   let totalHeic = 0, convertidas = 0, fallidas = 0, registrosTocados = 0
 
+  const isJpg = (u) => typeof u === 'string' && /\.jpe?g(\?|#|$)/i.test(u)
+
   for (const reg of registros) {
     const fotos = Array.isArray(reg.fotos) ? reg.fotos : []
-    if (!fotos.some(isHeic)) continue
+    if (fotos.length === 0) continue
+    // En dry-run solo miramos los .heic; en apply tambien recuperamos .jpg rotos.
+    if (!APPLY && !fotos.some(isHeic)) continue
 
     const nuevas = [...fotos]
     const borrar = []
@@ -84,37 +88,53 @@ async function main() {
 
     for (let i = 0; i < fotos.length; i++) {
       const url = fotos[i]
-      if (!isHeic(url)) continue
-      totalHeic++
 
-      const srcPath = pathFromPublicUrl(url)
-      if (!srcPath) { console.warn(`  ! No pude derivar el path de: ${url}`); fallidas++; continue }
-      const destPath = srcPath.replace(/\.(heic|heif)$/i, '.jpg')
-
-      console.log(`  • Registro ${reg.id}: ${srcPath} → ${destPath.split('/').pop()}`)
+      // Origen HEIC a leer y destino JPG a escribir.
+      // - url .heic  -> convertir normal
+      // - url .jpg   -> intentar recuperar desde el .heic hermano (auto-sanacion
+      //                 que dejo un jpg roto); si no hay .heic, es un jpg legitimo.
+      let srcHeicPath = null
+      let destJpgPath = null
+      if (isHeic(url)) {
+        srcHeicPath = pathFromPublicUrl(url)
+        if (srcHeicPath) destJpgPath = srcHeicPath.replace(/\.(heic|heif)$/i, '.jpg')
+      } else if (isJpg(url)) {
+        if (!APPLY) continue // la recuperacion de .jpg solo se evalua en apply
+        const jpgPath = pathFromPublicUrl(url)
+        if (jpgPath) { srcHeicPath = jpgPath.replace(/\.jpe?g$/i, '.heic'); destJpgPath = jpgPath }
+      }
+      if (!srcHeicPath || !destJpgPath) continue
 
       if (!APPLY) {
+        totalHeic++
+        console.log(`  • Registro ${reg.id}: ${srcHeicPath} → ${destJpgPath.split('/').pop()}`)
         convertidas++
-        nuevas[i] = url.replace(/\.(heic|heif)(\?|#|$)/i, '.jpg$2')
+        nuevas[i] = supabase.storage.from(BUCKET).getPublicUrl(destJpgPath).data.publicUrl
         cambiado = true
         continue
       }
 
-      try {
-        const { data: blob, error: dErr } = await supabase.storage.from(BUCKET).download(srcPath)
-        if (dErr) throw dErr
-        const inputBuffer = Buffer.from(await blob.arrayBuffer())
+      // Descargar el HEIC de origen. Si no existe (jpg legitimo del trabajador,
+      // sin .heic hermano), se salta en silencio.
+      const { data: blob, error: dErr } = await supabase.storage.from(BUCKET).download(srcHeicPath)
+      if (dErr || !blob) {
+        if (isHeic(url)) { totalHeic++; console.warn(`  ! No pude bajar ${srcHeicPath}`); fallidas++ }
+        continue
+      }
+      totalHeic++
+      console.log(`  • Registro ${reg.id}: ${srcHeicPath} → ${destJpgPath.split('/').pop()}`)
 
+      try {
+        const inputBuffer = Buffer.from(await blob.arrayBuffer())
         const outputBuffer = await heicConvert({ buffer: inputBuffer, format: 'JPEG', quality: 0.85 })
 
         const { error: uErr } = await supabase.storage
           .from(BUCKET)
-          .upload(destPath, Buffer.from(outputBuffer), { contentType: 'image/jpeg', upsert: true })
+          .upload(destJpgPath, Buffer.from(outputBuffer), { contentType: 'image/jpeg', upsert: true })
         if (uErr) throw uErr
 
-        const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(destPath)
-        nuevas[i] = pub.publicUrl
-        if (destPath !== srcPath) borrar.push(srcPath)
+        nuevas[i] = supabase.storage.from(BUCKET).getPublicUrl(destJpgPath).data.publicUrl
+        if (isHeic(url) && srcHeicPath !== destJpgPath) borrar.push(srcHeicPath)
         cambiado = true
         convertidas++
       } catch (e) {
