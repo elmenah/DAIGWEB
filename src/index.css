@@ -4599,6 +4599,20 @@ header.scrolled .navbar {
   .admin-topbar { padding: 0.9rem 1.25rem; }
 }
 
+@media (max-width: 640px) {
+  .admin-page { padding: 1rem; }
+  .admin-kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+  .admin-kpi { padding: 0.85rem 0.9rem; }
+  .admin-kpi-value { font-size: 1.5rem; }
+  .admin-kpi-label { font-size: 0.78rem; }
+  /* La sección interna (Registros/Usuarios/Galería) sin padding lateral extra */
+  .admin-page .admin-section { padding: 1rem; }
+  /* Tabla de registros más compacta; el scroll horizontal queda contenido */
+  .reg-table { font-size: 0.8rem; }
+  .reg-table th, .reg-table td { padding: 8px 10px; }
+  .reg-td-tarea { max-width: 150px; }
+}
+
 /* Admin Form */
 .admin-form {
   background: var(--dark-bg);
