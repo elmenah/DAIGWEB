@@ -145,7 +145,7 @@ function RegistrosManager() {
     if (filtroFechaHasta) query = query.lte('fecha', filtroFechaHasta)
     if (textoDebounced) {
       const t = textoDebounced.trim()
-      query = query.or(`tarea.ilike.%${t}%,descripcion.ilike.%${t}%,equipo_intervenido.ilike.%${t}%,trabajador_nombre.ilike.%${t}%,material_utilizado.ilike.%${t}%`)
+      query = query.or(`tarea.ilike.%${t}%,descripcion.ilike.%${t}%,equipo_intervenido.ilike.%${t}%,trabajador_nombre.ilike.%${t}%,material_utilizado.ilike.%${t}%,aviso_sap.ilike.%${t}%,planta.ilike.%${t}%`)
     }
 
     const { data, count } = await query
@@ -196,15 +196,15 @@ function RegistrosManager() {
     if (filtroFechaHasta) query = query.lte('fecha', filtroFechaHasta)
     if (textoDebounced) {
       const t = textoDebounced.trim()
-      query = query.or(`tarea.ilike.%${t}%,descripcion.ilike.%${t}%,equipo_intervenido.ilike.%${t}%,trabajador_nombre.ilike.%${t}%`)
+      query = query.or(`tarea.ilike.%${t}%,descripcion.ilike.%${t}%,equipo_intervenido.ilike.%${t}%,trabajador_nombre.ilike.%${t}%,aviso_sap.ilike.%${t}%,planta.ilike.%${t}%`)
     }
     const { data } = await query
     if (!data?.length) return
 
-    const headers = ['Trabajador','Fecha','Hora','Tipo','Equipo','Tarea','Descripcion','Material','Horas','Estado','Ubicacion','Revisado por','Comentario']
+    const headers = ['Trabajador','Fecha','Hora','Tipo','Equipo','Planta','Aviso SAP','Tarea','Descripcion','Material','Horas','Estado','Ubicacion','Revisado por','Comentario']
     const rows = data.map(r => [
       r.trabajador_nombre || '', r.fecha || '', r.hora?.slice(0,5) || '',
-      r.tipo_trabajo || '', r.equipo_intervenido || '', r.tarea || '',
+      r.tipo_trabajo || '', r.equipo_intervenido || '', r.planta || '', r.aviso_sap || '', r.tarea || '',
       r.descripcion || '', r.material_utilizado || '',
       r.horas_trabajadas || '', r.estado || '', r.ubicacion_texto || '',
       r.revisado_por || '', r.comentario_admin || '',
@@ -246,6 +246,8 @@ function RegistrosManager() {
       <tr><td><b>Tipo de trabajo</b></td><td>${r.tipo_trabajo||'—'}</td></tr>
       <tr><td><b>Estado</b></td><td>${r.estado ? estadoBadge() : '—'}</td></tr>
       <tr><td><b>Equipo / Activo</b></td><td>${r.equipo_intervenido||'—'}</td></tr>
+      <tr><td><b>Planta / lugar</b></td><td>${r.planta||'—'}</td></tr>
+      <tr><td><b>Aviso SAP</b></td><td>${r.aviso_sap||'—'}</td></tr>
       <tr><td><b>Tarea realizada</b></td><td>${r.tarea||'—'}</td></tr>
       <tr><td><b>Descripción</b></td><td>${r.descripcion||'—'}</td></tr>
       <tr><td><b>Material utilizado</b></td><td>${r.material_utilizado||'—'}</td></tr>
@@ -311,7 +313,7 @@ function RegistrosManager() {
           <label>Buscar</label>
           <input type="text" value={filtroTexto}
             onChange={e => { setFiltroTexto(e.target.value); setPage(0) }}
-            placeholder="Tarea, equipo, descripción, trabajador..." />
+            placeholder="Tarea, equipo, planta, SAP, trabajador..." />
         </div>
         <div className="reg-filter-group">
           <label>Trabajador</label>
@@ -416,6 +418,18 @@ function RegistrosManager() {
                             <div className="reg-field">
                               <span className="reg-label">Equipo / Activo intervenido</span>
                               <p>{r.equipo_intervenido}</p>
+                            </div>
+                          )}
+                          {r.planta && (
+                            <div className="reg-field">
+                              <span className="reg-label">Planta / lugar de trabajo</span>
+                              <p>{r.planta}</p>
+                            </div>
+                          )}
+                          {r.aviso_sap && (
+                            <div className="reg-field">
+                              <span className="reg-label">Aviso SAP</span>
+                              <p>{r.aviso_sap}</p>
                             </div>
                           )}
                           {r.descripcion && (

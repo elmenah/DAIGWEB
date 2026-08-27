@@ -22,6 +22,8 @@ function TrabajadoresPanel() {
   const [tipoTrabajo, setTipoTrabajo] = useState('')
   const [tipoTrabajoOtro, setTipoTrabajoOtro] = useState('')
   const [equipoIntervenido, setEquipoIntervenido] = useState('')
+  const [avisoSap, setAvisoSap] = useState('')
+  const [planta, setPlanta] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [materialUtilizado, setMaterialUtilizado] = useState('')
   const [horasTrabajadas, setHorasTrabajadas] = useState('')
@@ -67,7 +69,8 @@ function TrabajadoresPanel() {
 
   const resetForm = () => {
     setTarea(''); setTipoTrabajo(''); setTipoTrabajoOtro('')
-    setEquipoIntervenido(''); setDescripcion(''); setMaterialUtilizado('')
+    setEquipoIntervenido(''); setAvisoSap(''); setPlanta('')
+    setDescripcion(''); setMaterialUtilizado('')
     setHorasTrabajadas(''); setEstado('Terminado')
     setUbicacionLat(null); setUbicacionLng(null); setGpsError('')
     setFotos([]); setFotosPreviews([]); setFotosExistentes([])
@@ -84,6 +87,8 @@ function TrabajadoresPanel() {
     setHora(r.hora?.slice(0,5) || nowTime())
     setTarea(r.tarea || '')
     setEquipoIntervenido(r.equipo_intervenido || '')
+    setAvisoSap(r.aviso_sap || '')
+    setPlanta(r.planta || '')
     setDescripcion(r.descripcion || '')
     setMaterialUtilizado(r.material_utilizado || '')
     setHorasTrabajadas(r.horas_trabajadas?.toString() || '')
@@ -193,6 +198,8 @@ function TrabajadoresPanel() {
         hora,
         tipo_trabajo: tipoFinal,
         equipo_intervenido: equipoIntervenido.trim(),
+        aviso_sap: avisoSap.trim() || null,
+        planta: planta.trim() || null,
         tarea: tarea.trim(),
         descripcion: descripcion.trim(),
         material_utilizado: materialUtilizado.trim(),
@@ -329,6 +336,20 @@ function TrabajadoresPanel() {
                   placeholder="Ej: Bomba centrífuga B-03, Compresor sector norte" />
               </div>
 
+              <div className="trab-row">
+                <div className="trab-field">
+                  <label htmlFor="t-planta">Planta / lugar de trabajo</label>
+                  <input id="t-planta" type="text" value={planta} onChange={e => setPlanta(e.target.value)}
+                    placeholder="Ej: PTAS Peralillo ADV" />
+                </div>
+                <div className="trab-field">
+                  <label htmlFor="t-sap">Aviso SAP</label>
+                  <input id="t-sap" type="text" inputMode="numeric" value={avisoSap}
+                    onChange={e => setAvisoSap(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Ej: 10012345" />
+                </div>
+              </div>
+
               <div className="trab-field">
                 <label htmlFor="t-tarea">Tarea realizada *</label>
                 <input id="t-tarea" type="text" value={tarea} onChange={e => setTarea(e.target.value)}
@@ -452,6 +473,18 @@ function TrabajadoresPanel() {
                           <p>{r.equipo_intervenido}</p>
                         </div>
                       )}
+                      {r.planta && (
+                        <div className="trab-hist-field">
+                          <span className="trab-hist-label">Planta / lugar</span>
+                          <p>{r.planta}</p>
+                        </div>
+                      )}
+                      {r.aviso_sap && (
+                        <div className="trab-hist-field">
+                          <span className="trab-hist-label">Aviso SAP</span>
+                          <p>{r.aviso_sap}</p>
+                        </div>
+                      )}
                       {r.descripcion && (
                         <div className="trab-hist-field">
                           <span className="trab-hist-label">Descripción</span>
@@ -506,17 +539,15 @@ function TrabajadoresPanel() {
                         </div>
                       )}
 
-                      {/* Edit button — only for today's records */}
-                      {r.fecha === today() && (
-                        <button
-                          className="trab-edit-btn"
-                          onClick={() => loadForEdit(r)}
-                          style={{ marginTop: '0.75rem' }}
-                        >
-                          <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                          Editar este registro
-                        </button>
-                      )}
+                      {/* Editar cualquier registro propio (p. ej. para agregar el Aviso SAP) */}
+                      <button
+                        className="trab-edit-btn"
+                        onClick={() => loadForEdit(r)}
+                        style={{ marginTop: '0.75rem' }}
+                      >
+                        <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                        Editar este registro
+                      </button>
                     </div>
                   )}
                 </div>
