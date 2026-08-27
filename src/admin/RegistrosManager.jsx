@@ -2,6 +2,16 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './AuthContext'
 import HeicImage from '../components/HeicImage'
+import { isHeic, heicBlobToJpeg } from '../lib/heic'
+
+const FOTOS_BUCKET = 'registros-fotos'
+
+// Deriva el path dentro del bucket a partir de la URL pública
+const pathFromPublicUrl = (url) => {
+  const marker = `/object/public/${FOTOS_BUCKET}/`
+  const i = url.indexOf(marker)
+  return i === -1 ? null : decodeURIComponent(url.slice(i + marker.length).split('?')[0])
+}
 
 const PAGE_SIZE = 25
 
@@ -104,6 +114,9 @@ function RegistrosManager() {
   // Debounce texto
   const [textoDebounced, setTextoDebounced] = useState('')
   const debounceRef = useRef(null)
+
+  // Ids de registros ya procesados (HEIC -> JPG persistido) en esta sesión
+  const healedRef = useRef(new Set())
   useEffect(() => {
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => setTextoDebounced(filtroTexto), 350)
@@ -161,6 +174,69 @@ function RegistrosManager() {
   }, [filtroTrabajador, filtroEstado, filtroFechaDesde, filtroFechaHasta, textoDebounced, sortCol, sortAsc, page])
 
   useEffect(() => { load() }, [load])
+
+  // ── Convertir fotos HEIC a JPG y persistirlas ──────────────────────────────
+  // Al ver un registro con fotos HEIC, el navegador las convierte a JPG, sube
+  // el JPG al storage y actualiza registros_trabajo.fotos. Así la próxima vez
+  // ya son JPG y no se reconvierten. Requiere la política de storage:
+  // supabase/admin_puede_subir_fotos.sql
+  // Deja logs en consola ([HEIC]) para diagnosticar si algo falla.
+  const healRegistroFotos = useCallback(async (reg) => {
+    if (!reg?.fotos?.some(isHeic)) return
+    if (healedRef.current.has(reg.id)) return
+    healedRef.current.add(reg.id)
+
+    const nuevas = [...reg.fotos]
+    let changed = false
+    for (let i = 0; i < nuevas.length; i++) {
+      const url = nuevas[i]
+      if (!isHeic(url)) continue
+      const srcPath = pathFromPublicUrl(url)
+      if (!srcPath) continue
+      const destPath = srcPath.replace(/\.(heic|heif)$/i, '.jpg')
+      try {
+        const res = await fetch(url)
+        const blob = await res.blob()
+        const jpeg = await heicBlobToJpeg(blob)
+        const buffer = await jpeg.arrayBuffer() // subir binario, no Blob
+        console.log('[HEIC]', reg.id, srcPath, 'jpegBytes=', buffer.byteLength)
+        const { error: upErr } = await supabase.storage
+          .from(FOTOS_BUCKET)
+          .upload(destPath, buffer, { contentType: 'image/jpeg', upsert: true })
+        if (upErr) { console.warn('[HEIC] upload error:', upErr.message); throw upErr }
+        const { data: pub } = supabase.storage.from(FOTOS_BUCKET).getPublicUrl(destPath)
+        nuevas[i] = pub.publicUrl
+        changed = true
+      } catch (e) {
+        console.warn('[HEIC] fallo, se reintentará luego:', e?.message || e)
+        healedRef.current.delete(reg.id)
+        return
+      }
+    }
+    if (changed) {
+      const { error } = await supabase.from('registros_trabajo').update({ fotos: nuevas }).eq('id', reg.id)
+      if (error) {
+        console.warn('[HEIC] no pude actualizar la BDD:', error.message)
+        healedRef.current.delete(reg.id)
+      } else {
+        console.log('[HEIC] persistido OK:', reg.id)
+        setRegistros(prev => prev.map(x => x.id === reg.id ? { ...x, fotos: nuevas } : x))
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    const pendientes = registros.filter(r => r.fotos?.some(isHeic) && !healedRef.current.has(r.id))
+    if (pendientes.length === 0) return
+    let cancelled = false
+    ;(async () => {
+      for (const r of pendientes) {
+        if (cancelled) break
+        await healRegistroFotos(r)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [registros, healRegistroFotos])
 
   useEffect(() => {
     supabase.from('profiles').select('id, username, nombre').eq('role', 'trabajador').order('nombre')
