@@ -5156,7 +5156,15 @@ header.scrolled .navbar {
 .reg-td-worker { font-weight: 700; color: var(--primary); white-space: nowrap; }
 .reg-td-fecha  { white-space: nowrap; color: var(--text); font-weight: 600; }
 .reg-td-hora   { white-space: nowrap; color: var(--gray-text); }
-.reg-td-tarea  { color: var(--text); max-width: 220px; }
+.reg-td-tarea  { color: var(--text); max-width: 280px; }
+/* Limita tarea y equipo a 2 líneas para que las filas queden parejas */
+.reg-td-tarea > div {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
+}
 .reg-td-ubicacion { max-width: 160px; }
 .reg-td-fotos  { white-space: nowrap; }
 

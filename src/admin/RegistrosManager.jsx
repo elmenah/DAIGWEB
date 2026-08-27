@@ -225,18 +225,22 @@ function RegistrosManager() {
     }
   }, [])
 
+  // Sana TODO el backlog HEIC en una sola visita (no solo la página visible):
+  // busca todos los registros con fotos HEIC y los procesa en segundo plano.
   useEffect(() => {
-    const pendientes = registros.filter(r => r.fotos?.some(isHeic) && !healedRef.current.has(r.id))
-    if (pendientes.length === 0) return
     let cancelled = false
     ;(async () => {
-      for (const r of pendientes) {
+      const { data } = await supabase.from('registros_trabajo').select('id, fotos')
+      const conHeic = (data || []).filter(
+        r => Array.isArray(r.fotos) && r.fotos.some(isHeic) && !healedRef.current.has(r.id)
+      )
+      for (const r of conHeic) {
         if (cancelled) break
         await healRegistroFotos(r)
       }
     })()
     return () => { cancelled = true }
-  }, [registros, healRegistroFotos])
+  }, [healRegistroFotos])
 
   useEffect(() => {
     supabase.from('profiles').select('id, username, nombre').eq('role', 'trabajador').order('nombre')
