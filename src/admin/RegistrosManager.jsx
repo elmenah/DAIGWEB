@@ -214,9 +214,16 @@ function RegistrosManager() {
       }
     }
     if (changed) {
-      const { error } = await supabase.from('registros_trabajo').update({ fotos: nuevas }).eq('id', reg.id)
+      const { data: updated, error } = await supabase
+        .from('registros_trabajo')
+        .update({ fotos: nuevas })
+        .eq('id', reg.id)
+        .select('id')
       if (error) {
         console.warn('[HEIC] no pude actualizar la BDD:', error.message)
+        healedRef.current.delete(reg.id)
+      } else if (!updated || updated.length === 0) {
+        console.warn('[HEIC] la BDD NO se actualizó (0 filas): falta permiso UPDATE del admin en registros_trabajo. Corre supabase/admin_update_registros.sql')
         healedRef.current.delete(reg.id)
       } else {
         console.log('[HEIC] persistido OK:', reg.id)
