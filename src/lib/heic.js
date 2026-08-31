@@ -14,6 +14,19 @@ export const isHeicFile = (file) =>
     /\.(heic|heif)$/i.test(file.name || '')
   )
 
+// Detecta HEIC leyendo los primeros bytes del archivo (más fiable que MIME/extensión,
+// porque algunos iPhones envían el archivo con tipo "image/jpeg" aunque sea HEIC).
+export async function isHeicByHeader(file) {
+  try {
+    const buf = await file.slice(4, 12).arrayBuffer()
+    const b = new Uint8Array(buf)
+    const ftyp = String.fromCharCode(b[0], b[1], b[2], b[3])
+    if (ftyp !== 'ftyp') return false
+    const brand = String.fromCharCode(b[4], b[5], b[6], b[7]).toLowerCase()
+    return /^(heic|heix|hevc|hevx|mif1|msf1|avci|avcs)/.test(brand)
+  } catch { return false }
+}
+
 // Convierte un Blob/File HEIC a un Blob JPEG.
 export async function heicBlobToJpeg(blob, quality = 0.85) {
   const heic2any = (await import('heic2any')).default

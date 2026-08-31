@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../admin/AuthContext'
 import { supabase } from '../lib/supabase'
-import { isHeicFile, heicBlobToJpeg } from '../lib/heic'
+import { isHeicFile, isHeicByHeader, heicBlobToJpeg } from '../lib/heic'
 import logoImg from '../assets/logo.jpeg'
 
 const today = () => new Date().toISOString().split('T')[0]
@@ -148,26 +148,31 @@ function TrabajadoresPanel() {
   const uploadFotos = async () => {
     const urls = []
     for (const original of fotos) {
-      let file = original
-      let ext = (original.name.split('.').pop() || 'jpg').toLowerCase()
-      let contentType = original.type || undefined
+      let blob = original
+      let contentType = 'image/jpeg'
 
-      // Las fotos de iPhone suelen venir en HEIC/HEIF, formato que los
-      // navegadores no muestran. Las convertimos a JPEG antes de subir.
-      if (isHeicFile(original)) {
+      // Detectar HEIC/HEIF por MIME, extensión o header del archivo
+      // (algunos iPhones mandan HEIC con MIME "image/jpeg")
+      const heicPorMimeOExt = isHeicFile(original)
+      const heicPorHeader = heicPorMimeOExt ? false : await isHeicByHeader(original)
+
+      if (heicPorMimeOExt || heicPorHeader) {
+        // Convertir HEIC → JPEG usando heic2any
         try {
-          file = await heicBlobToJpeg(original)
-          ext = 'jpg'
-          contentType = 'image/jpeg'
+          blob = await heicBlobToJpeg(original)
         } catch {
-          // Si la conversión falla, subimos el archivo original tal cual.
+          // Si falla la conversión HEIC, intentar via canvas como fallback
+          blob = await convertToJpegViaCanvas(original)
         }
+      } else if (!/^image\/jpeg$/i.test(original.type)) {
+        // Para PNG, WebP, etc.: convertir a JPEG via canvas para uniformidad
+        blob = await convertToJpegViaCanvas(original)
       }
 
-      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
       const { error } = await supabase.storage
         .from('registros-fotos')
-        .upload(path, file, { cacheControl: '3600', upsert: false, contentType })
+        .upload(path, blob, { cacheControl: '3600', upsert: false, contentType })
       if (!error) {
         const { data: urlData } = supabase.storage.from('registros-fotos').getPublicUrl(path)
         urls.push(urlData.publicUrl)
@@ -175,6 +180,22 @@ function TrabajadoresPanel() {
     }
     return urls
   }
+
+  // Convierte cualquier imagen legible por el browser a un Blob JPEG via canvas
+  const convertToJpegViaCanvas = (file) => new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = img.naturalWidth
+      canvas.height = img.naturalHeight
+      canvas.getContext('2d').drawImage(img, 0, 0)
+      URL.revokeObjectURL(url)
+      canvas.toBlob((b) => b ? resolve(b) : reject(new Error('canvas toBlob failed')), 'image/jpeg', 0.88)
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file) }
+    img.src = url
+  })
 
   const handleSubmit = async (e) => {
     e.preventDefault()
