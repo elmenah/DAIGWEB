@@ -47,6 +47,160 @@ function KpiCard({ label, value, color, sub, onClick }) {
   )
 }
 
+// ── helpers de fechas para el gráfico ────────────────────────────────────────
+function getLunes(offset = 0) {
+  const d = new Date(); const day = d.getDay() || 7
+  d.setDate(d.getDate() - day + 1 - offset * 7)
+  d.setHours(0, 0, 0, 0); return d
+}
+function getPrimerDiaMes(offset = 0) {
+  const d = new Date(); d.setDate(1); d.setHours(0, 0, 0, 0)
+  d.setMonth(d.getMonth() - offset); return d
+}
+function fmtSemana(d) {
+  return d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' }).replace('.', '')
+}
+function fmtMes(d) {
+  return d.toLocaleDateString('es-CL', { month: 'short' }).replace('.', '')
+}
+
+function ActivityChart() {
+  const [vista,   setVista]   = useState('semanas') // 'semanas' | 'meses'
+  const [metrica, setMetrica] = useState('registros') // 'registros' | 'horas'
+  const [datos,   setDatos]   = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setLoading(true)
+    const semanas = 8, meses = 6
+
+    // Fecha de inicio: la más antigua entre 8 semanas y 6 meses atrás
+    const desde8sem  = getLunes(semanas - 1).toISOString().split('T')[0]
+    const desde6mes  = getPrimerDiaMes(meses - 1).toISOString().split('T')[0]
+    const desdeMin   = desde8sem < desde6mes ? desde8sem : desde6mes
+
+    supabase.from('registros_trabajo')
+      .select('fecha, horas_trabajadas')
+      .gte('fecha', desdeMin)
+      .then(({ data }) => {
+        const rows = data || []
+
+        // ── semanas ──
+        const bucketsSem = Array.from({ length: semanas }, (_, i) => {
+          const lunes   = getLunes(semanas - 1 - i)
+          const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6)
+          return { label: fmtSemana(lunes), count: 0, horas: 0, desde: lunes, hasta: domingo }
+        })
+        for (const r of rows) {
+          const f = new Date(r.fecha + 'T12:00:00')
+          for (const b of bucketsSem) {
+            if (f >= b.desde && f <= b.hasta) { b.count++; b.horas += r.horas_trabajadas || 0; break }
+          }
+        }
+
+        // ── meses ──
+        const bucketsMes = Array.from({ length: meses }, (_, i) => {
+          const d = getPrimerDiaMes(meses - 1 - i)
+          return { label: fmtMes(d), count: 0, horas: 0, mes: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}` }
+        })
+        for (const r of rows) {
+          const mes = r.fecha.slice(0, 7)
+          const b = bucketsMes.find(b => b.mes === mes)
+          if (b) { b.count++; b.horas += r.horas_trabajadas || 0 }
+        }
+
+        setDatos({ semanas: bucketsSem, meses: bucketsMes })
+        setLoading(false)
+      })
+  }, [])
+
+  const buckets = datos[vista] || []
+  const vals    = buckets.map(b => metrica === 'horas' ? +(b.horas.toFixed(1)) : b.count)
+  const maxVal  = Math.max(...vals, 1)
+  const isActualIdx = buckets.length - 1
+
+  // SVG dims
+  const W = 560, H = 160, pL = 28, pB = 28, pT = 14, pR = 8
+  const cW = W - pL - pR, cH = H - pB - pT
+  const step = cW / buckets.length
+  const bW   = Math.min(step * 0.55, 40)
+
+  const yLines = [0, 0.25, 0.5, 0.75, 1]
+
+  return (
+    <div className="dash-chart-card">
+      <div className="dash-chart-top">
+        <span className="dash-chart-title">Actividad del equipo</span>
+        <div className="dash-chart-tabs">
+          {[['semanas','8 semanas'],['meses','6 meses']].map(([v,l]) => (
+            <button key={v} className={`dash-tab ${vista===v?'dash-tab--on':''}`} onClick={() => setVista(v)}>{l}</button>
+          ))}
+          <span className="dash-tab-sep" />
+          {[['registros','Registros'],['horas','Horas']].map(([v,l]) => (
+            <button key={v} className={`dash-tab ${metrica===v?'dash-tab--on':''}`} onClick={() => setMetrica(v)}>{l}</button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <div style={{ height: H, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div className="admin-spinner" />
+        </div>
+      ) : (
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width:'100%', height:'auto', display:'block' }}>
+          {/* grid */}
+          {yLines.map(p => {
+            const y = pT + cH * (1 - p)
+            const v = maxVal * p
+            const lbl = metrica === 'horas' ? (v % 1 === 0 ? v : v.toFixed(1)) : Math.round(v)
+            return (
+              <g key={p}>
+                <line x1={pL} y1={y} x2={W-pR} y2={y}
+                  stroke="rgba(255,255,255,0.07)" strokeWidth="1" strokeDasharray={p===0?'none':'3 3'} />
+                {p > 0 && (
+                  <text x={pL-4} y={y+3.5} textAnchor="end" fontSize="8" fill="rgba(255,255,255,0.3)">{lbl}</text>
+                )}
+              </g>
+            )
+          })}
+
+          {/* bars */}
+          {buckets.map((b, i) => {
+            const val  = vals[i]
+            const barH = Math.max((val / maxVal) * cH, val > 0 ? 2 : 0)
+            const x    = pL + i * step + (step - bW) / 2
+            const y    = pT + cH - barH
+            const isNow = i === isActualIdx
+            return (
+              <g key={i}>
+                {/* fondo tenue */}
+                <rect x={x} y={pT} width={bW} height={cH}
+                  fill="rgba(255,255,255,0.02)" rx="3" />
+                {/* barra */}
+                <rect x={x} y={y} width={bW} height={barH}
+                  fill={isNow ? '#f5a623' : '#3b82f6'} rx="3"
+                  opacity={isNow ? 1 : 0.65} />
+                {/* valor encima */}
+                {val > 0 && (
+                  <text x={x+bW/2} y={y-4} textAnchor="middle" fontSize="9"
+                    fill={isNow ? '#f5a623' : '#9a9ab0'} fontWeight={isNow?'700':'400'}>
+                    {val}
+                  </text>
+                )}
+                {/* etiqueta X */}
+                <text x={x+bW/2} y={H-6} textAnchor="middle" fontSize="8.5"
+                  fill={isNow ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.35)'}>
+                  {b.label}
+                </text>
+              </g>
+            )
+          })}
+        </svg>
+      )}
+    </div>
+  )
+}
+
 function DashboardHome({ nombre, onGo }) {
   const [stats, setStats] = useState(null)
 
@@ -97,6 +251,8 @@ function DashboardHome({ nombre, onGo }) {
             <KpiCard label="Sin revisar"           value={stats.sinRevisar}   color="#f59e0b" sub={stats.sinRevisar > 0 ? 'requieren revisión' : 'al día'} onClick={() => onGo('registros')} />
             <KpiCard label="Pendiente repuesto"    value={stats.pendientes}   color="#ef4444" sub={stats.pendientes > 0 ? 'requieren atención' : ''} onClick={() => onGo('registros')} />
           </div>
+
+          <ActivityChart />
 
           <div className="admin-quick">
             <button className="admin-quick-btn" onClick={() => onGo('registros')}>

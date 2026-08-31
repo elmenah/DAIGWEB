@@ -6497,6 +6497,46 @@ header.scrolled .navbar {
 .inf-generar-btn:hover:not(:disabled) { background: rgba(245, 166, 35, 0.22); }
 .inf-generar-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
+/* ── Gráfico de actividad (dashboard) ──────────────────────── */
+.dash-chart-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 1rem 1.25rem 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.dash-chart-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.dash-chart-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.85);
+}
+.dash-chart-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.dash-tab {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.45);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.dash-tab:hover { color: rgba(255,255,255,0.75); border-color: rgba(255,255,255,0.25); }
+.dash-tab--on { background: rgba(245,166,35,0.15); border-color: #f5a623; color: #f5a623; font-weight: 600; }
+.dash-tab-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.12); margin: 0 0.2rem; }
+
 /* ── Migrador HEIC ──────────────────────────────────────────── */
 .migrador-card {
   margin-top: 2rem;
