@@ -92,10 +92,12 @@ function RegistrosManager() {
 
   const [filtroTrabajador, setFiltroTrabajador] = useState('')
   const [filtroEstado, setFiltroEstado]         = useState('')
+  const [filtroTipo, setFiltroTipo]             = useState('')
   const [filtroTexto, setFiltroTexto]           = useState('')
   const [filtroFechaDesde, setFiltroFechaDesde] = useState('')
   const [filtroFechaHasta, setFiltroFechaHasta] = useState('')
   const [quickActive, setQuickActive]           = useState(null)
+  const [tiposDisponibles, setTiposDisponibles] = useState([])
 
   const [sortCol, setSortCol] = useState('fecha')
   const [sortAsc, setSortAsc] = useState(false)
@@ -154,6 +156,7 @@ function RegistrosManager() {
 
     if (filtroTrabajador) query = query.eq('trabajador_id', filtroTrabajador)
     if (filtroEstado)     query = query.eq('estado', filtroEstado)
+    if (filtroTipo)       query = query.eq('tipo_trabajo', filtroTipo)
     if (filtroFechaDesde) query = query.gte('fecha', filtroFechaDesde)
     if (filtroFechaHasta) query = query.lte('fecha', filtroFechaHasta)
     if (textoDebounced) {
@@ -171,7 +174,7 @@ function RegistrosManager() {
     setComentarios(prev => ({ ...cm, ...prev }))
 
     setLoading(false)
-  }, [filtroTrabajador, filtroEstado, filtroFechaDesde, filtroFechaHasta, textoDebounced, sortCol, sortAsc, page])
+  }, [filtroTrabajador, filtroEstado, filtroTipo, filtroFechaDesde, filtroFechaHasta, textoDebounced, sortCol, sortAsc, page])
 
   useEffect(() => { load() }, [load])
 
@@ -254,6 +257,14 @@ function RegistrosManager() {
       .then(({ data }) => setTrabajadores(data || []))
   }, [])
 
+  useEffect(() => {
+    supabase.from('registros_trabajo').select('tipo_trabajo').not('tipo_trabajo', 'is', null)
+      .then(({ data }) => {
+        const uniq = [...new Set((data || []).map(r => r.tipo_trabajo).filter(Boolean))].sort((a,b) => a.localeCompare(b,'es'))
+        setTiposDisponibles(uniq)
+      })
+  }, [])
+
   const handleSort = (col) => {
     if (sortCol === col) setSortAsc(a => !a)
     else { setSortCol(col); setSortAsc(false) }
@@ -271,7 +282,7 @@ function RegistrosManager() {
   }
 
   const clearAll = () => {
-    setFiltroTrabajador(''); setFiltroEstado(''); setFiltroTexto('')
+    setFiltroTrabajador(''); setFiltroEstado(''); setFiltroTipo(''); setFiltroTexto('')
     setFiltroFechaDesde(''); setFiltroFechaHasta(''); setQuickActive(null); setPage(0)
   }
 
@@ -279,6 +290,7 @@ function RegistrosManager() {
     let query = supabase.from('registros_trabajo').select('*').order(sortCol, { ascending: sortAsc })
     if (filtroTrabajador) query = query.eq('trabajador_id', filtroTrabajador)
     if (filtroEstado)     query = query.eq('estado', filtroEstado)
+    if (filtroTipo)       query = query.eq('tipo_trabajo', filtroTipo)
     if (filtroFechaDesde) query = query.gte('fecha', filtroFechaDesde)
     if (filtroFechaHasta) query = query.lte('fecha', filtroFechaHasta)
     if (textoDebounced) {
@@ -370,7 +382,7 @@ function RegistrosManager() {
   }
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
-  const hayFiltros = filtroTrabajador || filtroEstado || filtroTexto || filtroFechaDesde || filtroFechaHasta
+  const hayFiltros = filtroTrabajador || filtroEstado || filtroTipo || filtroTexto || filtroFechaDesde || filtroFechaHasta
 
   return (
     <div className="admin-section">
@@ -415,6 +427,13 @@ function RegistrosManager() {
           <select value={filtroEstado} onChange={e => { setFiltroEstado(e.target.value); setPage(0) }}>
             <option value="">Todos</option>
             {ESTADOS.map(e => <option key={e} value={e}>{e}</option>)}
+          </select>
+        </div>
+        <div className="reg-filter-group">
+          <label>Tipo de trabajo</label>
+          <select value={filtroTipo} onChange={e => { setFiltroTipo(e.target.value); setPage(0) }}>
+            <option value="">Todos</option>
+            {tiposDisponibles.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
         <div className="reg-filter-group">
