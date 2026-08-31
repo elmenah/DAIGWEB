@@ -37,6 +37,7 @@ function TrabajadoresPanel() {
   const [gpsLoading, setGpsLoading] = useState(false)
   const [sending, setSending] = useState(false)
   const [sendStatus, setSendStatus] = useState(null)
+  const [submittedData, setSubmittedData] = useState(null)
   const [editingId, setEditingId] = useState(null)
   const fileInputRef = useRef(null)
 
@@ -239,6 +240,17 @@ function TrabajadoresPanel() {
         ;({ error } = await supabase.from('registros_trabajo').insert({ ...payload, trabajador_id: user.id }))
       }
       if (error) throw error
+      setSubmittedData({
+        fecha,
+        hora,
+        tarea: tarea.trim(),
+        tipo: tipoFinal,
+        estado,
+        planta: planta.trim(),
+        equipo: equipoIntervenido.trim(),
+        fotos: fotosFinales.length,
+        editingId,
+      })
       setSendStatus(editingId ? 'edited' : 'ok')
       resetForm()
     } catch {
@@ -288,7 +300,79 @@ function TrabajadoresPanel() {
       </div>
 
       <main className="trab-main">
-        {view === 'form' && (
+        {view === 'form' && (sendStatus === 'ok' || sendStatus === 'edited') && submittedData && (
+          <div className="trab-success-screen">
+            <div className="trab-success-icon">
+              <svg viewBox="0 0 52 52">
+                <circle cx="26" cy="26" r="25" fill="none" stroke="#22c55e" strokeWidth="2" />
+                <path fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+                  d="M14 26l8 8 16-16" className="trab-check-path" />
+              </svg>
+            </div>
+            <h2 className="trab-success-title">
+              {submittedData.editingId ? '¡Registro actualizado!' : '¡Registro enviado!'}
+            </h2>
+            <p className="trab-success-sub">
+              {submittedData.editingId ? 'Los cambios quedaron guardados.' : 'Tu registro llegó correctamente al sistema.'}
+            </p>
+
+            <div className="trab-success-card">
+              <div className="trab-success-row">
+                <span className="trab-success-label">Fecha y hora</span>
+                <span>{submittedData.fecha} · {submittedData.hora}</span>
+              </div>
+              {submittedData.tipo && (
+                <div className="trab-success-row">
+                  <span className="trab-success-label">Tipo</span>
+                  <span>{submittedData.tipo}</span>
+                </div>
+              )}
+              <div className="trab-success-row">
+                <span className="trab-success-label">Tarea</span>
+                <span>{submittedData.tarea}</span>
+              </div>
+              {submittedData.equipo && (
+                <div className="trab-success-row">
+                  <span className="trab-success-label">Equipo</span>
+                  <span>{submittedData.equipo}</span>
+                </div>
+              )}
+              {submittedData.planta && (
+                <div className="trab-success-row">
+                  <span className="trab-success-label">Planta</span>
+                  <span>{submittedData.planta}</span>
+                </div>
+              )}
+              <div className="trab-success-row">
+                <span className="trab-success-label">Estado</span>
+                <span className={`trab-estado-pill trab-estado-pill--${estadoPillClass(submittedData.estado)}`}>
+                  {submittedData.estado}
+                </span>
+              </div>
+              {submittedData.fotos > 0 && (
+                <div className="trab-success-row">
+                  <span className="trab-success-label">Fotos</span>
+                  <span>{submittedData.fotos} {submittedData.fotos === 1 ? 'foto' : 'fotos'} adjuntadas</span>
+                </div>
+              )}
+            </div>
+
+            <div className="trab-success-actions">
+              <button className="trab-success-btn trab-success-btn--primary"
+                onClick={() => { setSendStatus(null); setSubmittedData(null) }}>
+                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                Nuevo registro
+              </button>
+              <button className="trab-success-btn trab-success-btn--secondary"
+                onClick={() => { setSendStatus(null); setSubmittedData(null); setView('historial') }}>
+                <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+                Ver mi historial
+              </button>
+            </div>
+          </div>
+        )}
+
+        {view === 'form' && sendStatus !== 'ok' && sendStatus !== 'edited' && (
           <div className="trab-form-section">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
               <h2 className="trab-section-title">
@@ -301,12 +385,6 @@ function TrabajadoresPanel() {
               )}
             </div>
 
-            {sendStatus === 'ok' && (
-              <div className="trab-alert trab-alert--ok">✓ Registro enviado correctamente.</div>
-            )}
-            {sendStatus === 'edited' && (
-              <div className="trab-alert trab-alert--ok">✓ Registro actualizado correctamente.</div>
-            )}
             {sendStatus === 'error' && (
               <div className="trab-alert trab-alert--error">Error al enviar. Verifica tu conexión e intenta nuevamente.</div>
             )}
