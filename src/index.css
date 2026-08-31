@@ -4161,39 +4161,23 @@ header.scrolled .navbar {
 }
 
 /* Login */
-/* ── Split-screen login layout ─────────────────────────────── */
+/* ── Video fullscreen + card centrado flotante ─────────────── */
 .admin-login-page {
   min-height: 100vh;
   display: flex;
-  flex-direction: row;
-  background: #fff;
-}
-
-/* Panel izquierdo: formulario */
-.admin-login-card {
-  flex: 0 0 520px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 3rem 3.5rem;
-  background: #fff;
-  border-radius: 0;
-  border: none;
-  text-align: left;
-  position: relative;
-  z-index: 1;
-}
-
-/* Panel derecho: visual */
-.admin-login-visual {
-  flex: 1;
-  background: linear-gradient(150deg, #1a1a4e 0%, #12123a 40%, #2d1b6e 100%);
-  display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
   position: relative;
+  padding: 2rem 1rem;
+}
+
+/* Video de fondo */
+.admin-login-visual {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #0a0620;
 }
 
 .admin-login-visual-canvas {
@@ -4201,41 +4185,36 @@ header.scrolled .navbar {
   inset: 0;
   width: 100%;
   height: 100%;
-  background-size: cover;
-  background-position: center;
+  object-fit: cover;
+  object-position: center;
 }
 
 .admin-login-visual-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(10,6,40,0.55) 0%, rgba(18,18,58,0.72) 100%);
+  background: rgba(8, 6, 32, 0.55);
 }
 
-.admin-login-visual-tagline {
+/* Card flotante centrado */
+.admin-login-card {
   position: relative;
-  z-index: 2;
-  color: rgba(255,255,255,0.9);
-  font-size: 1.5rem;
-  font-weight: 800;
-  text-align: center;
-  padding: 0 2rem;
-  text-shadow: 0 2px 16px rgba(0,0,0,0.5);
-  letter-spacing: -0.01em;
-}
-
-.admin-login-visual-sub {
-  position: relative;
-  z-index: 2;
-  color: rgba(255,255,255,0.55);
-  font-size: 0.9rem;
-  margin-top: 0.75rem;
-  text-align: center;
-  padding: 0 2rem;
+  z-index: 1;
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2.75rem 3rem;
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 20px;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255,255,255,0.08);
+  text-align: left;
+  backdrop-filter: blur(2px);
 }
 
 /* Logo dentro del card */
 .admin-login-logo {
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
 }
 
 .admin-login-logo img {
@@ -6498,19 +6477,10 @@ header.scrolled .navbar {
   border: 1px solid rgba(255,255,255,0.1);
 }
 
-/* ── Login split-screen responsivo ─────────────────────────── */
-@media (max-width: 768px) {
-  .admin-login-page {
-    flex-direction: column;
-  }
+/* ── Login responsivo (mobile) ─────────────────────────────── */
+@media (max-width: 480px) {
   .admin-login-card {
-    flex: 1;
-    padding: 2.5rem 1.75rem;
-    max-width: 100%;
-    min-height: 100vh;
-    justify-content: center;
-  }
-  .admin-login-visual {
-    display: none;
+    padding: 2rem 1.5rem;
+    border-radius: 14px;
   }
 }

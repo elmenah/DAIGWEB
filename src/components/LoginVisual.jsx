@@ -1,21 +1,18 @@
 import React from 'react'
-import bgImg from '../assets/login-bg.jpeg'
+import bgVideo from '../assets/login-bg.mp4'
 
-export default function LoginVisual({ tagline, sub }) {
+export default function LoginVisual() {
   return (
     <div className="admin-login-visual">
-      <div
+      <video
         className="admin-login-visual-canvas"
-        style={{
-          backgroundImage: `url(${bgImg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
+        src={bgVideo}
+        autoPlay
+        loop
+        muted
+        playsInline
       />
-      {/* Overlay oscuro para legibilidad */}
       <div className="admin-login-visual-overlay" />
-      <p className="admin-login-visual-tagline">{tagline}</p>
-      {sub && <p className="admin-login-visual-sub">{sub}</p>}
     </div>
   )
 }
