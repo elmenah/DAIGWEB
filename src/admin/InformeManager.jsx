@@ -180,16 +180,9 @@ export default function InformeManager() {
   const [generando, setGenerando] = useState(null) // trabajador_id en curso
 
   const generarInforme = async (worker) => {
-    // Abrir popup ANTES del async para no ser bloqueado como popup no-user-gesture
-    const popup = window.open('', '_blank', 'width=960,height=820')
-    if (!popup) {
-      alert('El navegador bloqueó la ventana. Permite ventanas emergentes en daigchile.cl e intenta nuevamente.')
-      return
-    }
-    popup.document.write(`<html><body style="margin:0;background:#12123a;display:flex;align-items:center;justify-content:center;height:100vh;font-family:Arial;color:rgba(255,255,255,.7);font-size:1rem;gap:12px"><div style="width:20px;height:20px;border:3px solid rgba(255,255,255,.2);border-top-color:#f5a623;border-radius:50%;animation:s 0.8s linear infinite"></div><span>Preparando informe…</span><style>@keyframes s{to{transform:rotate(360deg)}}</style></body></html>`)
-
     setGenerando(worker.id)
     try {
+      const html2pdf = (await import('html2pdf.js')).default
       const logoUrl = window.location.origin + logoImg
       const periodo = `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
       const plantas = [...worker.plantas].join(', ') || '—'
@@ -251,125 +244,66 @@ export default function InformeManager() {
           </div>`
       }).join('')
 
-      const html = `<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Informe – ${worker.nombre} – ${periodo}</title>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt}
-    :root{--navy:#12123a;--orange:#f5a623}
+      const css = `
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;background:#fff}
+        :root{--navy:#12123a;--orange:#f5a623}
+        .portada{height:1122px;display:flex;flex-direction:column;justify-content:center;
+          align-items:center;text-align:center;background:#12123a;color:#fff;padding:3rem;position:relative}
+        .portada-logo{width:90px;height:90px;object-fit:contain;border-radius:12px;margin-bottom:1.75rem}
+        .portada-empresa{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;
+          color:rgba(255,255,255,.5);margin-bottom:.3rem}
+        .portada-sub{font-size:.8rem;color:rgba(255,255,255,.4);margin-bottom:2.5rem}
+        .portada-titulo{font-size:2.4rem;font-weight:900;line-height:1.1;letter-spacing:-.02em}
+        .portada-divider{width:56px;height:4px;background:#f5a623;border-radius:2px;margin:1.4rem auto}
+        .portada-trabajador{font-size:1.5rem;font-weight:700;color:#f5a623}
+        .portada-periodo{font-size:.95rem;color:rgba(255,255,255,.65);margin-top:.4rem}
+        .portada-plantas{font-size:.8rem;color:rgba(255,255,255,.4);margin-top:.3rem}
+        .portada-footer{position:absolute;bottom:1.75rem;font-size:.7rem;color:rgba(255,255,255,.25)}
+        .inner-page{padding:0}
+        .page-break{page-break-before:always;padding-top:0}
+        .inner-header{display:flex;align-items:center;justify-content:space-between;
+          padding-bottom:.65rem;border-bottom:3px solid #f5a623;margin-bottom:1.5rem}
+        .ih-brand{display:flex;align-items:center;gap:.5rem}
+        .ih-brand img{height:30px;border-radius:4px}
+        .ih-brand span{font-weight:900;font-size:.95rem;color:#12123a}
+        .ih-right{font-size:.72rem;color:#9a9ab0;text-align:right;line-height:1.4}
+        .seccion{margin-bottom:2rem}
+        .sec-titulo{font-size:.95rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+          color:#12123a;border-left:4px solid #f5a623;padding:.45rem .75rem;
+          background:#f8f8fc;margin-bottom:1rem}
+        .sec-num{color:#f5a623;margin-right:.35rem}
+        .tabla-datos{width:100%;border-collapse:collapse;margin-bottom:1.25rem;font-size:.88rem}
+        .tabla-datos td{padding:7px 12px;border:1px solid #e0e0ec;vertical-align:top}
+        .tabla-datos tr:nth-child(even) td{background:#f8f8fc}
+        .tabla-datos td:first-child{font-weight:700;color:#12123a;width:38%;background:#f0f0f8}
+        .tabla-act{width:100%;border-collapse:collapse;font-size:.85rem}
+        .tabla-act th{background:#12123a;color:#fff;padding:7px 10px;text-align:left;
+          font-size:.75rem;letter-spacing:.04em;font-weight:700}
+        .tabla-act td{padding:6px 10px;border:1px solid #e0e0ec;vertical-align:top}
+        .tabla-act tr:nth-child(even) td{background:#f8f8fc}
+        .trabajo-card{border:1px solid #e0e0ec;border-radius:8px;margin-bottom:1.25rem;overflow:hidden}
+        .trabajo-header{background:#12123a;color:#fff;padding:.65rem 1rem;
+          display:flex;align-items:baseline;gap:.85rem;flex-wrap:wrap}
+        .trab-num{font-weight:900;font-size:1rem;color:#f5a623;flex-shrink:0}
+        .trab-tarea{font-weight:700;flex:1;font-size:.9rem}
+        .trab-meta{font-size:.75rem;color:rgba(255,255,255,.6)}
+        .trabajo-body{padding:.85rem 1rem}
+        .trab-campo{margin-bottom:.35rem;font-size:.85rem;line-height:1.4}
+        .lbl{font-weight:700;color:#12123a}
+        .foto-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:.75rem}
+        .foto-item img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:5px;
+          border:1px solid #e0e0ec;display:block}
+        .conclusion-box{background:#f8f8fc;border:1px solid #e0e0ec;border-radius:8px;
+          padding:1.4rem;line-height:1.75;font-size:.9rem;margin-bottom:2.5rem}
+        .firma{text-align:center;margin-top:3rem}
+        .firma-linea{width:200px;height:1px;background:#333;margin:0 auto .5rem}
+        .firma-nombre{font-weight:700;font-size:1rem}
+        .firma-cargo{color:#6b6b8a;font-size:.85rem;margin-top:.15rem}
+        .firma-contacto{color:#9a9ab0;font-size:.75rem;margin-top:.15rem}
+      `
 
-    /* BARRA SUPERIOR (no se imprime) */
-    .print-bar{position:fixed;top:0;left:0;right:0;background:var(--navy);color:#fff;
-      padding:.6rem 1.5rem;display:flex;align-items:center;justify-content:space-between;z-index:1000}
-    .save-btn{background:var(--orange);color:var(--navy);border:none;border-radius:6px;
-      padding:.45rem 1.4rem;font-weight:900;font-size:.92rem;cursor:pointer;display:flex;align-items:center;gap:6px}
-    .save-btn:disabled{opacity:.6;cursor:not-allowed}
-    .print-spacer{height:46px}
-
-    /* PORTADA */
-    .portada{min-height:100vh;display:flex;flex-direction:column;justify-content:center;
-      align-items:center;text-align:center;background:var(--navy);color:#fff;
-      page-break-after:always;padding:3rem;position:relative}
-    .portada-logo{width:90px;height:90px;object-fit:contain;border-radius:12px;margin-bottom:1.75rem}
-    .portada-empresa{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;
-      color:rgba(255,255,255,.5);margin-bottom:.3rem}
-    .portada-sub{font-size:.8rem;color:rgba(255,255,255,.4);margin-bottom:2.5rem}
-    .portada-titulo{font-size:2.4rem;font-weight:900;line-height:1.1;letter-spacing:-.02em}
-    .portada-divider{width:56px;height:4px;background:var(--orange);border-radius:2px;margin:1.4rem auto}
-    .portada-trabajador{font-size:1.5rem;font-weight:700;color:var(--orange)}
-    .portada-periodo{font-size:.95rem;color:rgba(255,255,255,.65);margin-top:.4rem}
-    .portada-plantas{font-size:.8rem;color:rgba(255,255,255,.4);margin-top:.3rem}
-    .portada-footer{position:absolute;bottom:1.75rem;font-size:.7rem;color:rgba(255,255,255,.25)}
-
-    /* PÁGINAS INTERIORES */
-    .inner-page{padding:0}
-    .inner-header{display:flex;align-items:center;justify-content:space-between;
-      padding-bottom:.65rem;border-bottom:3px solid var(--orange);margin-bottom:1.5rem}
-    .ih-brand{display:flex;align-items:center;gap:.5rem}
-    .ih-brand img{height:30px;border-radius:4px}
-    .ih-brand span{font-weight:900;font-size:.95rem;color:var(--navy)}
-    .ih-right{font-size:.72rem;color:#9a9ab0;text-align:right;line-height:1.4}
-
-    /* SECCIÓN TÍTULO */
-    .seccion{margin-bottom:2rem}
-    .sec-titulo{font-size:.95rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
-      color:var(--navy);border-left:4px solid var(--orange);padding:.45rem .75rem;
-      background:#f8f8fc;margin-bottom:1rem}
-    .sec-num{color:var(--orange);margin-right:.35rem}
-
-    /* TABLA DATOS */
-    .tabla-datos{width:100%;border-collapse:collapse;margin-bottom:1.25rem;font-size:.88rem}
-    .tabla-datos td{padding:7px 12px;border:1px solid #e0e0ec;vertical-align:top}
-    .tabla-datos tr:nth-child(even) td{background:#f8f8fc}
-    .tabla-datos td:first-child{font-weight:700;color:var(--navy);width:38%;background:#f0f0f8}
-
-    /* TABLA ACTIVIDADES */
-    .tabla-act{width:100%;border-collapse:collapse;font-size:.85rem}
-    .tabla-act th{background:var(--navy);color:#fff;padding:7px 10px;text-align:left;
-      font-size:.75rem;letter-spacing:.04em;font-weight:700}
-    .tabla-act td{padding:6px 10px;border:1px solid #e0e0ec;vertical-align:top}
-    .tabla-act tr:nth-child(even) td{background:#f8f8fc}
-
-    /* TARJETAS DE TRABAJO */
-    .trabajo-card{border:1px solid #e0e0ec;border-radius:8px;margin-bottom:1.25rem;
-      overflow:hidden;page-break-inside:avoid}
-    .trabajo-header{background:var(--navy);color:#fff;padding:.65rem 1rem;
-      display:flex;align-items:baseline;gap:.85rem;flex-wrap:wrap}
-    .trab-num{font-weight:900;font-size:1rem;color:var(--orange);flex-shrink:0}
-    .trab-tarea{font-weight:700;flex:1;font-size:.9rem}
-    .trab-meta{font-size:.75rem;color:rgba(255,255,255,.6);white-space:nowrap}
-    .trabajo-body{padding:.85rem 1rem}
-    .trab-campo{margin-bottom:.35rem;font-size:.85rem;line-height:1.4}
-    .lbl{font-weight:700;color:var(--navy)}
-
-    /* FOTOS */
-    .foto-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:.75rem}
-    .foto-item img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:5px;
-      border:1px solid #e0e0ec;display:block}
-
-    /* CONCLUSIÓN */
-    .conclusion-box{background:#f8f8fc;border:1px solid #e0e0ec;border-radius:8px;
-      padding:1.4rem;line-height:1.75;font-size:.9rem;margin-bottom:2.5rem}
-    .firma{text-align:center;margin-top:3rem}
-    .firma-linea{width:200px;height:1px;background:#333;margin:0 auto .5rem}
-    .firma-nombre{font-weight:700;font-size:1rem}
-    .firma-cargo{color:#6b6b8a;font-size:.85rem;margin-top:.15rem}
-    .firma-contacto{color:#9a9ab0;font-size:.75rem;margin-top:.15rem}
-
-    /* PRINT */
-    @page{margin:15mm 20mm}
-    @media print{
-      .no-print,.print-bar,.print-spacer{display:none!important}
-      body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-      .portada{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    }
-    .page-break{page-break-before:always;padding-top:0}
-  </style>
-</head>
-<body>
-
-  <!-- Barra superior -->
-  <div class="print-bar no-print">
-    <span style="font-size:.88rem">Informe — <strong>${worker.nombre}</strong> | ${periodo}</span>
-    <button id="save-btn" class="save-btn" onclick="guardarPDF()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-      Guardar PDF
-    </button>
-  </div>
-  <div class="print-spacer no-print"></div>
-  <script>
-    function guardarPDF() {
-      var btn = document.getElementById('save-btn');
-      btn.disabled = true;
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="animation:spin .8s linear infinite"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg> Generando...';
-      setTimeout(function(){ window.print(); btn.disabled=false; btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> Guardar PDF'; }, 300);
-    }
-    // Sin auto-trigger: el usuario hace clic en "Guardar PDF" cuando esté listo
-  </script>
-
+      const htmlContent = `
   <!-- ── PORTADA ── -->
   <div class="portada">
     <img class="portada-logo" src="${logoUrl}" alt="DAIG">
@@ -383,8 +317,8 @@ export default function InformeManager() {
     <div class="portada-footer">DAIG SpA · daigchile.cl</div>
   </div>
 
-  <!-- ── DATOS DEL SERVICIO + ACTIVIDADES ── -->
-  <div class="inner-page page-break" style="padding-top:0">
+  <!-- ── DATOS + ACTIVIDADES ── -->
+  <div class="inner-page page-break">
     <div class="inner-header">
       <div class="ih-brand">
         <img src="${logoUrl}" alt="DAIG">
@@ -392,7 +326,6 @@ export default function InformeManager() {
       </div>
       <div class="ih-right">Informe de Actividades Semanales<br>${worker.nombre} · ${periodo}</div>
     </div>
-
     <div class="seccion">
       <div class="sec-titulo"><span class="sec-num">1.</span> DATOS DEL SERVICIO</div>
       <table class="tabla-datos">
@@ -406,20 +339,17 @@ export default function InformeManager() {
         <tr><td>Equipos intervenidos</td><td>${equipos !== '—' ? equipos : '—'}</td></tr>
       </table>
     </div>
-
     <div class="seccion">
       <div class="sec-titulo"><span class="sec-num">2.</span> ACTIVIDADES REALIZADAS</div>
       <table class="tabla-act">
-        <thead>
-          <tr>
-            <th style="width:40px">N°</th>
-            <th style="width:80px">Fecha</th>
-            <th style="width:130px">Tipo</th>
-            <th>Tarea / Equipo</th>
-            <th style="width:110px">Estado</th>
-            <th style="width:50px;text-align:right">Hrs</th>
-          </tr>
-        </thead>
+        <thead><tr>
+          <th style="width:40px">N°</th>
+          <th style="width:80px">Fecha</th>
+          <th style="width:130px">Tipo</th>
+          <th>Tarea / Equipo</th>
+          <th style="width:110px">Estado</th>
+          <th style="width:50px;text-align:right">Hrs</th>
+        </tr></thead>
         <tbody>${filaActividades}</tbody>
       </table>
     </div>
@@ -434,7 +364,6 @@ export default function InformeManager() {
       </div>
       <div class="ih-right">Registro Fotográfico<br>${worker.nombre} · ${periodo}</div>
     </div>
-
     <div class="seccion">
       <div class="sec-titulo"><span class="sec-num">3.</span> DETALLE DE TRABAJOS Y REGISTRO FOTOGRÁFICO</div>
       ${tarjetasTrabajo}
@@ -450,7 +379,6 @@ export default function InformeManager() {
       </div>
       <div class="ih-right">Conclusión<br>${worker.nombre} · ${periodo}</div>
     </div>
-
     <div class="seccion">
       <div class="sec-titulo"><span class="sec-num">4.</span> CONCLUSIÓN Y ESTADO FINAL</div>
       <div class="conclusion-box">
@@ -468,16 +396,30 @@ export default function InformeManager() {
         <div class="firma-contacto">daniel.mena@serviciosdaig.com | +56 9 8868 9400</div>
       </div>
     </div>
-  </div>
+  </div>`
 
-</body>
-</html>`
+      const container = document.createElement('div')
+      container.style.cssText = 'position:fixed;top:-99999px;left:-99999px;width:794px'
+      const style = document.createElement('style')
+      style.textContent = css
+      container.appendChild(style)
+      const content = document.createElement('div')
+      content.innerHTML = htmlContent
+      container.appendChild(content)
+      document.body.appendChild(container)
 
-      popup.document.open()
-      popup.document.write(html)
-      popup.document.close()
+      const nombre = worker.nombre.replace(/\s+/g, '-')
+      await html2pdf().set({
+        margin: [15, 20, 15, 20],
+        filename: `Informe-${nombre}-${desdeISO}.pdf`,
+        image: { type: 'jpeg', quality: 0.92 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'], before: '.page-break' },
+      }).from(container).save()
+
+      document.body.removeChild(container)
     } catch (e) {
-      popup.close()
       alert('Error al generar informe: ' + e.message)
     }
     setGenerando(null)
