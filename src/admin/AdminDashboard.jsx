@@ -7,6 +7,13 @@ import UserManager from './UserManager'
 import GalleryManager from './GalleryManager'
 import InformeManager from './InformeManager'
 import logoImg from '../assets/logo.jpeg'
+import { isHeic, heicBlobToJpeg } from '../lib/heic'
+
+const FOTOS_BUCKET = 'registros-fotos'
+const pathFromUrl = (url) => {
+  const m = url.indexOf(`/object/public/${FOTOS_BUCKET}/`)
+  return m === -1 ? null : decodeURIComponent(url.slice(m + `/object/public/${FOTOS_BUCKET}/`.length).split('?')[0])
+}
 
 const ICON = {
   inicio:    'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z',
@@ -97,7 +104,164 @@ function DashboardHome({ nombre, onGo }) {
               Ver registros de trabajadores
             </button>
           </div>
+
+          <MigradorHeic />
         </>
+      )}
+    </div>
+  )
+}
+
+function MigradorHeic() {
+  const [estado, setEstado] = useState('idle') // idle | escaneando | migrando | done | error
+  const [heicUrls, setHeicUrls]   = useState([]) // {registroId, idx, url}
+  const [progreso, setProgreso]   = useState(0)
+  const [errores, setErrores]     = useState(0)
+  const [log, setLog]             = useState([])
+
+  const addLog = (msg) => setLog(prev => [msg, ...prev].slice(0, 50))
+
+  const escanear = async () => {
+    setEstado('escaneando')
+    setLog([])
+    const { data } = await supabase
+      .from('registros_trabajo')
+      .select('id, fotos, trabajador_nombre')
+      .not('fotos', 'is', null)
+    const items = []
+    for (const r of (data || [])) {
+      if (!Array.isArray(r.fotos)) continue
+      r.fotos.forEach((url, idx) => {
+        if (isHeic(url)) items.push({ registroId: r.id, trabajador: r.trabajador_nombre, idx, url })
+      })
+    }
+    setHeicUrls(items)
+    setEstado('idle')
+  }
+
+  const migrar = async () => {
+    if (!heicUrls.length) return
+    setEstado('migrando')
+    setProgreso(0)
+    setErrores(0)
+
+    // Agrupar por registro
+    const porRegistro = heicUrls.reduce((acc, item) => {
+      if (!acc[item.registroId]) acc[item.registroId] = []
+      acc[item.registroId].push(item)
+      return acc
+    }, {})
+
+    let convertidas = 0
+    let fallos = 0
+
+    for (const [registroId, items] of Object.entries(porRegistro)) {
+      // Cargar fotos actuales del registro
+      const { data: reg } = await supabase
+        .from('registros_trabajo')
+        .select('fotos')
+        .eq('id', registroId)
+        .single()
+      if (!reg) continue
+
+      const fotos = [...(reg.fotos || [])]
+
+      for (const item of items) {
+        try {
+          addLog(`Convirtiendo foto ${item.idx + 1} de ${item.trabajador}…`)
+          const res = await fetch(item.url)
+          const blob = await res.blob()
+          const jpeg = await heicBlobToJpeg(blob)
+
+          const path = `migrado/${registroId}-${item.idx}-${Date.now()}.jpg`
+          const { error: upErr } = await supabase.storage
+            .from(FOTOS_BUCKET)
+            .upload(path, jpeg, { contentType: 'image/jpeg', upsert: true })
+          if (upErr) throw upErr
+
+          const { data: urlData } = supabase.storage.from(FOTOS_BUCKET).getPublicUrl(path)
+          fotos[item.idx] = urlData.publicUrl
+
+          // Borrar archivo HEIC original
+          const oldPath = pathFromUrl(item.url)
+          if (oldPath) await supabase.storage.from(FOTOS_BUCKET).remove([oldPath])
+
+          convertidas++
+          addLog(`✓ Foto ${item.idx + 1} de ${item.trabajador} convertida`)
+        } catch (e) {
+          fallos++
+          addLog(`✗ Error en foto ${item.idx + 1} de ${item.trabajador}: ${e.message}`)
+        }
+        setProgreso(convertidas + fallos)
+      }
+
+      // Actualizar registro con URLs nuevas
+      await supabase.from('registros_trabajo').update({ fotos }).eq('id', registroId)
+    }
+
+    setErrores(fallos)
+    setEstado('done')
+  }
+
+  const pct = heicUrls.length > 0 ? Math.round((progreso / heicUrls.length) * 100) : 0
+
+  return (
+    <div className="migrador-card">
+      <div className="migrador-header">
+        <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+        <span>Migrar fotos HEIC existentes → JPEG</span>
+      </div>
+
+      {estado === 'idle' && heicUrls.length === 0 && (
+        <p className="migrador-desc">
+          Escanea la base de datos para encontrar fotos en formato HEIC y convertirlas a JPEG.
+          Esto es una operación de una sola vez.
+        </p>
+      )}
+
+      {estado === 'idle' && heicUrls.length > 0 && (
+        <p className="migrador-desc">
+          Se encontraron <strong style={{ color: '#f59e0b' }}>{heicUrls.length} fotos HEIC</strong> en{' '}
+          {Object.keys(heicUrls.reduce((a, i) => ({ ...a, [i.registroId]: 1 }), {})).length} registros.
+        </p>
+      )}
+
+      {estado === 'done' && (
+        <p className="migrador-desc" style={{ color: '#22c55e' }}>
+          ✓ Migración completada — {progreso - errores} convertidas
+          {errores > 0 && <span style={{ color: '#f59e0b' }}> · {errores} con error</span>}
+        </p>
+      )}
+
+      {estado === 'migrando' && (
+        <div style={{ marginBottom: '0.75rem' }}>
+          <div className="migrador-progress-bar">
+            <div className="migrador-progress-fill" style={{ width: `${pct}%` }} />
+          </div>
+          <p className="migrador-desc" style={{ marginTop: '0.4rem' }}>
+            {progreso} / {heicUrls.length} fotos ({pct}%)
+          </p>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        {estado !== 'migrando' && (
+          <button className="migrador-btn migrador-btn--scan"
+            onClick={escanear} disabled={estado === 'escaneando'}>
+            {estado === 'escaneando' ? 'Escaneando…' : 'Escanear BD'}
+          </button>
+        )}
+        {heicUrls.length > 0 && estado === 'idle' && (
+          <button className="migrador-btn migrador-btn--go" onClick={migrar}>
+            Convertir {heicUrls.length} fotos → JPEG
+          </button>
+        )}
+      </div>
+
+      {log.length > 0 && (
+        <div className="migrador-log">
+          {log.map((l, i) => <div key={i}>{l}</div>)}
+        </div>
       )}
     </div>
   )

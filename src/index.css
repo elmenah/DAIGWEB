@@ -6497,6 +6497,59 @@ header.scrolled .navbar {
 .inf-generar-btn:hover:not(:disabled) { background: rgba(245, 166, 35, 0.22); }
 .inf-generar-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
+/* ── Migrador HEIC ──────────────────────────────────────────── */
+.migrador-card {
+  margin-top: 2rem;
+  background: var(--card-bg, #fff);
+  border: 1px solid rgba(245,166,35,.35);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+}
+.migrador-header {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-weight: 600;
+  font-size: .95rem;
+  margin-bottom: .75rem;
+  color: #f5a623;
+}
+.migrador-header svg { width: 18px; height: 18px; fill: #f5a623; flex-shrink: 0; }
+.migrador-desc { font-size: .875rem; color: var(--text-muted, #666); margin: 0 0 .75rem; }
+.migrador-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .45rem .9rem;
+  border-radius: 7px;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity .15s;
+}
+.migrador-btn:disabled { opacity: .5; cursor: not-allowed; }
+.migrador-btn--scan { background: rgba(245,166,35,.12); color: #c47f00; border: 1px solid rgba(245,166,35,.4); }
+.migrador-btn--scan:hover:not(:disabled) { background: rgba(245,166,35,.22); }
+.migrador-btn--go { background: #f5a623; color: #12123a; }
+.migrador-btn--go:hover:not(:disabled) { background: #e6951a; }
+.migrador-progress-bar { height: 6px; background: rgba(245,166,35,.2); border-radius: 99px; overflow: hidden; }
+.migrador-progress-fill { height: 100%; background: #f5a623; border-radius: 99px; transition: width .3s ease; }
+.migrador-log {
+  margin-top: .75rem;
+  max-height: 140px;
+  overflow-y: auto;
+  font-size: .78rem;
+  font-family: monospace;
+  background: rgba(0,0,0,.04);
+  border-radius: 6px;
+  padding: .5rem .75rem;
+  color: var(--text-muted, #555);
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+
 /* ── Login responsivo (mobile) ─────────────────────────────── */
 @media (max-width: 480px) {
   .admin-login-card {

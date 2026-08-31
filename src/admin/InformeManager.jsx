@@ -367,7 +367,7 @@ export default function InformeManager() {
       btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="animation:spin .8s linear infinite"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg> Generando...';
       setTimeout(function(){ window.print(); btn.disabled=false; btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> Guardar PDF'; }, 300);
     }
-    window.addEventListener('load', function(){ setTimeout(guardarPDF, 800); });
+    // Sin auto-trigger: el usuario hace clic en "Guardar PDF" cuando esté listo
   </script>
 
   <!-- ── PORTADA ── -->
