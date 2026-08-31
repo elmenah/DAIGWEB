@@ -5769,42 +5769,48 @@ header.scrolled .navbar {
 }
 .trab-edit-btn:hover { background: rgba(232,150,46,0.2); }
 
-/* Drop zone fotos */
-.trab-drop-zone {
-  background: var(--darker-bg);
-  border: 1.5px dashed rgba(255,255,255,0.18);
-  border-radius: 10px;
-  padding: 2rem 1rem;
+/* Foto buttons */
+.trab-foto-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.trab-foto-btn {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  padding: 1.2rem 0.75rem;
+  border-radius: 10px;
+  border: 1.5px dashed rgba(255,255,255,0.18);
+  background: var(--darker-bg);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
-  text-align: center;
 }
 
-.trab-drop-zone:hover {
+.trab-foto-btn svg {
+  width: 32px;
+  height: 32px;
+  fill: var(--primary);
+  opacity: 0.8;
+}
+
+.trab-foto-btn--camera {
+  border-color: var(--primary);
+  background: rgba(232,150,46,0.06);
+}
+
+.trab-foto-btn--camera:hover {
+  background: rgba(232,150,46,0.14);
+}
+
+.trab-foto-btn--gallery:hover {
   border-color: var(--primary);
   background: rgba(232,150,46,0.04);
-}
-
-.trab-drop-zone svg {
-  width: 36px;
-  height: 36px;
-  fill: var(--primary);
-  opacity: 0.7;
-}
-
-.trab-drop-zone span {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.trab-drop-zone small {
-  font-size: 0.75rem;
-  color: var(--gray-text);
 }
 
 /* Foto grid preview */

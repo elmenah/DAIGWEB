@@ -39,7 +39,8 @@ function TrabajadoresPanel() {
   const [sendStatus, setSendStatus] = useState(null)
   const [submittedData, setSubmittedData] = useState(null)
   const [editingId, setEditingId] = useState(null)
-  const fileInputRef = useRef(null)
+  const fileInputRef   = useRef(null)
+  const cameraInputRef = useRef(null)
 
   // Historial state
   const [registros, setRegistros] = useState([])
@@ -503,11 +504,17 @@ function TrabajadoresPanel() {
                   </div>
                 )}
 
-                <div className="trab-drop-zone" onClick={() => fileInputRef.current?.click()}>
-                  <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-                  <span>{fotosExistentes.length > 0 ? 'Agregar más fotos' : 'Toca para agregar fotos'}</span>
-                  <small>JPG, PNG, HEIC — múltiples fotos permitidas</small>
-                  <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFotos} style={{ display: 'none' }} />
+                <div className="trab-foto-btns">
+                  <button type="button" className="trab-foto-btn trab-foto-btn--camera" onClick={() => cameraInputRef.current?.click()}>
+                    <svg viewBox="0 0 24 24"><path d="M12 15.2A3.2 3.2 0 0 1 8.8 12 3.2 3.2 0 0 1 12 8.8 3.2 3.2 0 0 1 15.2 12 3.2 3.2 0 0 1 12 15.2M20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z"/></svg>
+                    Tomar foto
+                  </button>
+                  <button type="button" className="trab-foto-btn trab-foto-btn--gallery" onClick={() => fileInputRef.current?.click()}>
+                    <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                    Elegir de galería
+                  </button>
+                  <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleFotos} style={{ display: 'none' }} />
+                  <input ref={fileInputRef}   type="file" accept="image/*" multiple onChange={handleFotos} style={{ display: 'none' }} />
                 </div>
 
                 {fotosPreviews.length > 0 && (
