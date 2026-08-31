@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../admin/AuthContext'
 import logoImg from '../assets/logo.jpeg'
+import LoginVisual from '../components/LoginVisual'
 
 const ROLES_PERMITIDOS = ['supervisor', 'seguridad', 'admin']
 
@@ -57,7 +58,7 @@ export default function PermisosLogin() {
   }
 
   return (
-    <div className="trab-login-page">
+    <div className="admin-login-page">
       <div className="admin-login-card">
         <div className="admin-login-logo">
           <img src={logoImg} alt="DAIG" />
@@ -99,6 +100,11 @@ export default function PermisosLogin() {
 
         <a href="/" className="admin-back-link">← Volver al sitio</a>
       </div>
+
+      <LoginVisual
+        tagline={<>Permisos de Trabajo<br />DAIG</>}
+        sub="Acceso para supervisores e inspectores de seguridad"
+      />
     </div>
   )
 }

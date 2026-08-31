@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from './AuthContext'
 import logoImg from '../assets/logo.jpeg'
+import LoginVisual from '../components/LoginVisual'
 
 const isAuthDebugEnabled = () => {
   if (!import.meta.env.DEV) return false
@@ -75,12 +76,13 @@ function AdminLogin() {
 
   return (
     <div className="admin-login-page">
+      {/* Panel izquierdo: formulario */}
       <div className="admin-login-card">
         <div className="admin-login-logo">
           <img src={logoImg} alt="DAIG" />
         </div>
-        <h2>Panel de Administración</h2>
-        <p className="admin-login-subtitle">Ingresa tus credenciales</p>
+        <h2>Bienvenido</h2>
+        <p className="admin-login-subtitle">Ingresa tus credenciales para continuar</p>
 
         {error && <div className="admin-alert admin-alert-error">{error}</div>}
 
@@ -94,7 +96,7 @@ function AdminLogin() {
               onChange={(e) => setIdentifier(e.target.value)}
               required
               autoComplete="username"
-              placeholder="tu@email.com o usuario"
+              placeholder="tu@email.com"
             />
           </div>
           <div className="admin-field">
@@ -106,7 +108,7 @@ function AdminLogin() {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
-              placeholder="Ingresa tu contraseña"
+              placeholder="••••••••"
             />
           </div>
           <button type="submit" className="admin-btn-primary" disabled={loading}>
@@ -116,6 +118,11 @@ function AdminLogin() {
 
         <a href="/" className="admin-back-link">← Volver al sitio</a>
       </div>
+
+      <LoginVisual
+        tagline={<>Gestión inteligente<br />para la industria chilena</>}
+        sub="DAIG · Ingeniería Industrial y CNC"
+      />
     </div>
   )
 }

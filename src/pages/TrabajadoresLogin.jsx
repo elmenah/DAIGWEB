@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../admin/AuthContext'
 import logoImg from '../assets/logo.jpeg'
+import LoginVisual from '../components/LoginVisual'
 
 // Identificador libre: RUT (con o sin formato) o correo. Solo aplicamos la
 // mascara de RUT cuando el texto parece un RUT (sin @ ni letras salvo la K del dv).
@@ -54,8 +55,9 @@ function TrabajadoresLogin() {
   }
 
   return (
-    <div className="trab-login-page">
-      <div className="trab-login-card">
+    <div className="admin-login-page">
+      {/* Panel izquierdo: formulario */}
+      <div className="admin-login-card">
         <div className="admin-login-logo">
           <img src={logoImg} alt="DAIG" />
         </div>
@@ -86,7 +88,7 @@ function TrabajadoresLogin() {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
-              placeholder="Ingresa tu clave"
+              placeholder="••••••••"
             />
           </div>
           <button type="submit" className="admin-btn-primary" disabled={loading}>
@@ -96,6 +98,11 @@ function TrabajadoresLogin() {
 
         <a href="/" className="admin-back-link">← Volver al sitio</a>
       </div>
+
+      <LoginVisual
+        tagline={<>Portal de Trabajadores<br />DAIG</>}
+        sub="Ingeniería Industrial y CNC · Chile"
+      />
     </div>
   )
 }

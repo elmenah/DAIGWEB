@@ -4161,40 +4161,100 @@ header.scrolled .navbar {
 }
 
 /* Login */
+/* ── Split-screen login layout ─────────────────────────────── */
 .admin-login-page {
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--darkest-bg);
-  padding: 2rem;
+  flex-direction: row;
+  background: #fff;
 }
 
+/* Panel izquierdo: formulario */
 .admin-login-card {
-  background: var(--darker-bg);
-  border-radius: 16px;
-  padding: 3rem;
+  flex: 0 0 440px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem 3.5rem;
+  background: #fff;
+  border-radius: 0;
+  border: none;
+  text-align: left;
+  position: relative;
+  z-index: 1;
+}
+
+/* Panel derecho: visual */
+.admin-login-visual {
+  flex: 1;
+  background: linear-gradient(150deg, #1a1a4e 0%, #12123a 40%, #2d1b6e 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.admin-login-visual-canvas {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  max-width: 420px;
-  border: 1px solid rgba(232, 150, 46, 0.15);
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+}
+
+.admin-login-visual-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(10,6,40,0.55) 0%, rgba(18,18,58,0.72) 100%);
+}
+
+.admin-login-visual-tagline {
+  position: relative;
+  z-index: 2;
+  color: rgba(255,255,255,0.9);
+  font-size: 1.5rem;
+  font-weight: 800;
   text-align: center;
+  padding: 0 2rem;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.5);
+  letter-spacing: -0.01em;
+}
+
+.admin-login-visual-sub {
+  position: relative;
+  z-index: 2;
+  color: rgba(255,255,255,0.55);
+  font-size: 0.9rem;
+  margin-top: 0.75rem;
+  text-align: center;
+  padding: 0 2rem;
+}
+
+/* Logo dentro del card */
+.admin-login-logo {
+  margin-bottom: 2rem;
 }
 
 .admin-login-logo img {
-  height: 60px;
+  height: 52px;
   border-radius: 8px;
-  margin-bottom: 1.5rem;
 }
 
 .admin-login-card h2 {
-  color: #fff;
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
+  color: #12123a;
+  font-size: 1.75rem;
+  font-weight: 900;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.02em;
 }
 
 .admin-login-subtitle {
-  color: rgba(255, 255, 255, 0.5);
+  color: #6b6b8a;
   margin-bottom: 2rem;
+  font-size: 0.9rem;
 }
 
 .admin-login-form {
@@ -4211,30 +4271,33 @@ header.scrolled .navbar {
 }
 
 .admin-field label {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.85rem;
-  font-weight: 600;
+  color: #12123a;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .admin-field input,
 .admin-field select {
-  background: var(--dark-bg);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #f7f7fb;
+  border: 1.5px solid #e2e2f0;
   border-radius: 8px;
   padding: 0.75rem 1rem;
-  color: #fff;
+  color: #12123a;
   font-size: 0.95rem;
-  transition: border-color 0.3s;
+  transition: border-color 0.25s;
 }
 
 .admin-field input:focus,
 .admin-field select:focus {
   outline: none;
-  border-color: var(--red-primary);
+  border-color: #f5a623;
+  background: #fff;
 }
 
 .admin-field input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: #b0b0cc;
 }
 
 .admin-field input[type="file"] {
@@ -4247,19 +4310,26 @@ header.scrolled .navbar {
 }
 
 .admin-btn-primary {
-  background: var(--red-primary);
+  background: #f5a623;
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  padding: 0.9rem 1.5rem;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 800;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: background 0.2s, transform 0.1s;
+  letter-spacing: 0.01em;
+  width: 100%;
+  margin-top: 0.5rem;
 }
 
 .admin-btn-primary:hover {
-  background: var(--red-dark);
+  background: #e8950a;
+}
+
+.admin-btn-primary:active {
+  transform: scale(0.98);
 }
 
 .admin-btn-primary:disabled {
@@ -4304,14 +4374,14 @@ header.scrolled .navbar {
 .admin-back-link {
   display: inline-block;
   margin-top: 1.5rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: #6b6b8a;
   text-decoration: none;
   font-size: 0.85rem;
-  transition: color 0.3s;
+  transition: color 0.2s;
 }
 
 .admin-back-link:hover {
-  color: var(--red-primary);
+  color: #f5a623;
 }
 
 .admin-alert {
@@ -6171,3 +6241,20 @@ header.scrolled .navbar {
 .permisos-btn-aprobar:hover:not(:disabled) { opacity: 0.9; }
 .permisos-btn-rechazar:disabled,
 .permisos-btn-aprobar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Login split-screen responsivo ─────────────────────────── */
+@media (max-width: 768px) {
+  .admin-login-page {
+    flex-direction: column;
+  }
+  .admin-login-card {
+    flex: 1;
+    padding: 2.5rem 1.75rem;
+    max-width: 100%;
+    min-height: 100vh;
+    justify-content: center;
+  }
+  .admin-login-visual {
+    display: none;
+  }
+}
