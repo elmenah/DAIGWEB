@@ -32,6 +32,29 @@ const fmtFecha = (iso) => {
 const fmtShort = (d) =>
   d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' }).replace('.', '')
 
+// ── geocodificación inversa (Nominatim) ──────────────────────────────────────
+const _geoCache = new Map()
+const _coordRe = /^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/
+async function resolverUbicacion(val) {
+  if (!val) return val
+  const m = val.trim().match(_coordRe)
+  if (!m) return val
+  const key = `${m[1]},${m[2]}`
+  if (_geoCache.has(key)) return _geoCache.get(key)
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${m[1]}&lon=${m[2]}&accept-language=es`,
+      { headers: { 'User-Agent': 'DAIG-Informe/1.0 (daigchile.cl)' } }
+    )
+    const data = await res.json()
+    const a = data.address || {}
+    const nombre = a.suburb || a.quarter || a.neighbourhood ||
+                   a.city || a.town || a.village || a.county || val
+    _geoCache.set(key, nombre)
+    return nombre
+  } catch { return val }
+}
+
 // ── componente principal ──────────────────────────────────────────────────────
 
 export default function InformeManager() {
@@ -185,9 +208,7 @@ export default function InformeManager() {
       const html2pdf = (await import('html2pdf.js')).default
       const logoUrl = window.location.origin + logoImg
       const periodo = `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
-      const plantas = [...worker.plantas].join(', ') || '—'
       const equipos = [...worker.equipos].join(', ') || '—'
-      const horasTotal = worker.horas % 1 === 0 ? worker.horas : worker.horas.toFixed(1)
       const estados = [...new Set(worker.registros.map(r => r.estado).filter(Boolean))].join(', ') || '—'
 
       // Resolver fotos HEIC a URLs mostrables
@@ -201,7 +222,17 @@ export default function InformeManager() {
         return { ...r, fotosResueltas: fotosResueltas.filter(Boolean) }
       }))
 
-      const filaActividades = regsConFotos.map((r, i) => `
+      // Geocodificar ubicaciones (convierte coordenadas a nombre de lugar)
+      const geoMap = new Map()
+      for (const r of regsConFotos) {
+        if (r.planta && !geoMap.has(r.planta)) {
+          geoMap.set(r.planta, await resolverUbicacion(r.planta))
+        }
+      }
+      const regsGeo = regsConFotos.map(r => ({ ...r, plantaNombre: geoMap.get(r.planta) || r.planta }))
+      const plantas = [...new Set(regsGeo.map(r => r.plantaNombre).filter(Boolean))].join(', ') || '—'
+
+      const filaActividades = regsGeo.map((r, i) => `
         <tr>
           <td style="text-align:center;font-weight:700">${i + 1}</td>
           <td>${fmtFecha(r.fecha)}</td>
@@ -214,11 +245,11 @@ export default function InformeManager() {
           <td style="text-align:right">${r.horas_trabajadas != null ? r.horas_trabajadas + ' h' : '—'}</td>
         </tr>`).join('')
 
-      const tarjetasTrabajo = regsConFotos.map((r, i) => {
+      const tarjetasTrabajo = regsGeo.map((r, i) => {
         const campos = [
           r.descripcion   && `<div class="trab-campo"><span class="lbl">Descripción:</span> ${r.descripcion}</div>`,
           r.material_utilizado && `<div class="trab-campo"><span class="lbl">Material utilizado:</span> ${r.material_utilizado}</div>`,
-          r.planta        && `<div class="trab-campo"><span class="lbl">Planta / lugar:</span> ${r.planta}</div>`,
+          r.plantaNombre  && `<div class="trab-campo"><span class="lbl">Planta / lugar:</span> ${r.plantaNombre}</div>`,
           r.aviso_sap     && `<div class="trab-campo"><span class="lbl">Aviso SAP:</span> ${r.aviso_sap}</div>`,
         ].filter(Boolean).join('')
 
@@ -235,7 +266,7 @@ export default function InformeManager() {
             <div class="trabajo-header">
               <span class="trab-num">#${i + 1}</span>
               <span class="trab-tarea">${r.tarea || 'Sin descripción'}</span>
-              <span class="trab-meta">${fmtFecha(r.fecha)}${r.hora ? ' · ' + r.hora.slice(0, 5) : ''} · ${r.tipo_trabajo || ''} ${r.horas_trabajadas != null ? '· ' + r.horas_trabajadas + ' hrs' : ''}</span>
+              <span class="trab-meta">${fmtFecha(r.fecha)}${r.hora ? ' · ' + r.hora.slice(0, 5) : ''} · ${r.tipo_trabajo || ''}</span>
             </div>
             <div class="trabajo-body">
               ${campos}
@@ -311,7 +342,6 @@ export default function InformeManager() {
     <div class="portada-sub">Ingeniería en Mecánica de Procesos y Mantenimiento Industrial</div>
     <div class="portada-titulo">INFORME DE<br>ACTIVIDADES<br>SEMANALES</div>
     <div class="portada-divider"></div>
-    <div class="portada-trabajador">${worker.nombre}</div>
     <div class="portada-periodo">${periodo}</div>
     ${plantas !== '—' ? `<div class="portada-plantas">${plantas}</div>` : ''}
     <div class="portada-footer">DAIG SpA · daigchile.cl</div>
@@ -333,7 +363,6 @@ export default function InformeManager() {
         <tr><td>Trabajador</td><td>${worker.nombre}</td></tr>
         <tr><td>Período</td><td>${periodo}</td></tr>
         <tr><td>Total de registros</td><td>${worker.registros.length} ${worker.registros.length === 1 ? 'registro' : 'registros'}</td></tr>
-        <tr><td>Horas trabajadas</td><td>${horasTotal} hrs</td></tr>
         <tr><td>Estado de actividades</td><td>${estados}</td></tr>
         <tr><td>Plantas / Lugares</td><td>${plantas}</td></tr>
         <tr><td>Equipos intervenidos</td><td>${equipos !== '—' ? equipos : '—'}</td></tr>
@@ -384,8 +413,7 @@ export default function InformeManager() {
       <div class="conclusion-box">
         Las actividades de mantención e intervención fueron ejecutadas durante el período
         comprendido entre el ${periodo} por el técnico <strong>${worker.nombre}</strong>,
-        completando un total de <strong>${worker.registros.length} ${worker.registros.length === 1 ? 'registro' : 'registros'}</strong>
-        con <strong>${horasTotal} horas trabajadas</strong>.
+        completando un total de <strong>${worker.registros.length} ${worker.registros.length === 1 ? 'registro' : 'registros'}</strong>.
         ${[...worker.plantas].length > 0 ? `Los trabajos se realizaron en: <strong>${plantas}</strong>.` : ''}
         ${[...worker.equipos].length > 0 ? ` Los equipos intervenidos incluyeron: ${equipos}.` : ''}
       </div>
