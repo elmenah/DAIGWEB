@@ -6638,6 +6638,54 @@ header.scrolled .navbar {
 .dash-tab--on { background: rgba(245,166,35,0.15); border-color: #f5a623; color: #f5a623; font-weight: 600; }
 .dash-tab-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.12); margin: 0 0.2rem; }
 
+/* ── Mapa de ubicaciones ────────────────────────────────────── */
+.mapa-wrap {
+  width: 100%;
+  height: 520px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Fix Leaflet z-index conflictos */
+.mapa-wrap .leaflet-pane { z-index: 1; }
+.mapa-wrap .leaflet-top, .mapa-wrap .leaflet-bottom { z-index: 2; }
+
+.mapa-legend {
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--gray-text, #9a9ab0);
+}
+
+.mapa-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.6);
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.mapa-popup {
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  min-width: 180px;
+}
+
+.mapa-popup-name  { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+.mapa-popup-fecha { color: #666; font-size: 12px; margin-bottom: 4px; }
+.mapa-popup-tipo  { display: inline-block; background: #e8962e22; color: #e8962e; font-size: 11px; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px; }
+.mapa-popup-tarea { margin-bottom: 4px; }
+.mapa-popup-planta { color: #555; font-size: 12px; margin-bottom: 2px; }
+.mapa-popup-coord  { color: #888; font-size: 11px; margin-bottom: 6px; }
+.mapa-popup-gmaps  { color: #2563eb; font-size: 12px; text-decoration: none; }
+.mapa-popup-gmaps:hover { text-decoration: underline; }
+
 /* ── Migrador HEIC ──────────────────────────────────────────── */
 .migrador-card {
   margin-top: 2rem;
