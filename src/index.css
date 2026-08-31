@@ -4171,7 +4171,7 @@ header.scrolled .navbar {
 
 /* Panel izquierdo: formulario */
 .admin-login-card {
-  flex: 0 0 440px;
+  flex: 0 0 520px;
   display: flex;
   flex-direction: column;
   justify-content: center;
