@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import * as XLSX from 'xlsx'
 import { supabase } from '../lib/supabase'
+import HeicImage from '../components/HeicImage'
 
 // ── helpers de fecha ──────────────────────────────────────────────────────────
 
@@ -360,7 +361,7 @@ export default function InformeManager() {
                               <div className="inf-reg-fotos">
                                 {r.fotos.map((url, i) => (
                                   <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                                    <img src={url} alt={`foto-${i+1}`} className="inf-reg-foto-thumb" />
+                                    <HeicImage src={url} alt={`foto-${i+1}`} className="inf-reg-foto-thumb" />
                                   </a>
                                 ))}
                               </div>
