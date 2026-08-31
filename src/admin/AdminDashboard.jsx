@@ -166,6 +166,8 @@ function MigradorHeic() {
 
       const fotos = [...(reg.fotos || [])]
 
+      const oldPaths = []
+
       for (const item of items) {
         try {
           addLog(`Convirtiendo foto ${item.idx + 1} de ${item.trabajador}…`)
@@ -182,21 +184,29 @@ function MigradorHeic() {
           const { data: urlData } = supabase.storage.from(FOTOS_BUCKET).getPublicUrl(path)
           fotos[item.idx] = urlData.publicUrl
 
-          // Borrar archivo HEIC original
           const oldPath = pathFromUrl(item.url)
-          if (oldPath) await supabase.storage.from(FOTOS_BUCKET).remove([oldPath])
+          if (oldPath) oldPaths.push(oldPath)
 
           convertidas++
-          addLog(`✓ Foto ${item.idx + 1} de ${item.trabajador} convertida`)
+          addLog(`✓ Foto ${item.idx + 1} de ${item.trabajador} lista`)
         } catch (e) {
           fallos++
-          addLog(`✗ Error en foto ${item.idx + 1} de ${item.trabajador}: ${e.message}`)
+          addLog(`✗ Error foto ${item.idx + 1} de ${item.trabajador}: ${e.message}`)
         }
         setProgreso(convertidas + fallos)
       }
 
-      // Actualizar registro con URLs nuevas
-      await supabase.from('registros_trabajo').update({ fotos }).eq('id', registroId)
+      // Actualizar BD primero, luego borrar HEICs originales
+      const { error: dbErr } = await supabase
+        .from('registros_trabajo')
+        .update({ fotos })
+        .eq('id', registroId)
+      if (dbErr) {
+        addLog(`✗ Error al guardar en BD (registro ${registroId}): ${dbErr.message}`)
+      } else {
+        addLog(`✓ Registro ${registroId} actualizado en BD`)
+        if (oldPaths.length) await supabase.storage.from(FOTOS_BUCKET).remove(oldPaths)
+      }
     }
 
     setErrores(fallos)
