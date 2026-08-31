@@ -6477,6 +6477,26 @@ header.scrolled .navbar {
   border: 1px solid rgba(255,255,255,0.1);
 }
 
+/* Botón generar informe PDF */
+.inf-generar-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(245, 166, 35, 0.12);
+  border: 1px solid rgba(245, 166, 35, 0.35);
+  border-radius: 8px;
+  color: #f5a623;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 0.85rem;
+}
+.inf-generar-btn svg { width: 15px; height: 15px; fill: currentColor; flex-shrink: 0; }
+.inf-generar-btn:hover:not(:disabled) { background: rgba(245, 166, 35, 0.22); }
+.inf-generar-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
 /* ── Login responsivo (mobile) ─────────────────────────────── */
 @media (max-width: 480px) {
   .admin-login-card {

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react'
 import * as XLSX from 'xlsx'
 import { supabase } from '../lib/supabase'
 import HeicImage from '../components/HeicImage'
+import { isHeic, heicUrlToJpegUrl } from '../lib/heic'
+import logoImg from '../assets/logo.jpeg'
 
 // ── helpers de fecha ──────────────────────────────────────────────────────────
 
@@ -173,6 +175,292 @@ export default function InformeManager() {
     : ['En Proceso', 'En progreso'].includes(e) ? '#3b82f6'
     : '#f59e0b'
 
+  // ── generar informe PDF (ventana imprimible) ──────────────────────────────
+
+  const [generando, setGenerando] = useState(null) // trabajador_id en curso
+
+  const generarInforme = async (worker) => {
+    setGenerando(worker.id)
+    try {
+      const logoUrl = window.location.origin + logoImg
+      const periodo = `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
+      const plantas = [...worker.plantas].join(', ') || '—'
+      const equipos = [...worker.equipos].join(', ') || '—'
+      const horasTotal = worker.horas % 1 === 0 ? worker.horas : worker.horas.toFixed(1)
+      const estados = [...new Set(worker.registros.map(r => r.estado).filter(Boolean))].join(', ') || '—'
+
+      // Resolver fotos HEIC a URLs mostrables
+      const regsConFotos = await Promise.all(worker.registros.map(async (r) => {
+        if (!r.fotos?.length) return { ...r, fotosResueltas: [] }
+        const fotosResueltas = await Promise.all(r.fotos.map(async (url) => {
+          try {
+            return isHeic(url) ? await heicUrlToJpegUrl(url) : url
+          } catch { return null }
+        }))
+        return { ...r, fotosResueltas: fotosResueltas.filter(Boolean) }
+      }))
+
+      const filaActividades = regsConFotos.map((r, i) => `
+        <tr>
+          <td style="text-align:center;font-weight:700">${i + 1}</td>
+          <td>${fmtFecha(r.fecha)}</td>
+          <td>${r.tipo_trabajo || '—'}</td>
+          <td>
+            <strong>${r.tarea || ''}</strong>
+            ${r.equipo_intervenido ? `<br><span style="color:#6b6b8a;font-size:0.82em">${r.equipo_intervenido}</span>` : ''}
+          </td>
+          <td>${r.estado || '—'}</td>
+          <td style="text-align:right">${r.horas_trabajadas != null ? r.horas_trabajadas + ' h' : '—'}</td>
+        </tr>`).join('')
+
+      const tarjetasTrabajo = regsConFotos.map((r, i) => {
+        const campos = [
+          r.descripcion   && `<div class="trab-campo"><span class="lbl">Descripción:</span> ${r.descripcion}</div>`,
+          r.material_utilizado && `<div class="trab-campo"><span class="lbl">Material utilizado:</span> ${r.material_utilizado}</div>`,
+          r.planta        && `<div class="trab-campo"><span class="lbl">Planta / lugar:</span> ${r.planta}</div>`,
+          r.aviso_sap     && `<div class="trab-campo"><span class="lbl">Aviso SAP:</span> ${r.aviso_sap}</div>`,
+        ].filter(Boolean).join('')
+
+        const fotoGrid = r.fotosResueltas.length > 0 ? `
+          <div class="foto-grid">
+            ${r.fotosResueltas.map((url, fi) => `
+              <div class="foto-item">
+                <img src="${url}" alt="Foto ${fi + 1}" onerror="this.parentElement.style.display='none'">
+              </div>`).join('')}
+          </div>` : ''
+
+        return `
+          <div class="trabajo-card">
+            <div class="trabajo-header">
+              <span class="trab-num">#${i + 1}</span>
+              <span class="trab-tarea">${r.tarea || 'Sin descripción'}</span>
+              <span class="trab-meta">${fmtFecha(r.fecha)}${r.hora ? ' · ' + r.hora.slice(0, 5) : ''} · ${r.tipo_trabajo || ''} ${r.horas_trabajadas != null ? '· ' + r.horas_trabajadas + ' hrs' : ''}</span>
+            </div>
+            <div class="trabajo-body">
+              ${campos}
+              ${fotoGrid}
+            </div>
+          </div>`
+      }).join('')
+
+      const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Informe – ${worker.nombre} – ${periodo}</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt}
+    :root{--navy:#12123a;--orange:#f5a623}
+
+    /* BARRA SUPERIOR (no se imprime) */
+    .print-bar{position:fixed;top:0;left:0;right:0;background:var(--navy);color:#fff;
+      padding:.6rem 1.5rem;display:flex;align-items:center;justify-content:space-between;z-index:1000}
+    .print-btn{background:var(--orange);color:var(--navy);border:none;border-radius:6px;
+      padding:.45rem 1.4rem;font-weight:900;font-size:.92rem;cursor:pointer}
+    .print-spacer{height:46px}
+
+    /* PORTADA */
+    .portada{min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+      align-items:center;text-align:center;background:var(--navy);color:#fff;
+      page-break-after:always;padding:3rem;position:relative}
+    .portada-logo{width:90px;height:90px;object-fit:contain;border-radius:12px;margin-bottom:1.75rem}
+    .portada-empresa{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;
+      color:rgba(255,255,255,.5);margin-bottom:.3rem}
+    .portada-sub{font-size:.8rem;color:rgba(255,255,255,.4);margin-bottom:2.5rem}
+    .portada-titulo{font-size:2.4rem;font-weight:900;line-height:1.1;letter-spacing:-.02em}
+    .portada-divider{width:56px;height:4px;background:var(--orange);border-radius:2px;margin:1.4rem auto}
+    .portada-trabajador{font-size:1.5rem;font-weight:700;color:var(--orange)}
+    .portada-periodo{font-size:.95rem;color:rgba(255,255,255,.65);margin-top:.4rem}
+    .portada-plantas{font-size:.8rem;color:rgba(255,255,255,.4);margin-top:.3rem}
+    .portada-footer{position:absolute;bottom:1.75rem;font-size:.7rem;color:rgba(255,255,255,.25)}
+
+    /* PÁGINAS INTERIORES */
+    .inner-page{padding:0}
+    .inner-header{display:flex;align-items:center;justify-content:space-between;
+      padding-bottom:.65rem;border-bottom:3px solid var(--orange);margin-bottom:1.5rem}
+    .ih-brand{display:flex;align-items:center;gap:.5rem}
+    .ih-brand img{height:30px;border-radius:4px}
+    .ih-brand span{font-weight:900;font-size:.95rem;color:var(--navy)}
+    .ih-right{font-size:.72rem;color:#9a9ab0;text-align:right;line-height:1.4}
+
+    /* SECCIÓN TÍTULO */
+    .seccion{margin-bottom:2rem}
+    .sec-titulo{font-size:.95rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+      color:var(--navy);border-left:4px solid var(--orange);padding:.45rem .75rem;
+      background:#f8f8fc;margin-bottom:1rem}
+    .sec-num{color:var(--orange);margin-right:.35rem}
+
+    /* TABLA DATOS */
+    .tabla-datos{width:100%;border-collapse:collapse;margin-bottom:1.25rem;font-size:.88rem}
+    .tabla-datos td{padding:7px 12px;border:1px solid #e0e0ec;vertical-align:top}
+    .tabla-datos tr:nth-child(even) td{background:#f8f8fc}
+    .tabla-datos td:first-child{font-weight:700;color:var(--navy);width:38%;background:#f0f0f8}
+
+    /* TABLA ACTIVIDADES */
+    .tabla-act{width:100%;border-collapse:collapse;font-size:.85rem}
+    .tabla-act th{background:var(--navy);color:#fff;padding:7px 10px;text-align:left;
+      font-size:.75rem;letter-spacing:.04em;font-weight:700}
+    .tabla-act td{padding:6px 10px;border:1px solid #e0e0ec;vertical-align:top}
+    .tabla-act tr:nth-child(even) td{background:#f8f8fc}
+
+    /* TARJETAS DE TRABAJO */
+    .trabajo-card{border:1px solid #e0e0ec;border-radius:8px;margin-bottom:1.25rem;
+      overflow:hidden;page-break-inside:avoid}
+    .trabajo-header{background:var(--navy);color:#fff;padding:.65rem 1rem;
+      display:flex;align-items:baseline;gap:.85rem;flex-wrap:wrap}
+    .trab-num{font-weight:900;font-size:1rem;color:var(--orange);flex-shrink:0}
+    .trab-tarea{font-weight:700;flex:1;font-size:.9rem}
+    .trab-meta{font-size:.75rem;color:rgba(255,255,255,.6);white-space:nowrap}
+    .trabajo-body{padding:.85rem 1rem}
+    .trab-campo{margin-bottom:.35rem;font-size:.85rem;line-height:1.4}
+    .lbl{font-weight:700;color:var(--navy)}
+
+    /* FOTOS */
+    .foto-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:.75rem}
+    .foto-item img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:5px;
+      border:1px solid #e0e0ec;display:block}
+
+    /* CONCLUSIÓN */
+    .conclusion-box{background:#f8f8fc;border:1px solid #e0e0ec;border-radius:8px;
+      padding:1.4rem;line-height:1.75;font-size:.9rem;margin-bottom:2.5rem}
+    .firma{text-align:center;margin-top:3rem}
+    .firma-linea{width:200px;height:1px;background:#333;margin:0 auto .5rem}
+    .firma-nombre{font-weight:700;font-size:1rem}
+    .firma-cargo{color:#6b6b8a;font-size:.85rem;margin-top:.15rem}
+    .firma-contacto{color:#9a9ab0;font-size:.75rem;margin-top:.15rem}
+
+    /* PRINT */
+    @page{margin:15mm 20mm}
+    @media print{
+      .no-print,.print-bar,.print-spacer{display:none!important}
+      body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      .portada{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    }
+    .page-break{page-break-before:always;padding-top:0}
+  </style>
+</head>
+<body>
+
+  <!-- Barra superior -->
+  <div class="print-bar no-print">
+    <span style="font-size:.88rem">Informe de actividades — <strong>${worker.nombre}</strong> | ${periodo}</span>
+    <button class="print-btn" onclick="window.print()">🖨&nbsp; Imprimir / Guardar PDF</button>
+  </div>
+  <div class="print-spacer no-print"></div>
+
+  <!-- ── PORTADA ── -->
+  <div class="portada">
+    <img class="portada-logo" src="${logoUrl}" alt="DAIG">
+    <div class="portada-empresa">DAIG SpA</div>
+    <div class="portada-sub">Ingeniería en Mecánica de Procesos y Mantenimiento Industrial</div>
+    <div class="portada-titulo">INFORME DE<br>ACTIVIDADES<br>SEMANALES</div>
+    <div class="portada-divider"></div>
+    <div class="portada-trabajador">${worker.nombre}</div>
+    <div class="portada-periodo">${periodo}</div>
+    ${plantas !== '—' ? `<div class="portada-plantas">${plantas}</div>` : ''}
+    <div class="portada-footer">DAIG SpA · daigchile.cl</div>
+  </div>
+
+  <!-- ── DATOS DEL SERVICIO + ACTIVIDADES ── -->
+  <div class="inner-page page-break" style="padding-top:0">
+    <div class="inner-header">
+      <div class="ih-brand">
+        <img src="${logoUrl}" alt="DAIG">
+        <span>DAIG SpA</span>
+      </div>
+      <div class="ih-right">Informe de Actividades Semanales<br>${worker.nombre} · ${periodo}</div>
+    </div>
+
+    <div class="seccion">
+      <div class="sec-titulo"><span class="sec-num">1.</span> DATOS DEL SERVICIO</div>
+      <table class="tabla-datos">
+        <tr><td>Empresa ejecutora</td><td>DAIG SpA | RUT: 77.702.886-3</td></tr>
+        <tr><td>Trabajador</td><td>${worker.nombre}</td></tr>
+        <tr><td>Período</td><td>${periodo}</td></tr>
+        <tr><td>Total de registros</td><td>${worker.registros.length} ${worker.registros.length === 1 ? 'registro' : 'registros'}</td></tr>
+        <tr><td>Horas trabajadas</td><td>${horasTotal} hrs</td></tr>
+        <tr><td>Estado de actividades</td><td>${estados}</td></tr>
+        <tr><td>Plantas / Lugares</td><td>${plantas}</td></tr>
+        <tr><td>Equipos intervenidos</td><td>${equipos !== '—' ? equipos : '—'}</td></tr>
+      </table>
+    </div>
+
+    <div class="seccion">
+      <div class="sec-titulo"><span class="sec-num">2.</span> ACTIVIDADES REALIZADAS</div>
+      <table class="tabla-act">
+        <thead>
+          <tr>
+            <th style="width:40px">N°</th>
+            <th style="width:80px">Fecha</th>
+            <th style="width:130px">Tipo</th>
+            <th>Tarea / Equipo</th>
+            <th style="width:110px">Estado</th>
+            <th style="width:50px;text-align:right">Hrs</th>
+          </tr>
+        </thead>
+        <tbody>${filaActividades}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── DETALLE Y FOTOS ── -->
+  <div class="inner-page page-break">
+    <div class="inner-header">
+      <div class="ih-brand">
+        <img src="${logoUrl}" alt="DAIG">
+        <span>DAIG SpA</span>
+      </div>
+      <div class="ih-right">Registro Fotográfico<br>${worker.nombre} · ${periodo}</div>
+    </div>
+
+    <div class="seccion">
+      <div class="sec-titulo"><span class="sec-num">3.</span> DETALLE DE TRABAJOS Y REGISTRO FOTOGRÁFICO</div>
+      ${tarjetasTrabajo}
+    </div>
+  </div>
+
+  <!-- ── CONCLUSIÓN ── -->
+  <div class="inner-page page-break">
+    <div class="inner-header">
+      <div class="ih-brand">
+        <img src="${logoUrl}" alt="DAIG">
+        <span>DAIG SpA</span>
+      </div>
+      <div class="ih-right">Conclusión<br>${worker.nombre} · ${periodo}</div>
+    </div>
+
+    <div class="seccion">
+      <div class="sec-titulo"><span class="sec-num">4.</span> CONCLUSIÓN Y ESTADO FINAL</div>
+      <div class="conclusion-box">
+        Las actividades de mantención e intervención fueron ejecutadas durante el período
+        comprendido entre el ${periodo} por el técnico <strong>${worker.nombre}</strong>,
+        completando un total de <strong>${worker.registros.length} ${worker.registros.length === 1 ? 'registro' : 'registros'}</strong>
+        con <strong>${horasTotal} horas trabajadas</strong>.
+        ${[...worker.plantas].length > 0 ? `Los trabajos se realizaron en: <strong>${plantas}</strong>.` : ''}
+        ${[...worker.equipos].length > 0 ? ` Los equipos intervenidos incluyeron: ${equipos}.` : ''}
+      </div>
+      <div class="firma">
+        <div class="firma-linea"></div>
+        <div class="firma-nombre">Daniel Mena Vega</div>
+        <div class="firma-cargo">Representante Legal · DAIG SpA</div>
+        <div class="firma-contacto">daniel.mena@serviciosdaig.com | +56 9 8868 9400</div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>`
+
+      const popup = window.open('', '_blank', 'width=900,height=700')
+      popup.document.write(html)
+      popup.document.close()
+    } catch (e) {
+      alert('Error al generar informe: ' + e.message)
+    }
+    setGenerando(null)
+  }
+
   // ── render ────────────────────────────────────────────────────────────────
 
   return (
@@ -312,6 +600,19 @@ export default function InformeManager() {
 
                   {open && (
                     <div className="inf-worker-body">
+                      {/* botón generar informe */}
+                      <button
+                        className="inf-generar-btn"
+                        onClick={() => generarInforme(w)}
+                        disabled={generando === w.id}
+                      >
+                        {generando === w.id ? (
+                          <><div className="admin-spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Generando...</>
+                        ) : (
+                          <><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zm-2 9H7v-2h4v2zm4-4H7v-2h8v2z"/></svg>Generar Informe PDF</>
+                        )}
+                      </button>
+
                       {/* plantas y equipos */}
                       {w.plantas.size > 0 && (
                         <div className="inf-worker-detail-row">
