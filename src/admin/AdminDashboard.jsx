@@ -197,14 +197,21 @@ function MigradorHeic() {
       }
 
       // Actualizar BD primero, luego borrar HEICs originales
-      const { error: dbErr } = await supabase
+      console.log('[Migrador] Intentando actualizar registro', registroId, 'con fotos:', fotos)
+      const { data: updData, error: dbErr, count } = await supabase
         .from('registros_trabajo')
         .update({ fotos })
         .eq('id', registroId)
+        .select()
+      console.log('[Migrador] Resultado update:', { updData, dbErr, count })
       if (dbErr) {
-        addLog(`✗ Error al guardar en BD (registro ${registroId}): ${dbErr.message}`)
+        addLog(`✗ BD error (${registroId}): ${dbErr.message} [code: ${dbErr.code}]`)
+        console.error('[Migrador] DB update error:', dbErr)
+      } else if (!updData || updData.length === 0) {
+        addLog(`⚠ BD no actualizó ninguna fila para registro ${registroId} (posible RLS)`)
+        console.warn('[Migrador] Update no afectó filas — puede ser RLS o id incorrecto')
       } else {
-        addLog(`✓ Registro ${registroId} actualizado en BD`)
+        addLog(`✓ Registro ${registroId} guardado en BD`)
         if (oldPaths.length) await supabase.storage.from(FOTOS_BUCKET).remove(oldPaths)
       }
     }
