@@ -180,6 +180,14 @@ export default function InformeManager() {
   const [generando, setGenerando] = useState(null) // trabajador_id en curso
 
   const generarInforme = async (worker) => {
+    // Abrir popup ANTES del async para no ser bloqueado como popup no-user-gesture
+    const popup = window.open('', '_blank', 'width=960,height=820')
+    if (!popup) {
+      alert('El navegador bloqueó la ventana. Permite ventanas emergentes en daigchile.cl e intenta nuevamente.')
+      return
+    }
+    popup.document.write(`<html><body style="margin:0;background:#12123a;display:flex;align-items:center;justify-content:center;height:100vh;font-family:Arial;color:rgba(255,255,255,.7);font-size:1rem;gap:12px"><div style="width:20px;height:20px;border:3px solid rgba(255,255,255,.2);border-top-color:#f5a623;border-radius:50%;animation:s 0.8s linear infinite"></div><span>Preparando informe…</span><style>@keyframes s{to{transform:rotate(360deg)}}</style></body></html>`)
+
     setGenerando(worker.id)
     try {
       const logoUrl = window.location.origin + logoImg
@@ -256,8 +264,9 @@ export default function InformeManager() {
     /* BARRA SUPERIOR (no se imprime) */
     .print-bar{position:fixed;top:0;left:0;right:0;background:var(--navy);color:#fff;
       padding:.6rem 1.5rem;display:flex;align-items:center;justify-content:space-between;z-index:1000}
-    .print-btn{background:var(--orange);color:var(--navy);border:none;border-radius:6px;
-      padding:.45rem 1.4rem;font-weight:900;font-size:.92rem;cursor:pointer}
+    .save-btn{background:var(--orange);color:var(--navy);border:none;border-radius:6px;
+      padding:.45rem 1.4rem;font-weight:900;font-size:.92rem;cursor:pointer;display:flex;align-items:center;gap:6px}
+    .save-btn:disabled{opacity:.6;cursor:not-allowed}
     .print-spacer{height:46px}
 
     /* PORTADA */
@@ -344,10 +353,22 @@ export default function InformeManager() {
 
   <!-- Barra superior -->
   <div class="print-bar no-print">
-    <span style="font-size:.88rem">Informe de actividades — <strong>${worker.nombre}</strong> | ${periodo}</span>
-    <button class="print-btn" onclick="window.print()">🖨&nbsp; Imprimir / Guardar PDF</button>
+    <span style="font-size:.88rem">Informe — <strong>${worker.nombre}</strong> | ${periodo}</span>
+    <button id="save-btn" class="save-btn" onclick="guardarPDF()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      Guardar PDF
+    </button>
   </div>
   <div class="print-spacer no-print"></div>
+  <script>
+    function guardarPDF() {
+      var btn = document.getElementById('save-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="animation:spin .8s linear infinite"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg> Generando...';
+      setTimeout(function(){ window.print(); btn.disabled=false; btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> Guardar PDF'; }, 300);
+    }
+    window.addEventListener('load', function(){ setTimeout(guardarPDF, 800); });
+  </script>
 
   <!-- ── PORTADA ── -->
   <div class="portada">
@@ -452,10 +473,11 @@ export default function InformeManager() {
 </body>
 </html>`
 
-      const popup = window.open('', '_blank', 'width=900,height=700')
+      popup.document.open()
       popup.document.write(html)
       popup.document.close()
     } catch (e) {
+      popup.close()
       alert('Error al generar informe: ' + e.message)
     }
     setGenerando(null)
