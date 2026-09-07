@@ -9,6 +9,10 @@
   port = 5173
   functions = "netlify/functions"
 
+# Resumen semanal automático: lunes 12:00 UTC (~08-09 hrs Chile)
+[functions."weekly-digest"]
+  schedule = "0 12 * * 1"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
