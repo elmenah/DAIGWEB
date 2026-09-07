@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import * as XLSX from 'xlsx'
 import { supabase } from '../lib/supabase'
 import HeicImage from '../components/HeicImage'
+import SignaturePad from '../components/SignaturePad'
 import { isHeic, heicUrlToJpegUrl } from '../lib/heic'
 import logoImg from '../assets/logo.jpeg'
 
@@ -202,6 +203,20 @@ export default function InformeManager() {
   // ── generar informe PDF (ventana imprimible) ──────────────────────────────
 
   const [generando, setGenerando] = useState(null) // trabajador_id en curso
+
+  // Firma del supervisor para incrustar en los PDF (se guarda en este dispositivo)
+  const [firma, setFirma] = useState(() => {
+    try { return localStorage.getItem('daig_firma_informe') || null } catch { return null }
+  })
+  const [showFirma, setShowFirma] = useState(false)
+  const guardarFirma = (dataUrl) => {
+    try {
+      if (dataUrl) localStorage.setItem('daig_firma_informe', dataUrl)
+      else localStorage.removeItem('daig_firma_informe')
+    } catch { /* almacenamiento no disponible */ }
+    setFirma(dataUrl)
+    setShowFirma(false)
+  }
 
   const generarInforme = async (worker) => {
     setGenerando(worker.id)
@@ -420,6 +435,7 @@ export default function InformeManager() {
         ${[...worker.equipos].length > 0 ? ` Los equipos intervenidos incluyeron: ${equipos}.` : ''}
       </div>
       <div class="firma">
+        ${firma ? `<img src="${firma}" alt="Firma" style="height:70px;object-fit:contain;display:block;margin:0 auto 2px" />` : ''}
         <div class="firma-linea"></div>
         <div class="firma-nombre">Daniel Mena Vega</div>
         <div class="firma-cargo">Representante Legal · DAIG SpA</div>
@@ -460,6 +476,10 @@ export default function InformeManager() {
   return (
     <div className="inf-root">
 
+      {showFirma && (
+        <SignaturePad initial={firma} onSave={guardarFirma} onClose={() => setShowFirma(false)} />
+      )}
+
       {/* ── cabecera de semana ── */}
       <div className="inf-week-bar">
         <button className="inf-week-nav" onClick={semanaAnterior} title="Semana anterior">
@@ -482,6 +502,12 @@ export default function InformeManager() {
           <button className="inf-today-btn" onClick={semanaActual}>Hoy</button>
         )}
 
+        <button className="inf-export-btn" onClick={() => setShowFirma(true)}
+          style={firma ? { background: 'rgba(34,197,94,0.15)', borderColor: 'rgba(34,197,94,0.4)', color: '#4ade80' } : undefined}
+          title="Configurar la firma que aparece en los informes PDF">
+          <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+          {firma ? 'Firma ✓' : 'Firma'}
+        </button>
         <button className="inf-export-btn" onClick={handleExport} disabled={exporting || !registros.length}>
           <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
           {exporting ? 'Exportando...' : 'Excel'}
