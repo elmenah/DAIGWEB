@@ -244,6 +244,31 @@ function TrabajadoresPanel() {
         ;({ error } = await supabase.from('registros_trabajo').insert({ ...payload, trabajador_id: user.id }))
       }
       if (error) throw error
+
+      // Notificar por correo al supervisor (solo registros nuevos; no bloquea el envío)
+      if (!editingId) {
+        fetch('/.netlify/functions/notify-registro', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            trabajador_nombre: workerName,
+            fecha,
+            hora,
+            ot: ot.trim() || null,
+            tipo_trabajo: tipoFinal,
+            planta: planta.trim() || null,
+            aviso_sap: avisoSap.trim() || null,
+            equipo_intervenido: equipoIntervenido.trim() || null,
+            tarea: tarea.trim(),
+            estado,
+            horas_trabajadas: horasTrabajadas || null,
+            ubicacion_lat: ubicacionLat,
+            ubicacion_lng: ubicacionLng,
+            fotos_count: fotosFinales.length,
+          }),
+        }).catch(() => {})
+      }
+
       setSubmittedData({
         fecha,
         hora,
