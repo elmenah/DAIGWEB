@@ -165,6 +165,7 @@ export default function InformeManager() {
       const detalle = registros.map(r => ({
         'Fecha': r.fecha,
         'Hora': r.hora?.slice(0, 5) || '',
+        'OT': r.ot || '',
         'Trabajador': r.trabajador_nombre || '',
         'Tipo': r.tipo_trabajo || '',
         'Tarea': r.tarea || '',
@@ -247,6 +248,7 @@ export default function InformeManager() {
 
       const tarjetasTrabajo = regsGeo.map((r, i) => {
         const campos = [
+          r.ot            && `<div class="trab-campo"><span class="lbl">OT:</span> ${r.ot}</div>`,
           r.descripcion   && `<div class="trab-campo"><span class="lbl">Descripción:</span> ${r.descripcion}</div>`,
           r.material_utilizado && `<div class="trab-campo"><span class="lbl">Material utilizado:</span> ${r.material_utilizado}</div>`,
           r.plantaNombre  && `<div class="trab-campo"><span class="lbl">Planta / lugar:</span> ${r.plantaNombre}</div>`,
@@ -646,6 +648,9 @@ export default function InformeManager() {
                               <div className="inf-reg-material">
                                 <span>Material: </span>{r.material_utilizado}
                               </div>
+                            )}
+                            {r.ot && (
+                              <div className="inf-reg-sap">OT: {r.ot}</div>
                             )}
                             {r.aviso_sap && (
                               <div className="inf-reg-sap">SAP: {r.aviso_sap}</div>

@@ -22,6 +22,7 @@ function TrabajadoresPanel() {
   const [tipoTrabajo, setTipoTrabajo] = useState('')
   const [tipoTrabajoOtro, setTipoTrabajoOtro] = useState('')
   const [equipoIntervenido, setEquipoIntervenido] = useState('')
+  const [ot, setOt] = useState('')
   const [avisoSap, setAvisoSap] = useState('')
   const [planta, setPlanta] = useState('')
   const [descripcion, setDescripcion] = useState('')
@@ -71,7 +72,7 @@ function TrabajadoresPanel() {
 
   const resetForm = () => {
     setTarea(''); setTipoTrabajo(''); setTipoTrabajoOtro('')
-    setEquipoIntervenido(''); setAvisoSap(''); setPlanta('')
+    setEquipoIntervenido(''); setOt(''); setAvisoSap(''); setPlanta('')
     setDescripcion(''); setMaterialUtilizado('')
     setHorasTrabajadas(''); setEstado('Terminado')
     setUbicacionLat(null); setUbicacionLng(null); setGpsError('')
@@ -89,6 +90,7 @@ function TrabajadoresPanel() {
     setHora(r.hora?.slice(0,5) || nowTime())
     setTarea(r.tarea || '')
     setEquipoIntervenido(r.equipo_intervenido || '')
+    setOt(r.ot || '')
     setAvisoSap(r.aviso_sap || '')
     setPlanta(r.planta || '')
     setDescripcion(r.descripcion || '')
@@ -221,6 +223,7 @@ function TrabajadoresPanel() {
         hora,
         tipo_trabajo: tipoFinal,
         equipo_intervenido: equipoIntervenido.trim(),
+        ot: ot.trim() || null,
         aviso_sap: avisoSap.trim() || null,
         planta: planta.trim() || null,
         tarea: tarea.trim(),
@@ -244,6 +247,7 @@ function TrabajadoresPanel() {
       setSubmittedData({
         fecha,
         hora,
+        ot: ot.trim(),
         tarea: tarea.trim(),
         tipo: tipoFinal,
         estado,
@@ -322,6 +326,12 @@ function TrabajadoresPanel() {
                 <span className="trab-success-label">Fecha y hora</span>
                 <span>{submittedData.fecha} · {submittedData.hora}</span>
               </div>
+              {submittedData.ot && (
+                <div className="trab-success-row">
+                  <span className="trab-success-label">OT</span>
+                  <span>{submittedData.ot}</span>
+                </div>
+              )}
               {submittedData.tipo && (
                 <div className="trab-success-row">
                   <span className="trab-success-label">Tipo</span>
@@ -391,6 +401,12 @@ function TrabajadoresPanel() {
             )}
 
             <form onSubmit={handleSubmit} className="trab-form">
+              <div className="trab-field">
+                <label htmlFor="t-ot">OT (Orden de Trabajo)</label>
+                <input id="t-ot" type="text" value={ot} onChange={e => setOt(e.target.value)}
+                  placeholder="Ej: OT-1234" autoComplete="off" />
+              </div>
+
               <div className="trab-row">
                 <div className="trab-field">
                   <label htmlFor="t-fecha">Fecha</label>
@@ -577,6 +593,12 @@ function TrabajadoresPanel() {
                         <div className="trab-hist-field">
                           <span className="trab-hist-label">Equipo / Activo</span>
                           <p>{r.equipo_intervenido}</p>
+                        </div>
+                      )}
+                      {r.ot && (
+                        <div className="trab-hist-field">
+                          <span className="trab-hist-label">OT</span>
+                          <p>{r.ot}</p>
                         </div>
                       )}
                       {r.planta && (
