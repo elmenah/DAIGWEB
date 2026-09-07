@@ -181,9 +181,9 @@ function RegistrosManager() {
   // ── Convertir fotos HEIC a JPG y persistirlas ──────────────────────────────
   // Al ver un registro con fotos HEIC, el navegador las convierte a JPG, sube
   // el JPG al storage y actualiza registros_trabajo.fotos. Así la próxima vez
-  // ya son JPG y no se reconvierten. Requiere la política de storage:
-  // supabase/admin_puede_subir_fotos.sql
-  // Deja logs en consola ([HEIC]) para diagnosticar si algo falla.
+  // ya son JPG y no se reconvierten. Requiere las políticas de storage y de
+  // update: supabase/admin_puede_subir_fotos.sql y admin_update_registros.sql
+  // Si algo falla (permisos/red), no rompe: se reintenta en otra carga.
   const healRegistroFotos = useCallback(async (reg) => {
     if (!reg?.fotos?.some(isHeic)) return
     if (healedRef.current.has(reg.id)) return
@@ -202,17 +202,15 @@ function RegistrosManager() {
         const blob = await res.blob()
         const jpeg = await heicBlobToJpeg(blob)
         const buffer = await jpeg.arrayBuffer() // subir binario, no Blob
-        console.log('[HEIC]', reg.id, srcPath, 'jpegBytes=', buffer.byteLength)
         const { error: upErr } = await supabase.storage
           .from(FOTOS_BUCKET)
           .upload(destPath, buffer, { contentType: 'image/jpeg', upsert: true })
-        if (upErr) { console.warn('[HEIC] upload error:', upErr.message); throw upErr }
+        if (upErr) throw upErr
         const { data: pub } = supabase.storage.from(FOTOS_BUCKET).getPublicUrl(destPath)
         nuevas[i] = pub.publicUrl
         changed = true
-      } catch (e) {
-        console.warn('[HEIC] fallo, se reintentará luego:', e?.message || e)
-        healedRef.current.delete(reg.id)
+      } catch {
+        healedRef.current.delete(reg.id) // permitir reintento en otra carga
         return
       }
     }
@@ -222,14 +220,9 @@ function RegistrosManager() {
         .update({ fotos: nuevas })
         .eq('id', reg.id)
         .select('id')
-      if (error) {
-        console.warn('[HEIC] no pude actualizar la BDD:', error.message)
-        healedRef.current.delete(reg.id)
-      } else if (!updated || updated.length === 0) {
-        console.warn('[HEIC] la BDD NO se actualizó (0 filas): falta permiso UPDATE del admin en registros_trabajo. Corre supabase/admin_update_registros.sql')
-        healedRef.current.delete(reg.id)
+      if (error || !updated || updated.length === 0) {
+        healedRef.current.delete(reg.id) // update bloqueado por RLS o error: reintentar
       } else {
-        console.log('[HEIC] persistido OK:', reg.id)
         setRegistros(prev => prev.map(x => x.id === reg.id ? { ...x, fotos: nuevas } : x))
       }
     }
