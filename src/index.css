@@ -6340,6 +6340,30 @@ header.scrolled .navbar {
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
+.inf-modo-toggle {
+  display: inline-flex;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 9px;
+  padding: 2px;
+  margin-right: 0.25rem;
+}
+.inf-modo-toggle button {
+  background: transparent;
+  border: none;
+  color: #9a9ab0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.inf-modo-toggle button:hover { color: #d8d8ec; }
+.inf-modo-toggle button.active {
+  background: rgba(232,150,46,0.18);
+  color: #E8962E;
+}
 .inf-week-nav {
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.1);

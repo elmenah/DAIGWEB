@@ -2,7 +2,12 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const DEST_EMAIL = process.env.NOTIFY_REGISTRO_EMAIL || 'daniel.mena@serviciosdaig.com'
+// Destinatarios: se pueden configurar varios en NOTIFY_REGISTRO_EMAIL separados
+// por coma o punto y coma (p.ej. "daniel.mena@serviciosdaig.com, otro@correo.com").
+const DEST_EMAILS = (process.env.NOTIFY_REGISTRO_EMAIL || 'daniel.mena@serviciosdaig.com')
+  .split(/[,;]/)
+  .map((e) => e.trim())
+  .filter(Boolean)
 const SITE_DOMAIN = process.env.SITE_DOMAIN || 'daigchile.cl'
 const EMAIL_LOGO_URL = process.env.EMAIL_LOGO_URL || `https://${SITE_DOMAIN}/logo.jpeg`
 
@@ -90,7 +95,7 @@ export const handler = async (event) => {
   try {
     await resend.emails.send({
       from: fromEmail,
-      to: DEST_EMAIL,
+      to: DEST_EMAILS,
       subject: `[DAIG] Nuevo registro de ${nombre}${r.ot ? ` · OT ${r.ot}` : ''}`,
       html,
       text,

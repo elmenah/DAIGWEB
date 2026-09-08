@@ -24,6 +24,22 @@ const domingoDE = (lunes) => {
   return d
 }
 
+const primerDiaMes = (d) => {
+  const c = new Date(d)
+  c.setDate(1)
+  c.setHours(0, 0, 0, 0)
+  return c
+}
+
+const ultimoDiaMes = (d) => {
+  const c = new Date(d)
+  c.setMonth(c.getMonth() + 1, 0)
+  c.setHours(0, 0, 0, 0)
+  return c
+}
+
+const capitalizar = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
+
 const fmtFecha = (iso) => {
   if (!iso) return ''
   const [y, m, d] = iso.split('-')
@@ -59,17 +75,24 @@ async function resolverUbicacion(val) {
 // ── componente principal ──────────────────────────────────────────────────────
 
 export default function InformeManager() {
+  const [modo, setModo] = useState('semana') // 'semana' | 'mes'
   const [lunes, setLunes] = useState(() => lunesDe(new Date()))
+  const [mesAncla, setMesAncla] = useState(() => primerDiaMes(new Date()))
   const [registros, setRegistros] = useState([])
   const [loading, setLoading] = useState(false)
   const [expandedWorker, setExpandedWorker] = useState(null)
   const [exporting, setExporting] = useState(false)
 
+  const esMes = modo === 'mes'
   const domingo = domingoDE(lunes)
-  const desdeISO = toISO(lunes)
-  const hastaISO = toISO(domingo)
+  const rangoDesde = esMes ? primerDiaMes(mesAncla) : lunes
+  const rangoHasta = esMes ? ultimoDiaMes(mesAncla) : domingo
+  const desdeISO = toISO(rangoDesde)
+  const hastaISO = toISO(rangoHasta)
 
-  const esSemanActual = toISO(lunesDe(new Date())) === desdeISO
+  const esPeriodoActual = esMes
+    ? toISO(primerDiaMes(new Date())) === toISO(primerDiaMes(mesAncla))
+    : toISO(lunesDe(new Date())) === toISO(lunes)
 
   // ── carga ─────────────────────────────────────────────────────────────────
 
@@ -91,13 +114,18 @@ export default function InformeManager() {
 
   // ── navegación de semana ──────────────────────────────────────────────────
 
-  const semanaAnterior = () => {
-    const d = new Date(lunes); d.setDate(d.getDate() - 7); setLunes(d)
+  const irAnterior = () => {
+    if (esMes) { const d = new Date(mesAncla); d.setMonth(d.getMonth() - 1); setMesAncla(primerDiaMes(d)) }
+    else { const d = new Date(lunes); d.setDate(d.getDate() - 7); setLunes(d) }
   }
-  const semanaSiguiente = () => {
-    const d = new Date(lunes); d.setDate(d.getDate() + 7); setLunes(d)
+  const irSiguiente = () => {
+    if (esMes) { const d = new Date(mesAncla); d.setMonth(d.getMonth() + 1); setMesAncla(primerDiaMes(d)) }
+    else { const d = new Date(lunes); d.setDate(d.getDate() + 7); setLunes(d) }
   }
-  const semanaActual = () => setLunes(lunesDe(new Date()))
+  const irActual = () => {
+    if (esMes) setMesAncla(primerDiaMes(new Date()))
+    else setLunes(lunesDe(new Date()))
+  }
 
   // ── métricas globales ─────────────────────────────────────────────────────
 
@@ -186,7 +214,7 @@ export default function InformeManager() {
       XLSX.utils.book_append_sheet(wb, wsDet, 'Detalle')
 
       const semStr = `${desdeISO}_al_${hastaISO}`
-      XLSX.writeFile(wb, `informe_semanal_${semStr}.xlsx`)
+      XLSX.writeFile(wb, `informe_${esMes ? 'mensual' : 'semanal'}_${semStr}.xlsx`)
     } catch (e) {
       alert('Error al exportar: ' + e.message)
     }
@@ -224,6 +252,8 @@ export default function InformeManager() {
       const html2pdf = (await import('html2pdf.js')).default
       const logoUrl = window.location.origin + logoImg
       const periodo = `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
+      const tituloTipo = esMes ? 'MENSUALES' : 'SEMANALES'
+      const tituloTipoCap = esMes ? 'Mensuales' : 'Semanales'
       const equipos = [...worker.equipos].join(', ') || '—'
       const estados = [...new Set(worker.registros.map(r => r.estado).filter(Boolean))].join(', ') || '—'
 
@@ -357,7 +387,7 @@ export default function InformeManager() {
     <img class="portada-logo" src="${logoUrl}" alt="DAIG">
     <div class="portada-empresa">DAIG SpA</div>
     <div class="portada-sub">Ingeniería en Mecánica de Procesos y Mantenimiento Industrial</div>
-    <div class="portada-titulo">INFORME DE<br>ACTIVIDADES<br>SEMANALES</div>
+    <div class="portada-titulo">INFORME DE<br>ACTIVIDADES<br>${tituloTipo}</div>
     <div class="portada-divider"></div>
     <div class="portada-periodo">${periodo}</div>
     ${plantas !== '—' ? `<div class="portada-plantas">${plantas}</div>` : ''}
@@ -371,7 +401,7 @@ export default function InformeManager() {
         <img src="${logoUrl}" alt="DAIG">
         <span>DAIG SpA</span>
       </div>
-      <div class="ih-right">Informe de Actividades Semanales<br>${worker.nombre} · ${periodo}</div>
+      <div class="ih-right">Informe de Actividades ${tituloTipoCap}<br>${worker.nombre} · ${periodo}</div>
     </div>
     <div class="seccion">
       <div class="sec-titulo"><span class="sec-num">1.</span> DATOS DEL SERVICIO</div>
@@ -480,26 +510,33 @@ export default function InformeManager() {
         <SignaturePad initial={firma} onSave={guardarFirma} onClose={() => setShowFirma(false)} />
       )}
 
-      {/* ── cabecera de semana ── */}
+      {/* ── cabecera de periodo ── */}
       <div className="inf-week-bar">
-        <button className="inf-week-nav" onClick={semanaAnterior} title="Semana anterior">
+        <div className="inf-modo-toggle">
+          <button className={!esMes ? 'active' : ''} onClick={() => setModo('semana')}>Semana</button>
+          <button className={esMes ? 'active' : ''} onClick={() => setModo('mes')}>Mes</button>
+        </div>
+
+        <button className="inf-week-nav" onClick={irAnterior} title={esMes ? 'Mes anterior' : 'Semana anterior'}>
           <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
         </button>
 
         <div className="inf-week-label">
           <span className="inf-week-range">
-            {fmtShort(lunes)} – {fmtShort(domingo)}
+            {esMes
+              ? capitalizar(mesAncla.toLocaleDateString('es-CL', { month: 'long' }))
+              : `${fmtShort(lunes)} – ${fmtShort(domingo)}`}
           </span>
-          <span className="inf-week-year">{lunes.getFullYear()}</span>
-          {esSemanActual && <span className="inf-week-badge">Semana actual</span>}
+          <span className="inf-week-year">{(esMes ? mesAncla : lunes).getFullYear()}</span>
+          {esPeriodoActual && <span className="inf-week-badge">{esMes ? 'Mes actual' : 'Semana actual'}</span>}
         </div>
 
-        <button className="inf-week-nav" onClick={semanaSiguiente} title="Semana siguiente">
+        <button className="inf-week-nav" onClick={irSiguiente} title={esMes ? 'Mes siguiente' : 'Semana siguiente'}>
           <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
         </button>
 
-        {!esSemanActual && (
-          <button className="inf-today-btn" onClick={semanaActual}>Hoy</button>
+        {!esPeriodoActual && (
+          <button className="inf-today-btn" onClick={irActual}>Hoy</button>
         )}
 
         <button className="inf-export-btn" onClick={() => setShowFirma(true)}
@@ -523,7 +560,7 @@ export default function InformeManager() {
       {!loading && registros.length === 0 && (
         <div className="inf-empty">
           <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
-          <p>Sin registros para esta semana</p>
+          <p>Sin registros para {esMes ? 'este mes' : 'esta semana'}</p>
           <span>{fmtFecha(desdeISO)} al {fmtFecha(hastaISO)}</span>
         </div>
       )}

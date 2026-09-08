@@ -7,7 +7,10 @@ const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const DEST_EMAIL = process.env.WEEKLY_DIGEST_EMAIL || process.env.NOTIFY_REGISTRO_EMAIL || 'daniel.mena@serviciosdaig.com'
+const DEST_EMAILS = (process.env.WEEKLY_DIGEST_EMAIL || process.env.NOTIFY_REGISTRO_EMAIL || 'daniel.mena@serviciosdaig.com')
+  .split(/[,;]/)
+  .map((e) => e.trim())
+  .filter(Boolean)
 const SITE_DOMAIN = process.env.SITE_DOMAIN || 'daigchile.cl'
 const EMAIL_LOGO_URL = process.env.EMAIL_LOGO_URL || `https://${SITE_DOMAIN}/logo.jpeg`
 
@@ -94,7 +97,7 @@ export const handler = async () => {
   try {
     await resend.emails.send({
       from: fromEmail,
-      to: DEST_EMAIL,
+      to: DEST_EMAILS,
       subject: `[DAIG] Resumen semanal · ${fmt(desdeISO)} al ${fmt(hastaISO)} · ${regs.length} registros`,
       html,
     })

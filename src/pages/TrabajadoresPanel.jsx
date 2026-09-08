@@ -9,11 +9,6 @@ import logoImg from '../assets/logo.jpeg'
 const today = () => new Date().toISOString().split('T')[0]
 const nowTime = () => new Date().toTimeString().slice(0, 5)
 
-// Trabajadores cuyos registros nuevos notifican por correo al supervisor.
-// Se compara por nombre (en minúsculas, coincidencia parcial). "geral" calza
-// tanto con "Geral" como con "Gerald". Agrega más nombres aquí si hace falta.
-const TRABAJADORES_NOTIFICAN = ['geral']
-
 function TrabajadoresPanel() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -220,12 +215,8 @@ function TrabajadoresPanel() {
     img.src = url
   })
 
-  // Notifica al supervisor por correo (solo trabajadores de la lista). No bloquea.
+  // Notifica por correo cada registro nuevo, de cualquier trabajador. No bloquea.
   const notificarRegistro = (base, trabajadorNombre, fotosCount) => {
-    const debeNotificar = TRABAJADORES_NOTIFICAN.some(
-      n => (trabajadorNombre || '').toLowerCase().includes(n)
-    )
-    if (!debeNotificar) return
     fetch('/.netlify/functions/notify-registro', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
