@@ -196,17 +196,23 @@ export const handler = async (event) => {
       return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ error: 'No se puede eliminar a otro administrador' }) }
     }
 
-    // Borra el usuario de Auth. Los registros y el perfil caen por CASCADE
-    // (registros_trabajo.trabajador_id -> auth.users on delete cascade).
+    // Borrado explícito en orden seguro (no dependemos de cómo esté
+    // configurado el CASCADE): registros del trabajador -> perfil -> Auth.
+    const { error: regError } = await supabaseAdmin
+      .from('registros_trabajo').delete().eq('trabajador_id', userId)
+    if (regError) {
+      return { statusCode: 502, headers: corsHeaders, body: JSON.stringify({ error: `No se pudieron eliminar los registros: ${regError.message}` }) }
+    }
+
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles').delete().eq('id', userId)
+    if (profileError) {
+      return { statusCode: 502, headers: corsHeaders, body: JSON.stringify({ error: `No se pudo eliminar el perfil: ${profileError.message}` }) }
+    }
+
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
     if (deleteError) {
       return { statusCode: 502, headers: corsHeaders, body: JSON.stringify({ error: `No se pudo eliminar de Auth: ${deleteError.message}` }) }
-    }
-
-    // Por si el perfil no cae por cascade, lo borramos explícitamente.
-    const { error: profileError } = await supabaseAdmin.from('profiles').delete().eq('id', userId)
-    if (profileError) {
-      return { statusCode: 502, headers: corsHeaders, body: JSON.stringify({ error: `Usuario eliminado de Auth, pero el perfil quedó: ${profileError.message}` }) }
     }
 
     return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ ok: true }) }
