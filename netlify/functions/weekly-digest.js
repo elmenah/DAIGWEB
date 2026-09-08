@@ -7,7 +7,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const DEST_EMAILS = (process.env.WEEKLY_DIGEST_EMAIL || process.env.NOTIFY_REGISTRO_EMAIL || 'daniel.mena@serviciosdaig.com')
+const DEST_EMAILS = (process.env.WEEKLY_DIGEST_EMAIL || process.env.NOTIFY_REGISTRO_EMAIL || 'daniel.mena@serviciosdaig.com, lasercncdaig@gmail.com')
   .split(/[,;]/)
   .map((e) => e.trim())
   .filter(Boolean)
