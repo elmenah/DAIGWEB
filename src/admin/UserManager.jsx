@@ -94,20 +94,39 @@ function UserManager() {
 
   useEffect(() => { loadUsers() }, [loadUsers])
 
-  const getToken = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
+  // Devuelve un access_token válido. Refresca la sesión si el token expiró o
+  // está por expirar (el JWT dura ~1h; si la pestaña llevaba rato abierta,
+  // el token ya no sirve y Supabase respondería 401 "Token inválido").
+  const getToken = async ({ forceRefresh = false } = {}) => {
+    let { data: { session } } = await supabase.auth.getSession()
+    const expiraPronto = session?.expires_at && session.expires_at * 1000 < Date.now() + 60_000
+    if (forceRefresh || !session || expiraPronto) {
+      const { data } = await supabase.auth.refreshSession()
+      session = data.session
+    }
     return session?.access_token
   }
 
   const callAPI = async (payload) => {
-    const token = await getToken()
-    if (!token) throw new Error('Sesión expirada')
-    const res = await fetch('/.netlify/functions/manage-users', {
+    const doFetch = (token) => fetch('/.netlify/functions/manage-users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(payload),
     })
-    const data = await res.json()
+
+    let token = await getToken()
+    if (!token) throw new Error('Tu sesión expiró. Cierra sesión y vuelve a entrar.')
+
+    let res = await doFetch(token)
+    // Token vencido: refresca y reintenta una vez.
+    if (res.status === 401) {
+      token = await getToken({ forceRefresh: true })
+      if (!token) throw new Error('Tu sesión expiró. Cierra sesión y vuelve a entrar.')
+      res = await doFetch(token)
+    }
+
+    const data = await res.json().catch(() => ({}))
+    if (res.status === 401) throw new Error('Tu sesión expiró. Cierra sesión y vuelve a entrar.')
     if (!res.ok) throw new Error(data.error || `Error ${res.status}`)
     return data
   }
