@@ -390,9 +390,12 @@ function TrabajadoresPanel() {
           <div className="trab-header-right">
             {workerName && <span className="trab-worker-name">{workerName}</span>}
             {pendientes > 0 && (
-              <span className="trab-worker-name" style={{ color: '#f59e0b' }}
+              <span className="trab-worker-name" style={{ color: '#f59e0b', display: 'inline-flex', alignItems: 'center', gap: 5 }}
                 title="Registros guardados sin conexión, pendientes de enviar">
-                ⏳ {pendientes} por enviar
+                <svg viewBox="0 0 24 24" style={{ width: 15, height: 15, fill: '#f59e0b', flexShrink: 0 }}>
+                  <path d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2H6zm10 14.5V20H8v-3.5l4-4 4 4zm-4-5l-4-4V4h8v3.5l-4 4z"/>
+                </svg>
+                {pendientes} por enviar
               </span>
             )}
             <button className="trab-logout-btn" onClick={handleLogout}>Cerrar sesión</button>
@@ -506,8 +509,9 @@ function TrabajadoresPanel() {
                 {editingId ? `Editando registro del ${fecha}` : 'Registro de trabajo del día'}
               </h2>
               {editingId && (
-                <button className="admin-btn-outline" style={{ fontSize: '0.8rem' }} onClick={resetForm}>
-                  ✕ Cancelar edición
+                <button className="admin-btn-outline reg-icon-btn" style={{ fontSize: '0.8rem' }} onClick={resetForm}>
+                  <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                  Cancelar edición
                 </button>
               )}
             </div>
