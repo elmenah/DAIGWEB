@@ -59,15 +59,6 @@ function TrabajadoresPanel() {
       .then(({ data }) => { if (data) setWorkerName(data.nombre || data.username) })
   }, [user])
 
-  // Sincroniza la cola offline al montar y cuando vuelve la conexión
-  useEffect(() => {
-    refreshPendientes()
-    const onOnline = () => flushQueue()
-    window.addEventListener('online', onOnline)
-    if (user) flushQueue()
-    return () => window.removeEventListener('online', onOnline)
-  }, [user, flushQueue, refreshPendientes])
-
   useEffect(() => {
     if (view === 'historial') loadHistorial()
   }, [view])
@@ -281,6 +272,16 @@ function TrabajadoresPanel() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshPendientes])
+
+  // Sincroniza la cola offline al montar y cuando vuelve la conexión.
+  // Debe ir DESPUÉS de declarar flushQueue/refreshPendientes (evita TDZ).
+  useEffect(() => {
+    refreshPendientes()
+    const onOnline = () => flushQueue()
+    window.addEventListener('online', onOnline)
+    if (user) flushQueue()
+    return () => window.removeEventListener('online', onOnline)
+  }, [user, flushQueue, refreshPendientes])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
