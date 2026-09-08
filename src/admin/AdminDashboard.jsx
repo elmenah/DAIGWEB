@@ -23,6 +23,11 @@ const ICON = {
   mapa:      'M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z',
   usuarios:  'M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z',
   galeria:   'M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z',
+  hoy:       'M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z',
+  semana:    'M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z',
+  horas:     'M15 1H9v2h6V1zm-4 13h2V8h-2v6zm8.03-6.61l1.42-1.42c-.43-.51-.9-.99-1.41-1.41l-1.42 1.42A8.962 8.962 0 0012 4c-4.97 0-9 4.03-9 9s4.02 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61zM12 20c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z',
+  alerta:    'M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z',
+  repuesto:  'M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z',
 }
 
 const NAV = [
@@ -40,9 +45,32 @@ const lunesDeEstaSemana = () => {
   return d.toISOString().split('T')[0]
 }
 
-function KpiCard({ label, value, color, sub, onClick }) {
+function KpiCard({ label, value, color, sub, icon, onClick }) {
+  const clickProps = onClick
+    ? {
+        role: 'button',
+        tabIndex: 0,
+        onClick,
+        onKeyDown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } },
+      }
+    : {}
   return (
-    <div className="admin-kpi" style={{ borderColor: `${color}44`, cursor: onClick ? 'pointer' : 'default' }} onClick={onClick}>
+    <div
+      className={`admin-kpi ${onClick ? 'admin-kpi--clickable' : ''}`}
+      style={{ borderColor: `${color}33` }}
+      {...clickProps}
+    >
+      <span className="admin-kpi-accent" style={{ background: color }} />
+      <div className="admin-kpi-top">
+        <span className="admin-kpi-icon" style={{ background: `${color}22` }}>
+          <svg viewBox="0 0 24 24" style={{ fill: color }}><path d={icon} /></svg>
+        </span>
+        {onClick && (
+          <svg className="admin-kpi-go" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+          </svg>
+        )}
+      </div>
       <div className="admin-kpi-value" style={{ color }}>{value}</div>
       <div className="admin-kpi-label">{label}</div>
       {sub && <div className="admin-kpi-sub">{sub}</div>}
@@ -247,12 +275,12 @@ function DashboardHome({ nombre, onGo }) {
       ) : (
         <>
           <div className="admin-kpi-grid">
-            <KpiCard label="Registros hoy"        value={stats.hoy}          color="#e8962e" onClick={() => onGo('registros')} />
-            <KpiCard label="Registros esta semana" value={stats.semana}       color="#3b82f6" sub="lun–hoy" onClick={() => onGo('registros')} />
-            <KpiCard label="Horas esta semana"     value={stats.horas}        color="#8b5cf6" sub="lun–hoy" />
-            <KpiCard label="Trabajadores"          value={stats.trabajadores} color="#22c55e" onClick={() => onGo('usuarios')} />
-            <KpiCard label="Sin revisar"           value={stats.sinRevisar}   color="#f59e0b" sub={stats.sinRevisar > 0 ? 'requieren revisión' : 'al día'} onClick={() => onGo('registros')} />
-            <KpiCard label="Pendiente repuesto"    value={stats.pendientes}   color="#ef4444" sub={stats.pendientes > 0 ? 'requieren atención' : ''} onClick={() => onGo('registros')} />
+            <KpiCard label="Registros hoy"        value={stats.hoy}          color="#e8962e" icon={ICON.hoy}      onClick={() => onGo('registros')} />
+            <KpiCard label="Registros esta semana" value={stats.semana}       color="#3b82f6" icon={ICON.semana}   sub="lun–hoy" onClick={() => onGo('registros')} />
+            <KpiCard label="Horas esta semana"     value={stats.horas}        color="#8b5cf6" icon={ICON.horas}    sub="lun–hoy" />
+            <KpiCard label="Trabajadores"          value={stats.trabajadores} color="#22c55e" icon={ICON.usuarios} onClick={() => onGo('usuarios')} />
+            <KpiCard label="Sin revisar"           value={stats.sinRevisar}   color="#f59e0b" icon={ICON.alerta}   sub={stats.sinRevisar > 0 ? 'requieren revisión' : 'al día'} onClick={() => onGo('registros')} />
+            <KpiCard label="Pendiente repuesto"    value={stats.pendientes}   color="#ef4444" icon={ICON.repuesto} sub={stats.pendientes > 0 ? 'requieren atención' : ''} onClick={() => onGo('registros')} />
           </div>
 
           <ActivityChart />
@@ -511,7 +539,10 @@ function AdminDashboard() {
           <button className="admin-hamburger" onClick={() => setDrawerOpen(true)} aria-label="Abrir menú">
             <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" /></svg>
           </button>
-          <h1>{currentLabel}</h1>
+          <div className="admin-topbar-titles">
+            <span className="admin-topbar-eyebrow">Panel de administración</span>
+            <h1>{currentLabel}</h1>
+          </div>
         </header>
 
         <main className="admin-page">

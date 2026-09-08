@@ -4534,6 +4534,7 @@ header.scrolled .navbar {
   flex: 1;
 }
 .admin-nav-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.7rem;
@@ -4548,9 +4549,21 @@ header.scrolled .navbar {
   text-align: left;
   transition: background 0.15s, color 0.15s;
 }
-.admin-nav-item svg { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; }
+.admin-nav-item svg { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; opacity: 0.85; }
 .admin-nav-item:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
+.admin-nav-item:focus-visible { outline: 2px solid #e8962e; outline-offset: 2px; }
 .admin-nav-item--active { background: rgba(232, 150, 46, 0.14); color: #e8962e; }
+.admin-nav-item--active svg { opacity: 1; }
+.admin-nav-item--active::before {
+  content: '';
+  position: absolute;
+  left: -0.75rem;
+  top: 22%;
+  bottom: 22%;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: #e8962e;
+}
 
 .admin-sidebar-footer {
   padding: 1rem 0.9rem;
@@ -4588,14 +4601,25 @@ header.scrolled .navbar {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 2rem;
+  padding: 0.85rem 2rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   position: sticky;
   top: 0;
   background: var(--darkest-bg);
+  background: color-mix(in srgb, var(--darkest-bg) 82%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   z-index: 100;
 }
-.admin-topbar h1 { color: #fff; font-size: 1.15rem; font-weight: 700; }
+.admin-topbar-titles { display: flex; flex-direction: column; gap: 1px; }
+.admin-topbar-eyebrow {
+  color: #e8962e;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.admin-topbar h1 { color: #fff; font-size: 1.2rem; font-weight: 700; line-height: 1.1; }
 .admin-hamburger { display: none; background: transparent; border: none; cursor: pointer; color: #fff; padding: 4px; }
 .admin-hamburger svg { width: 24px; height: 24px; fill: currentColor; }
 
@@ -4606,21 +4630,62 @@ header.scrolled .navbar {
 
 .admin-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 0.9rem;
+  margin-bottom: 1.75rem;
 }
 .admin-kpi {
-  background: var(--darker-bg);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(155deg, var(--darker-bg), var(--dark-bg));
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 1.1rem 1.25rem;
-  transition: transform 0.15s, border-color 0.15s;
+  border-radius: 14px;
+  padding: 1.1rem 1.2rem;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
-.admin-kpi:hover { transform: translateY(-2px); }
-.admin-kpi-value { font-size: 2rem; font-weight: 800; line-height: 1; }
-.admin-kpi-label { color: rgba(255, 255, 255, 0.7); font-size: 0.85rem; margin-top: 0.5rem; }
-.admin-kpi-sub { color: rgba(255, 255, 255, 0.4); font-size: 0.72rem; margin-top: 0.15rem; }
+.admin-kpi-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  opacity: 0.9;
+}
+.admin-kpi--clickable { cursor: pointer; }
+.admin-kpi--clickable:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.38);
+}
+.admin-kpi:focus-visible { outline: 2px solid #e8962e; outline-offset: 2px; }
+.admin-kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+.admin-kpi-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+}
+.admin-kpi-icon svg { width: 20px; height: 20px; }
+.admin-kpi-go {
+  width: 18px;
+  height: 18px;
+  fill: rgba(255, 255, 255, 0.22);
+  transition: fill 0.15s, transform 0.15s;
+}
+.admin-kpi--clickable:hover .admin-kpi-go { fill: rgba(255, 255, 255, 0.6); transform: translateX(2px); }
+.admin-kpi-value { font-size: 2.05rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.admin-kpi-label { color: rgba(255, 255, 255, 0.78); font-size: 0.85rem; font-weight: 600; margin-top: 0.5rem; }
+.admin-kpi-sub { color: rgba(255, 255, 255, 0.42); font-size: 0.72rem; margin-top: 0.2rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-kpi, .admin-kpi-go, .admin-nav-item { transition: none !important; }
+  .admin-kpi--clickable:hover { transform: none; }
+}
 
 .admin-quick { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 .admin-quick-btn {
