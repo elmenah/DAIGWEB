@@ -41,6 +41,8 @@ export const handler = async (event) => {
     return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ error: 'No autorizado' }) }
   }
 
+  try {
+
   const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
@@ -194,15 +196,25 @@ export const handler = async (event) => {
       return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ error: 'No se puede eliminar a otro administrador' }) }
     }
 
-    await supabaseAdmin.from('profiles').delete().eq('id', userId)
+    // Borra el usuario de Auth. Los registros y el perfil caen por CASCADE
+    // (registros_trabajo.trabajador_id -> auth.users on delete cascade).
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
-
     if (deleteError) {
-      return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: deleteError.message }) }
+      return { statusCode: 502, headers: corsHeaders, body: JSON.stringify({ error: `No se pudo eliminar de Auth: ${deleteError.message}` }) }
+    }
+
+    // Por si el perfil no cae por cascade, lo borramos explícitamente.
+    const { error: profileError } = await supabaseAdmin.from('profiles').delete().eq('id', userId)
+    if (profileError) {
+      return { statusCode: 502, headers: corsHeaders, body: JSON.stringify({ error: `Usuario eliminado de Auth, pero el perfil quedó: ${profileError.message}` }) }
     }
 
     return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ ok: true }) }
   }
 
-  return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Acción no reconocida' }) }
+    return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Acción no reconocida' }) }
+  } catch (e) {
+    console.error('manage-users error:', e)
+    return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: `Error del servidor: ${e?.message || e}` }) }
+  }
 }
