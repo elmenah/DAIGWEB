@@ -40,6 +40,28 @@ const ultimoDiaMes = (d) => {
 
 const capitalizar = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
 
+const INF_ICON = {
+  registros:    'M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z',
+  horas:        'M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z',
+  trabajadores: 'M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z',
+  promedio:     'M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z',
+}
+
+function InfKpi({ value, label, color, icon }) {
+  return (
+    <div className="inf-kpi" style={{ borderColor: `${color}33` }}>
+      <span className="inf-kpi-accent" style={{ background: color }} />
+      <span className="inf-kpi-icon" style={{ background: `${color}22` }}>
+        <svg viewBox="0 0 24 24" style={{ fill: color }}><path d={icon} /></svg>
+      </span>
+      <div className="inf-kpi-body">
+        <div className="inf-kpi-val" style={{ color }}>{value}</div>
+        <div className="inf-kpi-lbl">{label}</div>
+      </div>
+    </div>
+  )
+}
+
 const fmtFecha = (iso) => {
   if (!iso) return ''
   const [y, m, d] = iso.split('-')
@@ -569,30 +591,18 @@ export default function InformeManager() {
         <>
           {/* ── KPIs ── */}
           <div className="inf-kpi-row">
-            <div className="inf-kpi">
-              <div className="inf-kpi-val" style={{ color: '#f5a623' }}>{registros.length}</div>
-              <div className="inf-kpi-lbl">Registros</div>
-            </div>
-            <div className="inf-kpi">
-              <div className="inf-kpi-val" style={{ color: '#8b5cf6' }}>
-                {totalHoras % 1 === 0 ? totalHoras : totalHoras.toFixed(1)}
-              </div>
-              <div className="inf-kpi-lbl">Horas totales</div>
-            </div>
-            <div className="inf-kpi">
-              <div className="inf-kpi-val" style={{ color: '#22c55e' }}>{trabajadoresActivos}</div>
-              <div className="inf-kpi-lbl">Trabajadores activos</div>
-            </div>
-            <div className="inf-kpi">
-              <div className="inf-kpi-val" style={{ color: '#3b82f6' }}>
-                {totalHoras && trabajadoresActivos
-                  ? (totalHoras / trabajadoresActivos % 1 === 0
-                    ? totalHoras / trabajadoresActivos
-                    : (totalHoras / trabajadoresActivos).toFixed(1))
-                  : '—'}
-              </div>
-              <div className="inf-kpi-lbl">Hrs / trabajador</div>
-            </div>
+            <InfKpi color="#f5a623" icon={INF_ICON.registros} label="Registros"
+              value={registros.length} />
+            <InfKpi color="#8b5cf6" icon={INF_ICON.horas} label="Horas totales"
+              value={totalHoras % 1 === 0 ? totalHoras : totalHoras.toFixed(1)} />
+            <InfKpi color="#22c55e" icon={INF_ICON.trabajadores} label="Trabajadores activos"
+              value={trabajadoresActivos} />
+            <InfKpi color="#3b82f6" icon={INF_ICON.promedio} label="Hrs / trabajador"
+              value={totalHoras && trabajadoresActivos
+                ? (totalHoras / trabajadoresActivos % 1 === 0
+                  ? totalHoras / trabajadoresActivos
+                  : (totalHoras / trabajadoresActivos).toFixed(1))
+                : '—'} />
           </div>
 
           {/* ── tipo de trabajo y estado ── */}

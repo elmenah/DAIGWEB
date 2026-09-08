@@ -6559,14 +6559,25 @@ header.scrolled .navbar {
 }
 @media (max-width: 640px) { .inf-kpi-row { grid-template-columns: repeat(2, 1fr); } }
 .inf-kpi {
-  background: rgba(255,255,255,0.04);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: linear-gradient(155deg, var(--darker-bg), var(--dark-bg));
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 12px;
-  padding: 1rem;
-  text-align: center;
+  padding: 0.9rem 1rem;
 }
-.inf-kpi-val { font-size: 1.8rem; font-weight: 800; line-height: 1.1; }
-.inf-kpi-lbl { font-size: 0.75rem; color: #9a9ab0; margin-top: 0.25rem; }
+.inf-kpi-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; opacity: 0.9; }
+.inf-kpi-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.inf-kpi-icon svg { width: 21px; height: 21px; }
+.inf-kpi-body { min-width: 0; }
+.inf-kpi-val { font-size: 1.7rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.inf-kpi-lbl { font-size: 0.75rem; color: #9a9ab0; margin-top: 0.2rem; }
 
 /* Chips row */
 .inf-chips-row {
@@ -6612,13 +6623,24 @@ header.scrolled .navbar {
 /* Lista de trabajadores */
 .inf-worker-list { display: flex; flex-direction: column; gap: 0.6rem; }
 .inf-worker-card {
+  position: relative;
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 12px;
   overflow: hidden;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s;
 }
+.inf-worker-card:hover { background: rgba(255,255,255,0.055); }
 .inf-worker-card--open { border-color: rgba(245,166,35,0.35); }
+.inf-worker-card--open::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 58px;
+  width: 3px;
+  background: #e8962e;
+}
 .inf-worker-header {
   width: 100%;
   background: none;
@@ -6630,6 +6652,7 @@ header.scrolled .navbar {
   padding: 0.9rem 1rem;
   text-align: left;
 }
+.inf-worker-header:focus-visible { outline: 2px solid #e8962e; outline-offset: -2px; border-radius: 12px; }
 .inf-worker-avatar {
   width: 36px;
   height: 36px;
