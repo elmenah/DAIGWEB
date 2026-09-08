@@ -54,15 +54,28 @@ function SortIcon({ active, asc }) {
   return <span style={{ marginLeft: 4, opacity: active ? 1 : 0.3, fontSize: '0.7rem' }}>{active ? (asc ? '▲' : '▼') : '▲▼'}</span>
 }
 
-function StatCard({ label, value, color, sub }) {
+const RICON = {
+  horas:    'M15 1H9v2h6V1zm-4 13h2V8h-2v6zm8.03-6.61l1.42-1.42c-.43-.51-.9-.99-1.41-1.41l-1.42 1.42A8.962 8.962 0 0012 4c-4.97 0-9 4.03-9 9s4.02 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61zM12 20c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z',
+  ok:       'M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z',
+  wip:      'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z',
+  pending:  'M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z',
+  download: 'M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z',
+  printer:  'M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v3h12V3z',
+  check:    'M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z',
+}
+
+function StatCard({ label, value, color, sub, icon }) {
   return (
-    <div style={{
-      background: 'rgba(255,255,255,0.04)', border: `1px solid ${color}44`,
-      borderRadius: 10, padding: '12px 16px', flex: 1, minWidth: 120,
-    }}>
-      <div style={{ fontSize: '1.6rem', fontWeight: 700, color, lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: '0.78rem', color: '#9a9ab0', marginTop: 4 }}>{label}</div>
-      {sub && <div style={{ fontSize: '0.72rem', color: '#6b7280', marginTop: 2 }}>{sub}</div>}
+    <div className="reg-stat" style={{ borderColor: `${color}33` }}>
+      <span className="reg-stat-accent" style={{ background: color }} />
+      <span className="reg-stat-icon" style={{ background: `${color}22` }}>
+        <svg viewBox="0 0 24 24" style={{ fill: color }}><path d={icon} /></svg>
+      </span>
+      <div className="reg-stat-body">
+        <div className="reg-stat-value" style={{ color }}>{value}</div>
+        <div className="reg-stat-label">{label}</div>
+        {sub && <div className="reg-stat-sub">{sub}</div>}
+      </div>
     </div>
   )
 }
@@ -386,18 +399,19 @@ function RegistrosManager() {
         <h3>Registros de Trabajadores</h3>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <span className="admin-badge">{total} registros</span>
-          <button className="admin-btn-outline" style={{ fontSize: '0.8rem', padding: '4px 12px' }} onClick={exportCSV}>
-            ↓ Exportar CSV
+          <button className="admin-btn-outline reg-icon-btn" style={{ fontSize: '0.8rem', padding: '5px 12px' }} onClick={exportCSV}>
+            <svg viewBox="0 0 24 24"><path d={RICON.download} /></svg>
+            Exportar CSV
           </button>
         </div>
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-        <StatCard label="Horas esta semana"    value={stats.horas % 1 === 0 ? stats.horas : stats.horas.toFixed(1)} color="#e8962e" sub="lun–hoy" />
-        <StatCard label="Terminados"           value={stats.terminados}  color="#22c55e" />
-        <StatCard label="En Proceso"           value={stats.enProceso}   color="#f59e0b" />
-        <StatCard label="Pendiente repuesto"   value={stats.pendientes}  color="#ef4444" sub={stats.pendientes > 0 ? 'requieren atención' : ''} />
+      <div className="reg-stat-grid">
+        <StatCard label="Horas esta semana"    value={stats.horas % 1 === 0 ? stats.horas : stats.horas.toFixed(1)} color="#e8962e" sub="lun–hoy" icon={RICON.horas} />
+        <StatCard label="Terminados"           value={stats.terminados}  color="#22c55e" icon={RICON.ok} />
+        <StatCard label="En Proceso"           value={stats.enProceso}   color="#f59e0b" icon={RICON.wip} />
+        <StatCard label="Pendiente repuesto"   value={stats.pendientes}  color="#ef4444" icon={RICON.pending} sub={stats.pendientes > 0 ? 'requieren atención' : ''} />
       </div>
 
       {/* Filtros */}
@@ -475,7 +489,12 @@ function RegistrosManager() {
                     onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}>
                     <td className="reg-td-worker">
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        {r.revisado_por && <span title={`Revisado por ${r.revisado_por}`} style={{ color: '#22c55e', fontSize: '0.75rem' }}>✓</span>}
+                        {r.revisado_por && (
+                          <svg viewBox="0 0 24 24" title={`Revisado por ${r.revisado_por}`}
+                            style={{ width: 14, height: 14, fill: '#22c55e', flexShrink: 0 }}>
+                            <path d={RICON.check} />
+                          </svg>
+                        )}
                         {r.trabajador_nombre || r.trabajador_id?.slice(0,8)}
                       </div>
                     </td>
@@ -603,25 +622,28 @@ function RegistrosManager() {
                           {/* Acciones */}
                           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
                             {r.revisado_por ? (
-                              <span style={{ fontSize: '0.8rem', color: '#22c55e', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                ✓ Revisado por {r.revisado_por} — {new Date(r.revisado_at).toLocaleDateString('es-CL')}
+                              <span style={{ fontSize: '0.8rem', color: '#22c55e', display: 'flex', alignItems: 'center', gap: 5 }}>
+                                <svg viewBox="0 0 24 24" style={{ width: 15, height: 15, fill: '#22c55e' }}><path d={RICON.check} /></svg>
+                                Revisado por {r.revisado_por} — {new Date(r.revisado_at).toLocaleDateString('es-CL')}
                               </span>
                             ) : (
                               <button
-                                className="admin-btn-outline"
+                                className="admin-btn-outline reg-icon-btn"
                                 style={{ fontSize: '0.78rem', padding: '5px 12px' }}
                                 onClick={e => { e.stopPropagation(); markReviewed(r.id) }}
                                 disabled={markingReviewed === r.id}
                               >
-                                {markingReviewed === r.id ? 'Marcando...' : '✓ Marcar como revisado'}
+                                <svg viewBox="0 0 24 24"><path d={RICON.check} /></svg>
+                                {markingReviewed === r.id ? 'Marcando...' : 'Marcar como revisado'}
                               </button>
                             )}
                             <button
-                              className="admin-btn-outline"
+                              className="admin-btn-outline reg-icon-btn"
                               style={{ fontSize: '0.78rem', padding: '5px 12px' }}
                               onClick={e => { e.stopPropagation(); printRecord(r) }}
                             >
-                              🖨 Exportar PDF
+                              <svg viewBox="0 0 24 24"><path d={RICON.printer} /></svg>
+                              Exportar PDF
                             </button>
                           </div>
                         </div>

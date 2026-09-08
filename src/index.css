@@ -4928,6 +4928,37 @@ header.scrolled .navbar {
   padding: 3px 10px;
 }
 
+.reg-icon-btn { display: inline-flex; align-items: center; gap: 6px; }
+.reg-icon-btn svg { width: 15px; height: 15px; fill: currentColor; flex-shrink: 0; }
+
+.reg-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.reg-stat {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: linear-gradient(155deg, var(--darker-bg), var(--dark-bg));
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+}
+.reg-stat-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; opacity: 0.9; }
+.reg-stat-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.reg-stat-icon svg { width: 21px; height: 21px; }
+.reg-stat-body { min-width: 0; }
+.reg-stat-value { font-size: 1.55rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.reg-stat-label { font-size: 0.78rem; color: #9a9ab0; margin-top: 4px; }
+.reg-stat-sub { font-size: 0.72rem; color: #6b7280; margin-top: 2px; }
+
 .reg-filters {
   display: flex;
   gap: 12px;
@@ -5384,11 +5415,22 @@ header.scrolled .navbar {
 
 /* Estado badges admin */
 .reg-estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.7rem;
   font-weight: 700;
   border-radius: 20px;
-  padding: 3px 9px;
+  padding: 3px 10px;
   white-space: nowrap;
+}
+.reg-estado-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
 }
 .reg-estado-badge--ok      { background: rgba(34,197,94,0.15);  color: #4ade80; }
 .reg-estado-badge--wip     { background: rgba(234,179,8,0.15);  color: #facc15; }
