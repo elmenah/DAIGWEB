@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../admin/AuthContext'
 import { supabase } from '../lib/supabase'
 import { isHeicFile, isHeicByHeader, heicBlobToJpeg } from '../lib/heic'
+import { addPending, getPending, deletePending, countPending } from '../lib/offlineQueue'
 import logoImg from '../assets/logo.jpeg'
 
 const today = () => new Date().toISOString().split('T')[0]
@@ -19,6 +20,10 @@ function TrabajadoresPanel() {
 
   const [view, setView] = useState('form')
   const [workerName, setWorkerName] = useState('')
+
+  // Cola offline: registros guardados sin conexión, pendientes de enviar
+  const [pendientes, setPendientes] = useState(0)
+  const flushingRef = useRef(false)
 
   // Form state
   const [fecha, setFecha] = useState(today())
@@ -58,6 +63,15 @@ function TrabajadoresPanel() {
     supabase.from('profiles').select('username, nombre').eq('id', user.id).single()
       .then(({ data }) => { if (data) setWorkerName(data.nombre || data.username) })
   }, [user])
+
+  // Sincroniza la cola offline al montar y cuando vuelve la conexión
+  useEffect(() => {
+    refreshPendientes()
+    const onOnline = () => flushQueue()
+    window.addEventListener('online', onOnline)
+    if (user) flushQueue()
+    return () => window.removeEventListener('online', onOnline)
+  }, [user, flushQueue, refreshPendientes])
 
   useEffect(() => {
     if (view === 'historial') loadHistorial()
@@ -154,9 +168,9 @@ function TrabajadoresPanel() {
     setFotosExistentes(prev => prev.filter((_, i) => i !== idx))
   }
 
-  const uploadFotos = async () => {
+  const uploadFotos = async (fotosList = fotos) => {
     const urls = []
-    for (const original of fotos) {
+    for (const original of fotosList) {
       let blob = original
       let contentType = 'image/jpeg'
 
@@ -206,6 +220,77 @@ function TrabajadoresPanel() {
     img.src = url
   })
 
+  // Notifica al supervisor por correo (solo trabajadores de la lista). No bloquea.
+  const notificarRegistro = (base, trabajadorNombre, fotosCount) => {
+    const debeNotificar = TRABAJADORES_NOTIFICAN.some(
+      n => (trabajadorNombre || '').toLowerCase().includes(n)
+    )
+    if (!debeNotificar) return
+    fetch('/.netlify/functions/notify-registro', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        trabajador_nombre: trabajadorNombre,
+        fecha: base.fecha,
+        hora: base.hora,
+        ot: base.ot,
+        tipo_trabajo: base.tipo_trabajo,
+        planta: base.planta,
+        aviso_sap: base.aviso_sap,
+        equipo_intervenido: base.equipo_intervenido,
+        tarea: base.tarea,
+        estado: base.estado,
+        horas_trabajadas: base.horas_trabajadas,
+        ubicacion_lat: base.ubicacion_lat,
+        ubicacion_lng: base.ubicacion_lng,
+        fotos_count: fotosCount,
+      }),
+    }).catch(() => {})
+  }
+
+  // Sube fotos + inserta un registro NUEVO y notifica. Lanza si falla (red/DB).
+  const enviarRegistroNuevo = async ({ base, trabajadorId, trabajadorNombre, fotosExistentes = [], fotosNuevas = [] }) => {
+    const nuevasUrls = fotosNuevas.length > 0 ? await uploadFotos(fotosNuevas) : []
+    const fotosFinales = [...fotosExistentes, ...nuevasUrls]
+    const { error } = await supabase
+      .from('registros_trabajo')
+      .insert({ ...base, trabajador_nombre: trabajadorNombre, trabajador_id: trabajadorId, fotos: fotosFinales })
+    if (error) throw error
+    notificarRegistro(base, trabajadorNombre, fotosFinales.length)
+    return fotosFinales.length
+  }
+
+  const refreshPendientes = useCallback(async () => {
+    setPendientes(await countPending())
+  }, [])
+
+  // Envía a la BDD los registros guardados offline. Reintenta silenciosamente.
+  const flushQueue = useCallback(async () => {
+    if (flushingRef.current || typeof navigator !== 'undefined' && !navigator.onLine) return
+    flushingRef.current = true
+    try {
+      const items = await getPending()
+      for (const item of items) {
+        try {
+          await enviarRegistroNuevo({
+            base: item.payloadBase,
+            trabajadorId: item.trabajador_id,
+            trabajadorNombre: item.trabajador_nombre,
+            fotosExistentes: item.fotosExistentes || [],
+            fotosNuevas: item.fotosNuevas || [],
+          })
+          await deletePending(item.id)
+        } catch {
+          // sigue en cola; se reintenta en la próxima conexión/carga
+        }
+      }
+    } finally {
+      flushingRef.current = false
+      refreshPendientes()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshPendientes])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!tarea.trim()) return
@@ -218,81 +303,78 @@ function TrabajadoresPanel() {
 
     const tipoFinal = tipoTrabajo === 'Otro' ? tipoTrabajoOtro.trim() || 'Otro' : tipoTrabajo
 
+    // Campos del registro (sin fotos; las fotos se resuelven al enviar)
+    const base = {
+      fecha,
+      hora,
+      tipo_trabajo: tipoFinal,
+      equipo_intervenido: equipoIntervenido.trim(),
+      ot: ot.trim() || null,
+      aviso_sap: avisoSap.trim() || null,
+      planta: planta.trim() || null,
+      tarea: tarea.trim(),
+      descripcion: descripcion.trim(),
+      material_utilizado: materialUtilizado.trim(),
+      horas_trabajadas: horasTrabajadas ? parseFloat(horasTrabajadas) : null,
+      estado,
+      ubicacion_texto: `${ubicacionLat.toFixed(6)}, ${ubicacionLng.toFixed(6)}`,
+      ubicacion_lat: ubicacionLat,
+      ubicacion_lng: ubicacionLng,
+    }
+
+    const resumen = {
+      fecha, hora, ot: ot.trim(), tarea: tarea.trim(), tipo: tipoFinal,
+      estado, planta: planta.trim(), equipo: equipoIntervenido.trim(),
+      fotos: fotosExistentes.length + fotos.length, editingId,
+    }
+
     try {
-      const nuevasUrls = fotos.length > 0 ? await uploadFotos() : []
-      const fotosFinales = [...fotosExistentes, ...nuevasUrls]
-
-      const payload = {
-        trabajador_nombre: workerName,
-        fecha,
-        hora,
-        tipo_trabajo: tipoFinal,
-        equipo_intervenido: equipoIntervenido.trim(),
-        ot: ot.trim() || null,
-        aviso_sap: avisoSap.trim() || null,
-        planta: planta.trim() || null,
-        tarea: tarea.trim(),
-        descripcion: descripcion.trim(),
-        material_utilizado: materialUtilizado.trim(),
-        horas_trabajadas: horasTrabajadas ? parseFloat(horasTrabajadas) : null,
-        estado,
-        ubicacion_texto: `${ubicacionLat.toFixed(6)}, ${ubicacionLng.toFixed(6)}`,
-        ubicacion_lat: ubicacionLat,
-        ubicacion_lng: ubicacionLng,
-        fotos: fotosFinales,
-      }
-
-      let error
       if (editingId) {
-        ;({ error } = await supabase.from('registros_trabajo').update(payload).eq('id', editingId))
+        // Edición: requiere conexión (sube fotos y actualiza)
+        const nuevasUrls = fotos.length > 0 ? await uploadFotos() : []
+        const fotosFinales = [...fotosExistentes, ...nuevasUrls]
+        const { error } = await supabase
+          .from('registros_trabajo')
+          .update({ ...base, trabajador_nombre: workerName, fotos: fotosFinales })
+          .eq('id', editingId)
+        if (error) throw error
+        setSubmittedData({ ...resumen, fotos: fotosFinales.length })
+        setSendStatus('edited')
+        resetForm()
       } else {
-        ;({ error } = await supabase.from('registros_trabajo').insert({ ...payload, trabajador_id: user.id }))
+        const n = await enviarRegistroNuevo({
+          base, trabajadorId: user.id, trabajadorNombre: workerName,
+          fotosExistentes, fotosNuevas: fotos,
+        })
+        setSubmittedData({ ...resumen, fotos: n })
+        setSendStatus('ok')
+        resetForm()
       }
-      if (error) throw error
-
-      // Notificar por correo al supervisor (solo registros nuevos de ciertos
-      // trabajadores; no bloquea el envío)
-      const debeNotificar = TRABAJADORES_NOTIFICAN.some(
-        n => (workerName || '').toLowerCase().includes(n)
-      )
-      if (!editingId && debeNotificar) {
-        fetch('/.netlify/functions/notify-registro', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+    } catch (err) {
+      // Sin conexión y registro NUEVO: guardar localmente para enviar al reconectar
+      const offline = (typeof navigator !== 'undefined' && !navigator.onLine) ||
+        /fetch|network|failed to fetch|load failed/i.test(err?.message || '')
+      if (!editingId && offline) {
+        try {
+          await addPending({
+            id: (crypto.randomUUID && crypto.randomUUID()) || `${Date.now()}-${Math.random()}`,
+            trabajador_id: user.id,
             trabajador_nombre: workerName,
-            fecha,
-            hora,
-            ot: ot.trim() || null,
-            tipo_trabajo: tipoFinal,
-            planta: planta.trim() || null,
-            aviso_sap: avisoSap.trim() || null,
-            equipo_intervenido: equipoIntervenido.trim() || null,
-            tarea: tarea.trim(),
-            estado,
-            horas_trabajadas: horasTrabajadas || null,
-            ubicacion_lat: ubicacionLat,
-            ubicacion_lng: ubicacionLng,
-            fotos_count: fotosFinales.length,
-          }),
-        }).catch(() => {})
+            payloadBase: base,
+            fotosExistentes,
+            fotosNuevas: fotos,
+            createdAt: Date.now(),
+          })
+          setSubmittedData({ ...resumen, offline: true })
+          setSendStatus('offline')
+          resetForm()
+          refreshPendientes()
+          setSending(false)
+          return
+        } catch {
+          // Si IndexedDB no está disponible, cae al error normal
+        }
       }
-
-      setSubmittedData({
-        fecha,
-        hora,
-        ot: ot.trim(),
-        tarea: tarea.trim(),
-        tipo: tipoFinal,
-        estado,
-        planta: planta.trim(),
-        equipo: equipoIntervenido.trim(),
-        fotos: fotosFinales.length,
-        editingId,
-      })
-      setSendStatus(editingId ? 'edited' : 'ok')
-      resetForm()
-    } catch {
       setSendStatus('error')
     }
     setSending(false)
@@ -316,6 +398,12 @@ function TrabajadoresPanel() {
           </div>
           <div className="trab-header-right">
             {workerName && <span className="trab-worker-name">{workerName}</span>}
+            {pendientes > 0 && (
+              <span className="trab-worker-name" style={{ color: '#f59e0b' }}
+                title="Registros guardados sin conexión, pendientes de enviar">
+                ⏳ {pendientes} por enviar
+              </span>
+            )}
             <button className="trab-logout-btn" onClick={handleLogout}>Cerrar sesión</button>
           </div>
         </div>
@@ -339,7 +427,7 @@ function TrabajadoresPanel() {
       </div>
 
       <main className="trab-main">
-        {view === 'form' && (sendStatus === 'ok' || sendStatus === 'edited') && submittedData && (
+        {view === 'form' && (sendStatus === 'ok' || sendStatus === 'edited' || sendStatus === 'offline') && submittedData && (
           <div className="trab-success-screen">
             <div className="trab-success-icon">
               <svg viewBox="0 0 52 52">
@@ -349,10 +437,13 @@ function TrabajadoresPanel() {
               </svg>
             </div>
             <h2 className="trab-success-title">
-              {submittedData.editingId ? '¡Registro actualizado!' : '¡Registro enviado!'}
+              {submittedData.offline ? '¡Guardado sin conexión!'
+                : submittedData.editingId ? '¡Registro actualizado!' : '¡Registro enviado!'}
             </h2>
             <p className="trab-success-sub">
-              {submittedData.editingId ? 'Los cambios quedaron guardados.' : 'Tu registro llegó correctamente al sistema.'}
+              {submittedData.offline
+                ? 'Se enviará automáticamente cuando recuperes señal. Puedes cerrar la app tranquilo.'
+                : submittedData.editingId ? 'Los cambios quedaron guardados.' : 'Tu registro llegó correctamente al sistema.'}
             </p>
 
             <div className="trab-success-card">
@@ -417,7 +508,7 @@ function TrabajadoresPanel() {
           </div>
         )}
 
-        {view === 'form' && sendStatus !== 'ok' && sendStatus !== 'edited' && (
+        {view === 'form' && sendStatus !== 'ok' && sendStatus !== 'edited' && sendStatus !== 'offline' && (
           <div className="trab-form-section">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
               <h2 className="trab-section-title">
