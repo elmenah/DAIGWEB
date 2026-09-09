@@ -6732,7 +6732,13 @@ header.scrolled .navbar {
   border: 1px solid rgba(255,255,255,0.1);
 }
 
-/* Botón generar informe PDF */
+/* Botones de exportación por trabajador */
+.inf-worker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
 .inf-generar-btn {
   display: flex;
   align-items: center;
@@ -6746,11 +6752,16 @@ header.scrolled .navbar {
   padding: 7px 16px;
   cursor: pointer;
   transition: background 0.15s;
-  margin-bottom: 0.85rem;
 }
 .inf-generar-btn svg { width: 15px; height: 15px; fill: currentColor; flex-shrink: 0; }
 .inf-generar-btn:hover:not(:disabled) { background: rgba(245, 166, 35, 0.22); }
 .inf-generar-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.inf-generar-btn--excel {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.35);
+  color: #22c55e;
+}
+.inf-generar-btn--excel:hover:not(:disabled) { background: rgba(34, 197, 94, 0.22); }
 
 /* ── Gráfico de actividad (dashboard) ──────────────────────── */
 .dash-chart-card {
