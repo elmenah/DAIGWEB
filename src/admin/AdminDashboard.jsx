@@ -300,7 +300,7 @@ function DashboardHome({ nombre, onGo }) {
             <KpiCard label="Pendiente repuesto"    value={stats.pendientes}   color="#ef4444" icon={ICON.repuesto} sub={stats.pendientes > 0 ? 'requieren atención' : ''} onClick={() => onGo('registros')} />
           </div>
 
-          {mantStats && mantStats.total > 0 && (
+          {mantStats && (
             <div style={{ marginBottom: '1.5rem' }}>
               <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
                 Indicadores de mantenimiento — esta semana
