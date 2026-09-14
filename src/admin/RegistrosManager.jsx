@@ -103,14 +103,148 @@ function PhotoModal({ url, onClose }) {
   )
 }
 
+const IND_COLOR = { 'Bueno': '#22c55e', 'Regular': '#f59e0b', 'Requiere atención': '#f97316', 'Crítico': '#ef4444' }
+
+function RegistroDetailModal({ r, comentario, onComentarioChange, savingComment, onSaveComment, markingReviewed, onMarkReviewed, onPrint, onPhotoClick, onClose }) {
+  useEffect(() => {
+    const h = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', h)
+    return () => window.removeEventListener('keydown', h)
+  }, [onClose])
+
+  const indColor = IND_COLOR[r.indicador_mantenimiento]
+
+  return (
+    <div className="reg-detail-overlay" onClick={onClose}>
+      <div className="reg-detail-panel" onClick={e => e.stopPropagation()}>
+        <div className="reg-detail-header">
+          <div>
+            <div className="reg-detail-title">{r.trabajador_nombre || '—'}</div>
+            <div className="reg-detail-meta">
+              {r.fecha} {r.hora?.slice(0,5) ? `· ${r.hora.slice(0,5)}` : ''}
+              {r.tipo_trabajo ? ` · ${r.tipo_trabajo}` : ''}
+            </div>
+          </div>
+          <button className="reg-detail-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="reg-detail-body">
+          {/* Estado + indicador */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: '1rem', flexWrap: 'wrap' }}>
+            {r.estado && (
+              <span className={`reg-estado-badge reg-estado-badge--${estadoClass(r.estado)}`}>{r.estado}</span>
+            )}
+            {r.indicador_mantenimiento && (
+              <span className="ind-badge" style={{ background: `${indColor}22`, color: indColor, border: `1px solid ${indColor}55` }}>
+                <span className="ind-dot" style={{ background: indColor }} />
+                {r.indicador_mantenimiento}
+              </span>
+            )}
+          </div>
+
+          {/* Campos */}
+          {r.tarea && <div className="reg-field"><span className="reg-label">Tarea realizada</span><p>{r.tarea}</p></div>}
+          {r.descripcion && <div className="reg-field"><span className="reg-label">Descripción</span><p>{r.descripcion}</p></div>}
+          {r.equipo_intervenido && <div className="reg-field"><span className="reg-label">Equipo / Activo</span><p>{r.equipo_intervenido}</p></div>}
+          {r.ot && <div className="reg-field"><span className="reg-label">OT</span><p>{r.ot}</p></div>}
+          {r.planta && <div className="reg-field"><span className="reg-label">Planta / lugar</span><p>{r.planta}</p></div>}
+          {r.aviso_sap && <div className="reg-field"><span className="reg-label">Aviso SAP</span><p>{r.aviso_sap}</p></div>}
+          {r.material_utilizado && <div className="reg-field"><span className="reg-label">Material utilizado</span><p>{r.material_utilizado}</p></div>}
+          {r.horas_trabajadas && <div className="reg-field"><span className="reg-label">Horas trabajadas</span><p>{r.horas_trabajadas}h</p></div>}
+          {r.ubicacion_texto && (
+            <div className="reg-field">
+              <span className="reg-label">Ubicación</span>
+              <p>{r.ubicacion_texto}</p>
+              {r.ubicacion_lat && (
+                <a href={`https://maps.google.com/?q=${r.ubicacion_lat},${r.ubicacion_lng}`}
+                  target="_blank" rel="noopener noreferrer" className="reg-maps-link">Ver en Google Maps →</a>
+              )}
+            </div>
+          )}
+
+          {/* Fotos */}
+          {r.fotos?.length > 0 && (
+            <div className="reg-field">
+              <span className="reg-label">Fotos ({r.fotos.length})</span>
+              <div className="reg-foto-grid">
+                {r.fotos.map((url,i) => (
+                  <HeicImage key={i} src={url} className="reg-foto" alt="" onClick={() => onPhotoClick(url)} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Firma */}
+          {r.firma_admin && (
+            <div className="reg-field">
+              <span className="reg-label">Firma del supervisor</span>
+              <img src={r.firma_admin} style={{ height: 48, filter: 'invert(1)', marginTop: 4 }} alt="Firma" />
+            </div>
+          )}
+
+          {/* Revisado */}
+          {r.revisado_por && (
+            <div className="reg-field">
+              <span style={{ fontSize: '0.8rem', color: '#22c55e', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <svg viewBox="0 0 24 24" style={{ width: 14, height: 14, fill: '#22c55e' }}><path d={RICON.check} /></svg>
+                Revisado por {r.revisado_por} — {new Date(r.revisado_at).toLocaleDateString('es-CL')}
+              </span>
+            </div>
+          )}
+
+          {/* Comentario */}
+          <div className="reg-field">
+            <span className="reg-label">Comentario supervisor</span>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start', marginTop: 4 }}>
+              <textarea
+                value={comentario}
+                onChange={e => onComentarioChange(e.target.value)}
+                placeholder="Agregar comentario o nota interna..."
+                rows={2}
+                style={{
+                  flex: 1, background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6,
+                  color: '#fff', padding: '6px 8px', fontSize: '0.85rem', resize: 'vertical',
+                }}
+              />
+              <button className="admin-btn-outline"
+                style={{ fontSize: '0.78rem', padding: '6px 12px', whiteSpace: 'nowrap' }}
+                onClick={onSaveComment} disabled={savingComment}>
+                {savingComment ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="reg-detail-footer">
+          {!r.revisado_por && (
+            <button className="admin-btn-outline reg-icon-btn"
+              style={{ fontSize: '0.78rem', padding: '5px 12px' }}
+              onClick={onMarkReviewed} disabled={markingReviewed}>
+              <svg viewBox="0 0 24 24"><path d={RICON.check} /></svg>
+              {markingReviewed ? 'Marcando...' : 'Marcar como revisado'}
+            </button>
+          )}
+          <button className="admin-btn-outline reg-icon-btn"
+            style={{ fontSize: '0.78rem', padding: '5px 12px' }}
+            onClick={onPrint}>
+            <svg viewBox="0 0 24 24"><path d={RICON.printer} /></svg>
+            Exportar PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function RegistrosManager() {
   const { user } = useAuth()
   const [adminNombre, setAdminNombre] = useState('')
 
-  const [registros, setRegistros]   = useState([])
-  const [loading, setLoading]       = useState(true)
-  const [expandedId, setExpandedId] = useState(null)
-  const [modalUrl, setModalUrl]     = useState(null)
+  const [registros, setRegistros]       = useState([])
+  const [loading, setLoading]           = useState(true)
+  const [modalRegistro, setModalRegistro] = useState(null)
+  const [modalUrl, setModalUrl]         = useState(null)
 
   const [filtroTrabajador, setFiltroTrabajador] = useState('')
   const [filtroEstado, setFiltroEstado]         = useState('')
@@ -440,6 +574,20 @@ function RegistrosManager() {
   return (
     <div className="admin-section">
       {modalUrl && <PhotoModal url={modalUrl} onClose={() => setModalUrl(null)} />}
+      {modalRegistro && (
+        <RegistroDetailModal
+          r={modalRegistro}
+          comentario={comentarios[modalRegistro.id] ?? ''}
+          onComentarioChange={val => setComentarios(prev => ({ ...prev, [modalRegistro.id]: val }))}
+          savingComment={savingComment === modalRegistro.id}
+          onSaveComment={() => saveComment(modalRegistro.id)}
+          markingReviewed={markingReviewed === modalRegistro.id}
+          onMarkReviewed={() => markReviewed(modalRegistro.id)}
+          onPrint={() => printRecord(modalRegistro)}
+          onPhotoClick={setModalUrl}
+          onClose={() => setModalRegistro(null)}
+        />
+      )}
 
       <div className="admin-section-header">
         <h3>Registros de Trabajadores</h3>
@@ -561,8 +709,8 @@ function RegistrosManager() {
             <tbody>
               {registros.map(r => (
                 <React.Fragment key={r.id}>
-                  <tr className={`reg-row ${expandedId === r.id ? 'reg-row--open' : ''}`}
-                    onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}>
+                  <tr className="reg-row" style={{ cursor: 'pointer' }}
+                    onClick={() => setModalRegistro(r)}>
                     <td className="reg-td-worker">
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         {r.revisado_por && (
@@ -602,147 +750,11 @@ function RegistrosManager() {
                         : <span className="reg-empty-cell">—</span>}
                     </td>
                     <td>
-                      <svg className="reg-chevron" viewBox="0 0 24 24"
-                        style={{ transform: expandedId === r.id ? 'rotate(180deg)' : 'none' }}>
-                        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                      <svg className="reg-chevron" viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
                       </svg>
                     </td>
                   </tr>
-
-                  {expandedId === r.id && (
-                    <tr className="reg-expanded-row">
-                      <td colSpan={10}>
-                        <div className="reg-expanded-body">
-                          {r.indicador_mantenimiento && (() => {
-                            const IND_COLOR = { 'Bueno': '#22c55e', 'Regular': '#f59e0b', 'Requiere atención': '#f97316', 'Crítico': '#ef4444' }
-                            const color = IND_COLOR[r.indicador_mantenimiento] || '#9a9ab0'
-                            return (
-                              <div className="reg-field">
-                                <span className="reg-label">Indicador de mantenimiento</span>
-                                <span className="ind-badge" style={{ background: `${color}22`, color, border: `1px solid ${color}55` }}>
-                                  <span className="ind-dot" style={{ background: color }} />
-                                  {r.indicador_mantenimiento}
-                                </span>
-                              </div>
-                            )
-                          })()}
-                          {r.equipo_intervenido && (
-                            <div className="reg-field">
-                              <span className="reg-label">Equipo / Activo intervenido</span>
-                              <p>{r.equipo_intervenido}</p>
-                            </div>
-                          )}
-                          {r.ot && (
-                            <div className="reg-field">
-                              <span className="reg-label">OT (Orden de Trabajo)</span>
-                              <p>{r.ot}</p>
-                            </div>
-                          )}
-                          {r.planta && (
-                            <div className="reg-field">
-                              <span className="reg-label">Planta / lugar de trabajo</span>
-                              <p>{r.planta}</p>
-                            </div>
-                          )}
-                          {r.aviso_sap && (
-                            <div className="reg-field">
-                              <span className="reg-label">Aviso SAP</span>
-                              <p>{r.aviso_sap}</p>
-                            </div>
-                          )}
-                          {r.descripcion && (
-                            <div className="reg-field">
-                              <span className="reg-label">Descripción</span>
-                              <p>{r.descripcion}</p>
-                            </div>
-                          )}
-                          {r.material_utilizado && (
-                            <div className="reg-field">
-                              <span className="reg-label">Material utilizado</span>
-                              <p>{r.material_utilizado}</p>
-                            </div>
-                          )}
-                          {r.ubicacion_texto && (
-                            <div className="reg-field">
-                              <span className="reg-label">Ubicación</span>
-                              <p>{r.ubicacion_texto}</p>
-                              {r.ubicacion_lat && (
-                                <a href={`https://maps.google.com/?q=${r.ubicacion_lat},${r.ubicacion_lng}`}
-                                  target="_blank" rel="noopener noreferrer" className="reg-maps-link">
-                                  Ver en Google Maps →
-                                </a>
-                              )}
-                            </div>
-                          )}
-                          {r.fotos?.length > 0 && (
-                            <div className="reg-field">
-                              <span className="reg-label">Todas las fotos ({r.fotos.length})</span>
-                              <div className="reg-foto-grid">
-                                {r.fotos.map((url,i) => (
-                                  <HeicImage key={i} src={url} className="reg-foto" alt="" onClick={() => setModalUrl(url)} />
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Comentario del supervisor */}
-                          <div className="reg-field">
-                            <span className="reg-label">Comentario supervisor</span>
-                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start', marginTop: 4 }}>
-                              <textarea
-                                value={comentarios[r.id] ?? ''}
-                                onChange={e => setComentarios(prev => ({ ...prev, [r.id]: e.target.value }))}
-                                onClick={e => e.stopPropagation()}
-                                placeholder="Agregar comentario o nota interna..."
-                                rows={2}
-                                style={{
-                                  flex: 1, background: 'rgba(255,255,255,0.05)',
-                                  border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6,
-                                  color: '#fff', padding: '6px 8px', fontSize: '0.85rem', resize: 'vertical',
-                                }}
-                              />
-                              <button
-                                className="admin-btn-outline"
-                                style={{ fontSize: '0.78rem', padding: '6px 12px', whiteSpace: 'nowrap' }}
-                                onClick={e => { e.stopPropagation(); saveComment(r.id) }}
-                                disabled={savingComment === r.id}
-                              >
-                                {savingComment === r.id ? 'Guardando...' : 'Guardar'}
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Acciones */}
-                          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
-                            {r.revisado_por ? (
-                              <span style={{ fontSize: '0.8rem', color: '#22c55e', display: 'flex', alignItems: 'center', gap: 5 }}>
-                                <svg viewBox="0 0 24 24" style={{ width: 15, height: 15, fill: '#22c55e' }}><path d={RICON.check} /></svg>
-                                Revisado por {r.revisado_por} — {new Date(r.revisado_at).toLocaleDateString('es-CL')}
-                              </span>
-                            ) : (
-                              <button
-                                className="admin-btn-outline reg-icon-btn"
-                                style={{ fontSize: '0.78rem', padding: '5px 12px' }}
-                                onClick={e => { e.stopPropagation(); markReviewed(r.id) }}
-                                disabled={markingReviewed === r.id}
-                              >
-                                <svg viewBox="0 0 24 24"><path d={RICON.check} /></svg>
-                                {markingReviewed === r.id ? 'Marcando...' : 'Marcar como revisado'}
-                              </button>
-                            )}
-                            <button
-                              className="admin-btn-outline reg-icon-btn"
-                              style={{ fontSize: '0.78rem', padding: '5px 12px' }}
-                              onClick={e => { e.stopPropagation(); printRecord(r) }}
-                            >
-                              <svg viewBox="0 0 24 24"><path d={RICON.printer} /></svg>
-                              Exportar PDF
-                            </button>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
                 </React.Fragment>
               ))}
             </tbody>
