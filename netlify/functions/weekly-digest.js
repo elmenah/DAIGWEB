@@ -33,7 +33,7 @@ const xlCell    = (alt) => ({ font: { sz: 10, color: { rgb: '1A1A2E' } }, alignm
 const xlCellC   = (alt) => ({ ...xlCell(alt), alignment: { vertical: 'top', horizontal: 'center', wrapText: true } })
 const XL_TOTAL  = { font: { bold: true, sz: 10.5, color: { rgb: XL_NAVY } }, fill: { fgColor: { rgb: 'ECECF6' } }, border: ALL_B }
 
-function buildSheet({ title, subtitle, headers, rows, colWidths, centerCols = [], totals }) {
+function buildSheet({ title, subtitle, headers, rows, colWidths, centerCols = [], totals, hyperlinks = [] }) {
   const lastCol = headers.length - 1
   const aoa = [[title], [subtitle], [], headers]
   rows.forEach((r) => aoa.push(r))
@@ -65,6 +65,17 @@ function buildSheet({ title, subtitle, headers, rows, colWidths, centerCols = []
     headers.forEach((_, c) => set(r, c, centerCols.includes(c) ? xlCellC(ri % 2 === 1) : xlCell(ri % 2 === 1)))
   })
   if (totals) headers.forEach((_, c) => set(totalRow, c, XL_TOTAL))
+
+  // Aplicar hipervínculos a celdas de fotos
+  const dataStartRow = headerRow + 1
+  const xlLink = (alt) => ({ ...xlCell(alt), font: { sz: 10, color: { rgb: '1155CC' }, underline: true }, alignment: { vertical: 'top', horizontal: 'center', wrapText: false } })
+  for (const { row, col, url, label } of hyperlinks) {
+    if (!url) continue
+    const r = dataStartRow + row
+    const addr = XLSX.utils.encode_cell({ r, c: col })
+    ws[addr] = { t: 's', v: label, l: { Target: url }, s: xlLink(row % 2 === 1) }
+  }
+
   return ws
 }
 
@@ -132,21 +143,32 @@ export const handler = async () => {
   })
   XLSX.utils.book_append_sheet(wb, wsRes, 'Resumen')
 
-  // Hoja 2: Detalle de todos los registros
+  // Hoja 2: Detalle de todos los registros con fotos como hipervínculos
   if (regs.length > 0) {
+    const MAX_FOTOS = 5
+    const maxFotos = Math.min(MAX_FOTOS, Math.max(0, ...regs.map((r) => r.fotos?.length || 0)))
+    const fotoHeaders = Array.from({ length: maxFotos }, (_, i) => `Foto ${i + 1}`)
+    const xlHyperlinks = []
+    regs.forEach((r, ri) => {
+      ;(r.fotos || []).slice(0, MAX_FOTOS).forEach((url, fi) => {
+        if (url) xlHyperlinks.push({ row: ri, col: 15 + fi, url, label: `Ver foto ${fi + 1}` })
+      })
+    })
     const wsDet = buildSheet({
       title: 'Detalle semanal de registros',
       subtitle: `DAIG SpA · ${periodo}`,
-      headers: ['Fecha', 'Hora', 'OT', 'Trabajador', 'Tipo', 'Tarea', 'Equipo', 'Planta', 'Aviso SAP', 'Descripción', 'Material', 'Horas', 'Estado', 'GPS', 'Revisado por', 'Fotos'],
+      headers: ['Fecha', 'Hora', 'OT', 'Trabajador', 'Tipo', 'Tarea', 'Equipo', 'Planta', 'Aviso SAP', 'Descripción', 'Material', 'Horas', 'Estado', 'GPS', 'Revisado por', ...fotoHeaders],
       rows: regs.map((r) => [
         fmt(r.fecha), r.hora?.slice(0, 5) || '', r.ot || '', r.trabajador_nombre || '',
         r.tipo_trabajo || '', r.tarea || '', r.equipo_intervenido || '', r.planta || '',
         r.aviso_sap || '', r.descripcion || '', r.material_utilizado || '',
         r.horas_trabajadas || '', r.estado || '', r.ubicacion_texto || '',
-        r.revisado_por || '', r.fotos?.length || 0,
+        r.revisado_por || '',
+        ...Array.from({ length: maxFotos }, (_, fi) => (r.fotos?.[fi] ? `Ver foto ${fi + 1}` : '')),
       ]),
-      colWidths: [11, 7, 12, 20, 18, 34, 24, 20, 12, 34, 26, 8, 16, 22, 18, 7],
-      centerCols: [1, 11, 15],
+      colWidths: [11, 7, 12, 20, 18, 34, 24, 20, 12, 34, 26, 8, 16, 22, 18, ...Array(maxFotos).fill(28)],
+      centerCols: [1, 11],
+      hyperlinks: xlHyperlinks,
     })
     XLSX.utils.book_append_sheet(wb, wsDet, 'Detalle')
   }

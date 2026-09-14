@@ -11,6 +11,9 @@ export default defineConfig({
       tslib: path.resolve(__dirname, 'node_modules/tslib/tslib.es6.mjs'),
     },
   },
+  optimizeDeps: {
+    include: ['xlsx-js-style'],
+  },
   build: {
     cssMinify: true,
   },

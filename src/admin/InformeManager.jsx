@@ -361,6 +361,7 @@ export default function InformeManager() {
   // ── generar informe PDF (ventana imprimible) ──────────────────────────────
 
   const [generando, setGenerando] = useState(null) // trabajador_id en curso
+  const [generandoGeneral, setGenerandoGeneral] = useState(false)
 
   // Firma del supervisor para incrustar en los PDF (se guarda en este dispositivo)
   const [firma, setFirma] = useState(() => {
@@ -631,6 +632,195 @@ export default function InformeManager() {
     setGenerando(null)
   }
 
+  // ── generar PDF general (todos los trabajadores) ─────────────────────────
+
+  const generarPDFGeneral = async () => {
+    if (!registros.length) return
+    setGenerandoGeneral(true)
+    try {
+      const html2pdf = (await import('html2pdf.js')).default
+      const logoUrl = window.location.origin + logoImg
+      const periodo = `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
+      const tituloTipo = esMes ? 'MENSUAL' : 'SEMANAL'
+      const tituloTipoCap = esMes ? 'Mensual' : 'Semanal'
+
+      const porFecha = registros.reduce((acc, r) => {
+        ;(acc[r.fecha] = acc[r.fecha] || []).push(r)
+        return acc
+      }, {})
+
+      const css = `
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;background:#fff}
+        .portada{height:1122px;display:flex;flex-direction:column;justify-content:center;
+          align-items:center;text-align:center;background:#12123a;color:#fff;padding:3rem;position:relative}
+        .portada-logo{width:90px;height:90px;object-fit:contain;border-radius:12px;margin-bottom:1.75rem}
+        .portada-empresa{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;
+          color:rgba(255,255,255,.5);margin-bottom:.3rem}
+        .portada-sub{font-size:.8rem;color:rgba(255,255,255,.4);margin-bottom:2.5rem}
+        .portada-titulo{font-size:2.4rem;font-weight:900;line-height:1.1;letter-spacing:-.02em}
+        .portada-divider{width:56px;height:4px;background:#f5a623;border-radius:2px;margin:1.4rem auto}
+        .portada-periodo{font-size:.95rem;color:rgba(255,255,255,.65);margin-top:.4rem}
+        .portada-kpis{display:flex;gap:1.5rem;margin-top:2rem}
+        .portada-kpi-val{font-size:2rem;font-weight:900;color:#f5a623}
+        .portada-kpi-lbl{font-size:.75rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em}
+        .portada-footer{position:absolute;bottom:1.75rem;font-size:.7rem;color:rgba(255,255,255,.25)}
+        .inner-page{padding:0}
+        .page-break{page-break-before:always;padding-top:0}
+        .inner-header{display:flex;align-items:center;justify-content:space-between;
+          padding-bottom:.65rem;border-bottom:3px solid #f5a623;margin-bottom:1.5rem}
+        .ih-brand{display:flex;align-items:center;gap:.5rem}
+        .ih-brand img{height:30px;border-radius:4px}
+        .ih-brand span{font-weight:900;font-size:.95rem;color:#12123a}
+        .ih-right{font-size:.72rem;color:#9a9ab0;text-align:right;line-height:1.4}
+        .seccion{margin-bottom:2rem}
+        .sec-titulo{font-size:.95rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+          color:#12123a;border-left:4px solid #f5a623;padding:.45rem .75rem;
+          background:#f8f8fc;margin-bottom:1rem}
+        .sec-num{color:#f5a623;margin-right:.35rem}
+        .tabla-res{width:100%;border-collapse:collapse;font-size:.85rem;margin-bottom:1.25rem}
+        .tabla-res th{background:#12123a;color:#fff;padding:7px 10px;text-align:left;
+          font-size:.75rem;letter-spacing:.04em;font-weight:700}
+        .tabla-res td{padding:6px 10px;border:1px solid #e0e0ec;vertical-align:top}
+        .tabla-res tr:nth-child(even) td{background:#f8f8fc}
+        .tabla-res tr.total-row td{background:#ececf6;font-weight:700;color:#12123a}
+        .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.75rem}
+        .chip{background:#f0f0f8;border:1px solid #e0e0ec;border-radius:20px;
+          padding:4px 12px;font-size:.82rem;color:#12123a}
+        .fecha-grupo{margin-bottom:1.5rem}
+        .fecha-lbl{font-weight:700;font-size:.85rem;color:#12123a;
+          background:#f0f0f8;border-left:3px solid #f5a623;padding:.3rem .75rem;margin-bottom:.5rem}
+        .tabla-act{width:100%;border-collapse:collapse;font-size:.82rem}
+        .tabla-act th{background:#12123a;color:#fff;padding:6px 8px;text-align:left;
+          font-size:.72rem;letter-spacing:.04em;font-weight:700}
+        .tabla-act td{padding:5px 8px;border:1px solid #e0e0ec;vertical-align:top}
+        .tabla-act tr:nth-child(even) td{background:#f8f8fc}
+        .firma{text-align:center;margin-top:3rem}
+        .firma-linea{width:200px;height:1px;background:#333;margin:0 auto .5rem}
+        .firma-nombre{font-weight:700;font-size:1rem}
+        .firma-cargo{color:#6b6b8a;font-size:.85rem;margin-top:.15rem}
+        .firma-contacto{color:#9a9ab0;font-size:.75rem;margin-top:.15rem}
+      `
+
+      const htmlContent = `
+  <!-- PORTADA -->
+  <div class="portada">
+    <img class="portada-logo" src="${logoUrl}" alt="DAIG">
+    <div class="portada-empresa">DAIG SpA</div>
+    <div class="portada-sub">Ingeniería en Mecánica de Procesos y Mantenimiento Industrial</div>
+    <div class="portada-titulo">INFORME GENERAL<br>DE ACTIVIDADES<br>${tituloTipo}</div>
+    <div class="portada-divider"></div>
+    <div class="portada-periodo">${periodo}</div>
+    <div class="portada-kpis">
+      <div><div class="portada-kpi-val">${registros.length}</div><div class="portada-kpi-lbl">Registros</div></div>
+      <div><div class="portada-kpi-val">${nH(totalHoras)}</div><div class="portada-kpi-lbl">Horas</div></div>
+      <div><div class="portada-kpi-val">${trabajadoresActivos}</div><div class="portada-kpi-lbl">Trabajadores</div></div>
+    </div>
+    <div class="portada-footer">DAIG SpA · daigchile.cl</div>
+  </div>
+
+  <!-- RESUMEN POR TRABAJADOR -->
+  <div class="inner-page page-break">
+    <div class="inner-header">
+      <div class="ih-brand"><img src="${logoUrl}" alt="DAIG"><span>DAIG SpA</span></div>
+      <div class="ih-right">Informe General ${tituloTipoCap}<br>${periodo}</div>
+    </div>
+    <div class="seccion">
+      <div class="sec-titulo"><span class="sec-num">1.</span> RESUMEN POR TRABAJADOR</div>
+      <table class="tabla-res">
+        <thead><tr><th>Trabajador</th><th>Registros</th><th>Horas</th><th>Tipos de trabajo</th></tr></thead>
+        <tbody>
+          ${porTrabajador.map((w, i) => `
+            <tr>
+              <td>${w.nombre}</td>
+              <td style="text-align:center">${w.registros.length}</td>
+              <td style="text-align:center">${nH(w.horas)}</td>
+              <td>${[...w.tipos].join(', ') || '—'}</td>
+            </tr>`).join('')}
+          <tr class="total-row">
+            <td>TOTAL</td>
+            <td style="text-align:center">${registros.length}</td>
+            <td style="text-align:center">${nH(totalHoras)}</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="seccion">
+      <div class="sec-titulo"><span class="sec-num">2.</span> POR TIPO DE TRABAJO</div>
+      <div class="chips">
+        ${Object.entries(porTipo).sort((a, b) => b[1] - a[1]).map(([t, n]) => `<span class="chip">${t} · <strong>${n}</strong></span>`).join('')}
+      </div>
+    </div>
+    <div class="seccion">
+      <div class="sec-titulo"><span class="sec-num">3.</span> POR ESTADO</div>
+      <div class="chips">
+        ${Object.entries(porEstado).sort((a, b) => b[1] - a[1]).map(([e, n]) => `<span class="chip">${e} · <strong>${n}</strong></span>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- DETALLE DE ACTIVIDADES -->
+  <div class="inner-page page-break">
+    <div class="inner-header">
+      <div class="ih-brand"><img src="${logoUrl}" alt="DAIG"><span>DAIG SpA</span></div>
+      <div class="ih-right">Detalle de Actividades<br>${periodo}</div>
+    </div>
+    <div class="seccion">
+      <div class="sec-titulo"><span class="sec-num">4.</span> DETALLE DE ACTIVIDADES POR FECHA</div>
+      ${Object.entries(porFecha).map(([fecha, regs]) => `
+        <div class="fecha-grupo">
+          <div class="fecha-lbl">${fmtFecha(fecha)}</div>
+          <table class="tabla-act">
+            <thead><tr><th>Trabajador</th><th>Tipo</th><th>Tarea / Equipo</th><th>Estado</th><th>Hrs</th></tr></thead>
+            <tbody>
+              ${regs.map((r, i) => `
+                <tr>
+                  <td>${r.trabajador_nombre || '—'}</td>
+                  <td>${r.tipo_trabajo || '—'}</td>
+                  <td><strong>${r.tarea || ''}</strong>${r.equipo_intervenido ? `<br><small style="color:#6b6b8a">${r.equipo_intervenido}</small>` : ''}</td>
+                  <td>${r.estado || '—'}</td>
+                  <td style="text-align:center">${r.horas_trabajadas != null ? r.horas_trabajadas : ''}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`).join('')}
+    </div>
+    <div class="firma">
+      ${firma ? `<img src="${firma}" alt="Firma" style="height:70px;object-fit:contain;display:block;margin:0 auto 2px" />` : ''}
+      <div class="firma-linea"></div>
+      <div class="firma-nombre">Daniel Mena Vega</div>
+      <div class="firma-cargo">Representante Legal · DAIG SpA</div>
+      <div class="firma-contacto">daniel.mena@serviciosdaig.com | +56 9 8868 9400</div>
+    </div>
+  </div>`
+
+      const container = document.createElement('div')
+      container.style.cssText = 'position:fixed;top:-99999px;left:-99999px;width:794px'
+      const style = document.createElement('style')
+      style.textContent = css
+      container.appendChild(style)
+      const content = document.createElement('div')
+      content.innerHTML = htmlContent
+      container.appendChild(content)
+      document.body.appendChild(container)
+
+      await html2pdf().set({
+        margin: [15, 20, 15, 20],
+        filename: `Informe-General-${tituloTipoCap}-${desdeISO}_al_${hastaISO}.pdf`,
+        image: { type: 'jpeg', quality: 0.92 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'], before: '.page-break' },
+      }).from(container).save()
+
+      document.body.removeChild(container)
+    } catch (e) {
+      alert('Error al generar PDF: ' + e.message)
+    }
+    setGenerandoGeneral(false)
+  }
+
   // ── render ────────────────────────────────────────────────────────────────
 
   return (
@@ -674,6 +864,11 @@ export default function InformeManager() {
           title="Configurar la firma que aparece en los informes PDF">
           <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
           {firma ? 'Firma ✓' : 'Firma'}
+        </button>
+        <button className="inf-export-btn" onClick={generarPDFGeneral} disabled={generandoGeneral || !registros.length}
+          title="Generar PDF general con resumen de todos los trabajadores">
+          <svg viewBox="0 0 24 24"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>
+          {generandoGeneral ? 'Generando...' : 'PDF General'}
         </button>
         <button className="inf-export-btn" onClick={handleExport} disabled={exporting || !registros.length}>
           <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
