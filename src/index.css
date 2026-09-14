@@ -6542,6 +6542,17 @@ header.scrolled .navbar {
 .inf-export-btn svg { width: 16px; height: 16px; fill: currentColor; }
 .inf-export-btn:hover:not(:disabled) { background: rgba(34,197,94,0.2); }
 .inf-export-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.inf-worker-select {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  color: inherit;
+  font-size: 0.82rem;
+  padding: 6px 10px;
+  cursor: pointer;
+  max-width: 180px;
+}
+.inf-worker-select:focus { outline: none; border-color: rgba(34,197,94,0.5); }
 
 /* Empty */
 .inf-empty {

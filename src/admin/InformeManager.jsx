@@ -362,6 +362,7 @@ export default function InformeManager() {
 
   const [generando, setGenerando] = useState(null) // trabajador_id en curso
   const [generandoGeneral, setGenerandoGeneral] = useState(false)
+  const [filtroWorkerPDF, setFiltroWorkerPDF] = useState('')
 
   // Firma del supervisor para incrustar en los PDF (se guarda en este dispositivo)
   const [firma, setFirma] = useState(() => {
@@ -643,9 +644,26 @@ export default function InformeManager() {
       const tituloTipo = esMes ? 'MENSUAL' : 'SEMANAL'
       const tituloTipoCap = esMes ? 'Mensual' : 'Semanal'
 
-      const porFecha = registros.reduce((acc, r) => {
+      // Filtrar por trabajador si hay uno seleccionado
+      const workerFiltrado = filtroWorkerPDF ? porTrabajador.find(w => w.id === filtroWorkerPDF) : null
+      const regsUsados = workerFiltrado ? workerFiltrado.registros : registros
+      const trabUsados = workerFiltrado ? [workerFiltrado] : porTrabajador
+      const horasUsadas = workerFiltrado ? workerFiltrado.horas : totalHoras
+      const trabActivosUsados = workerFiltrado ? 1 : trabajadoresActivos
+      const tituloPortada = workerFiltrado
+        ? `INFORME<br>${workerFiltrado.nombre.toUpperCase()}<br>${tituloTipo}`
+        : `INFORME GENERAL<br>DE ACTIVIDADES<br>${tituloTipo}`
+
+      const porFechaUsado = regsUsados.reduce((acc, r) => {
         ;(acc[r.fecha] = acc[r.fecha] || []).push(r)
         return acc
+      }, {})
+
+      const porTipoUsado = regsUsados.reduce((acc, r) => {
+        const t = r.tipo_trabajo || 'Sin tipo'; acc[t] = (acc[t] || 0) + 1; return acc
+      }, {})
+      const porEstadoUsado = regsUsados.reduce((acc, r) => {
+        const e = r.estado || 'Sin estado'; acc[e] = (acc[e] || 0) + 1; return acc
       }, {})
 
       const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8">
@@ -712,13 +730,13 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
   <img class="portada-logo" src="${logoUrl}" alt="DAIG">
   <div class="portada-empresa">DAIG SpA</div>
   <div class="portada-sub">Ingeniería en Mecánica de Procesos y Mantenimiento Industrial</div>
-  <div class="portada-titulo">INFORME GENERAL<br>DE ACTIVIDADES<br>${tituloTipo}</div>
+  <div class="portada-titulo">${tituloPortada}</div>
   <div class="portada-divider"></div>
   <div class="portada-periodo">${periodo}</div>
   <div class="portada-kpis">
-    <div><div class="portada-kpi-val">${registros.length}</div><div class="portada-kpi-lbl">Registros</div></div>
-    <div><div class="portada-kpi-val">${nH(totalHoras)}</div><div class="portada-kpi-lbl">Horas</div></div>
-    <div><div class="portada-kpi-val">${trabajadoresActivos}</div><div class="portada-kpi-lbl">Trabajadores</div></div>
+    <div><div class="portada-kpi-val">${regsUsados.length}</div><div class="portada-kpi-lbl">Registros</div></div>
+    <div><div class="portada-kpi-val">${nH(horasUsadas)}</div><div class="portada-kpi-lbl">Horas</div></div>
+    <div><div class="portada-kpi-val">${trabActivosUsados}</div><div class="portada-kpi-lbl">Trabajadores</div></div>
   </div>
   <div class="portada-footer">DAIG SpA · daigchile.cl</div>
 </div>
@@ -726,25 +744,25 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
 <div class="inner-page">
   <div class="inner-header">
     <div class="ih-brand"><img src="${logoUrl}" alt="DAIG"><span>DAIG SpA</span></div>
-    <div class="ih-right">Informe General ${tituloTipoCap}<br>${periodo}</div>
+    <div class="ih-right">${workerFiltrado ? `Informe ${workerFiltrado.nombre}<br>` : `Informe General ${tituloTipoCap}<br>`}${periodo}</div>
   </div>
   <div class="seccion">
     <div class="sec-titulo"><span class="sec-num">1.</span> RESUMEN POR TRABAJADOR</div>
     <table class="tabla-res">
       <thead><tr><th>Trabajador</th><th>Registros</th><th>Horas</th><th>Tipos de trabajo</th></tr></thead>
       <tbody>
-        ${porTrabajador.map(w => `<tr><td>${w.nombre}</td><td style="text-align:center">${w.registros.length}</td><td style="text-align:center">${nH(w.horas)}</td><td>${[...w.tipos].join(', ') || '—'}</td></tr>`).join('')}
-        <tr class="total-row"><td>TOTAL</td><td style="text-align:center">${registros.length}</td><td style="text-align:center">${nH(totalHoras)}</td><td></td></tr>
+        ${trabUsados.map(w => `<tr><td>${w.nombre}</td><td style="text-align:center">${w.registros.length}</td><td style="text-align:center">${nH(w.horas)}</td><td>${[...w.tipos].join(', ') || '—'}</td></tr>`).join('')}
+        <tr class="total-row"><td>TOTAL</td><td style="text-align:center">${regsUsados.length}</td><td style="text-align:center">${nH(horasUsadas)}</td><td></td></tr>
       </tbody>
     </table>
   </div>
   <div class="seccion">
     <div class="sec-titulo"><span class="sec-num">2.</span> POR TIPO DE TRABAJO</div>
-    <div class="chips">${Object.entries(porTipo).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`<span class="chip">${t} · <strong>${n}</strong></span>`).join('')}</div>
+    <div class="chips">${Object.entries(porTipoUsado).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`<span class="chip">${t} · <strong>${n}</strong></span>`).join('')}</div>
   </div>
   <div class="seccion">
     <div class="sec-titulo"><span class="sec-num">3.</span> POR ESTADO</div>
-    <div class="chips">${Object.entries(porEstado).sort((a,b)=>b[1]-a[1]).map(([e,n])=>`<span class="chip">${e} · <strong>${n}</strong></span>`).join('')}</div>
+    <div class="chips">${Object.entries(porEstadoUsado).sort((a,b)=>b[1]-a[1]).map(([e,n])=>`<span class="chip">${e} · <strong>${n}</strong></span>`).join('')}</div>
   </div>
 </div>
 
@@ -755,7 +773,7 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
   </div>
   <div class="seccion">
     <div class="sec-titulo"><span class="sec-num">4.</span> DETALLE POR FECHA</div>
-    ${Object.entries(porFecha).map(([fecha, regs]) => `
+    ${Object.entries(porFechaUsado).map(([fecha, regs]) => `
       <div class="fecha-grupo">
         <div class="fecha-lbl">${fmtFecha(fecha)}</div>
         <table class="tabla-act">
@@ -828,10 +846,21 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
           <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
           {firma ? 'Firma ✓' : 'Firma'}
         </button>
+        <select
+          className="inf-worker-select"
+          value={filtroWorkerPDF}
+          onChange={e => setFiltroWorkerPDF(e.target.value)}
+          title="Filtrar PDF por trabajador"
+        >
+          <option value="">Todos los trabajadores</option>
+          {porTrabajador.map(w => (
+            <option key={w.id} value={w.id}>{w.nombre}</option>
+          ))}
+        </select>
         <button className="inf-export-btn" onClick={generarPDFGeneral} disabled={generandoGeneral || !registros.length}
-          title="Generar PDF general con resumen de todos los trabajadores">
+          title={filtroWorkerPDF ? `Generar PDF de ${porTrabajador.find(w=>w.id===filtroWorkerPDF)?.nombre || ''}` : 'Generar PDF general con resumen de todos los trabajadores'}>
           <svg viewBox="0 0 24 24"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>
-          {generandoGeneral ? 'Generando...' : 'PDF General'}
+          {generandoGeneral ? 'Generando...' : filtroWorkerPDF ? 'PDF Trabajador' : 'PDF General'}
         </button>
         <button className="inf-export-btn" onClick={handleExport} disabled={exporting || !registros.length}>
           <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
