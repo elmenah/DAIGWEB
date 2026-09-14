@@ -783,8 +783,14 @@ function TrabajadoresPanel() {
                         </div>
                       )}
                       {r.revisado_por && (
-                        <div style={{ marginTop: 8, fontSize: '0.8rem', color: '#22c55e', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          ✓ Revisado por {r.revisado_por} — {new Date(r.revisado_at).toLocaleDateString('es-CL')}
+                        <div style={{ marginTop: 10, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 10 }}>
+                          {r.firma_admin && (
+                            <img src={r.firma_admin} alt="Firma supervisor"
+                              style={{ height: 56, display: 'block', marginBottom: 4, filter: 'invert(1)' }} />
+                          )}
+                          <div style={{ fontSize: '0.8rem', color: '#22c55e', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            ✓ Revisado por {r.revisado_por} — {new Date(r.revisado_at).toLocaleDateString('es-CL')}
+                          </div>
                         </div>
                       )}
 

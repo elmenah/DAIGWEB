@@ -391,9 +391,11 @@ function RegistrosManager() {
   const markReviewed = async (id) => {
     setMarkingReviewed(id)
     const now = new Date().toISOString()
-    await supabase.from('registros_trabajo').update({ revisado_por: adminNombre, revisado_at: now }).eq('id', id)
+    let firmaAdmin = null
+    try { firmaAdmin = localStorage.getItem('daig_firma_informe') || null } catch { /* sin acceso */ }
+    await supabase.from('registros_trabajo').update({ revisado_por: adminNombre, revisado_at: now, firma_admin: firmaAdmin }).eq('id', id)
     setMarkingReviewed(null)
-    setRegistros(prev => prev.map(r => r.id === id ? { ...r, revisado_por: adminNombre, revisado_at: now } : r))
+    setRegistros(prev => prev.map(r => r.id === id ? { ...r, revisado_por: adminNombre, revisado_at: now, firma_admin: firmaAdmin } : r))
     loadStats()
   }
 
