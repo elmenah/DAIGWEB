@@ -408,7 +408,9 @@ function RegistrosManager() {
 
       <div className="admin-section-header">
         <h3>Registros de Trabajadores</h3>
-        <span className="admin-badge">{total} registros</span>
+        <span className="admin-badge">
+          {hayFiltros ? `${total} filtrados` : `${total} registros`}
+        </span>
       </div>
 
       {/* Stats */}
