@@ -38,11 +38,20 @@ const ESTADOS = ['Terminado', 'En Proceso', 'Pendiente repuesto']
 const COLUMNS = [
   { key: 'trabajador_nombre', label: 'Trabajador' },
   { key: 'fecha',             label: 'Fecha' },
+  { key: 'ot',                label: 'OT' },
   { key: 'tipo_trabajo',      label: 'Tipo' },
   { key: 'tarea',             label: 'Tarea / Equipo' },
+  { key: 'ubicacion_texto',   label: 'Localidad', noSort: true },
   { key: 'estado',            label: 'Estado' },
   { key: 'horas_trabajadas',  label: 'Hrs' },
 ]
+
+const shortLoc = (txt) => {
+  if (!txt) return null
+  if (/^-?\d+\.?\d*\s*,\s*-?\d+/.test(txt.trim())) return null
+  const first = txt.split(',')[0].trim()
+  return first.length > 22 ? first.slice(0, 20) + '…' : first
+}
 
 function estadoClass(e) {
   if (['Terminado','Completado'].includes(e)) return 'ok'
@@ -397,13 +406,7 @@ function RegistrosManager() {
 
       <div className="admin-section-header">
         <h3>Registros de Trabajadores</h3>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <span className="admin-badge">{total} registros</span>
-          <button className="admin-btn-outline reg-icon-btn" style={{ fontSize: '0.8rem', padding: '5px 12px' }} onClick={exportCSV}>
-            <svg viewBox="0 0 24 24"><path d={RICON.download} /></svg>
-            Exportar CSV
-          </button>
-        </div>
+        <span className="admin-badge">{total} registros</span>
       </div>
 
       {/* Stats */}
@@ -445,14 +448,14 @@ function RegistrosManager() {
           </select>
         </div>
         <div className="reg-filter-group">
-          <label>Desde</label>
-          <input type="date" value={filtroFechaDesde}
-            onChange={e => { setFiltroFechaDesde(e.target.value); setQuickActive(null); setPage(0) }} />
-        </div>
-        <div className="reg-filter-group">
-          <label>Hasta</label>
-          <input type="date" value={filtroFechaHasta}
-            onChange={e => { setFiltroFechaHasta(e.target.value); setQuickActive(null); setPage(0) }} />
+          <label>Fechas</label>
+          <div className="reg-daterange">
+            <input type="date" value={filtroFechaDesde} title="Desde"
+              onChange={e => { setFiltroFechaDesde(e.target.value); setQuickActive(null); setPage(0) }} />
+            <span className="reg-daterange-sep">→</span>
+            <input type="date" value={filtroFechaHasta} title="Hasta"
+              onChange={e => { setFiltroFechaHasta(e.target.value); setQuickActive(null); setPage(0) }} />
+          </div>
         </div>
         <div className="reg-quick-filters">
           {QUICK_FILTERS.map((qf, i) => (
@@ -473,9 +476,10 @@ function RegistrosManager() {
             <thead>
               <tr>
                 {COLUMNS.map(col => (
-                  <th key={col.key} onClick={() => handleSort(col.key)}
-                    style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>
-                    {col.label}<SortIcon active={sortCol === col.key} asc={sortAsc} />
+                  <th key={col.key}
+                    onClick={() => !col.noSort && handleSort(col.key)}
+                    style={{ cursor: col.noSort ? 'default' : 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>
+                    {col.label}{!col.noSort && <SortIcon active={sortCol === col.key} asc={sortAsc} />}
                   </th>
                 ))}
                 <th>Fotos</th>
@@ -499,10 +503,14 @@ function RegistrosManager() {
                       </div>
                     </td>
                     <td className="reg-td-fecha">{r.fecha}</td>
+                    <td className="reg-td-ot">{r.ot || <span className="reg-empty-cell">—</span>}</td>
                     <td className="reg-td-tipo">{r.tipo_trabajo || <span className="reg-empty-cell">—</span>}</td>
                     <td className="reg-td-tarea">
                       <div>{r.tarea}</div>
                       {r.equipo_intervenido && <div className="reg-equipo-sub">{r.equipo_intervenido}</div>}
+                    </td>
+                    <td className="reg-td-loc" title={r.ubicacion_texto || ''}>
+                      {shortLoc(r.ubicacion_texto) || <span className="reg-empty-cell">—</span>}
                     </td>
                     <td>
                       {r.estado
@@ -531,7 +539,7 @@ function RegistrosManager() {
 
                   {expandedId === r.id && (
                     <tr className="reg-expanded-row">
-                      <td colSpan={8}>
+                      <td colSpan={10}>
                         <div className="reg-expanded-body">
                           {r.equipo_intervenido && (
                             <div className="reg-field">

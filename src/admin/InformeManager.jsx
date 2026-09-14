@@ -180,9 +180,12 @@ async function resolverUbicacion(val) {
 // ── componente principal ──────────────────────────────────────────────────────
 
 export default function InformeManager() {
-  const [modo, setModo] = useState('semana') // 'semana' | 'mes'
+  const [modo, setModo] = useState('semana') // 'semana' | 'mes' | 'custom'
   const [lunes, setLunes] = useState(() => lunesDe(new Date()))
   const [mesAncla, setMesAncla] = useState(() => primerDiaMes(new Date()))
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [calDesde, setCalDesde] = useState('')
+  const [calHasta, setCalHasta] = useState('')
   const [registros, setRegistros] = useState([])
   const [loading, setLoading] = useState(false)
   const [expandedWorker, setExpandedWorker] = useState(null)
@@ -190,15 +193,20 @@ export default function InformeManager() {
   const [exportingWorker, setExportingWorker] = useState(null)
 
   const esMes = modo === 'mes'
+  const esCustom = modo === 'custom'
   const domingo = domingoDE(lunes)
-  const rangoDesde = esMes ? primerDiaMes(mesAncla) : lunes
-  const rangoHasta = esMes ? ultimoDiaMes(mesAncla) : domingo
+  const rangoDesde = esCustom
+    ? (calDesde ? new Date(calDesde + 'T00:00:00') : lunes)
+    : (esMes ? primerDiaMes(mesAncla) : lunes)
+  const rangoHasta = esCustom
+    ? (calHasta ? new Date(calHasta + 'T00:00:00') : domingo)
+    : (esMes ? ultimoDiaMes(mesAncla) : domingo)
   const desdeISO = toISO(rangoDesde)
   const hastaISO = toISO(rangoHasta)
 
-  const esPeriodoActual = esMes
+  const esPeriodoActual = !esCustom && (esMes
     ? toISO(primerDiaMes(new Date())) === toISO(primerDiaMes(mesAncla))
-    : toISO(lunesDe(new Date())) === toISO(lunes)
+    : toISO(lunesDe(new Date())) === toISO(lunes))
 
   // ── carga ─────────────────────────────────────────────────────────────────
 
@@ -812,32 +820,63 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
       )}
 
       {/* ── cabecera de periodo ── */}
-      <div className="inf-week-bar">
+      <div className="inf-week-bar" style={{ position: 'relative' }}>
         <div className="inf-modo-toggle">
-          <button className={!esMes ? 'active' : ''} onClick={() => setModo('semana')}>Semana</button>
-          <button className={esMes ? 'active' : ''} onClick={() => setModo('mes')}>Mes</button>
+          <button className={!esMes && !esCustom ? 'active' : ''} onClick={() => { setModo('semana'); setShowCalendar(false) }}>Semana</button>
+          <button className={esMes ? 'active' : ''} onClick={() => { setModo('mes'); setShowCalendar(false) }}>Mes</button>
+          <button className={esCustom ? 'active' : ''} onClick={() => { setModo('custom'); setShowCalendar(true) }}>
+            <svg viewBox="0 0 24 24" style={{ width: 13, height: 13, fill: 'currentColor', marginRight: 4 }}><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+            Rango
+          </button>
         </div>
 
-        <button className="inf-week-nav" onClick={irAnterior} title={esMes ? 'Mes anterior' : 'Semana anterior'}>
-          <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-        </button>
+        {!esCustom && (
+          <button className="inf-week-nav" onClick={irAnterior} title={esMes ? 'Mes anterior' : 'Semana anterior'}>
+            <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+          </button>
+        )}
 
-        <div className="inf-week-label">
+        <div className="inf-week-label" onClick={esCustom ? () => setShowCalendar(v => !v) : undefined}
+          style={esCustom ? { cursor: 'pointer' } : undefined}>
           <span className="inf-week-range">
-            {esMes
-              ? capitalizar(mesAncla.toLocaleDateString('es-CL', { month: 'long' }))
-              : `${fmtShort(lunes)} – ${fmtShort(domingo)}`}
+            {esCustom
+              ? (calDesde && calHasta ? `${fmtFecha(calDesde)} – ${fmtFecha(calHasta)}` : 'Elegir rango')
+              : esMes
+                ? capitalizar(mesAncla.toLocaleDateString('es-CL', { month: 'long' }))
+                : `${fmtShort(lunes)} – ${fmtShort(domingo)}`}
           </span>
-          <span className="inf-week-year">{(esMes ? mesAncla : lunes).getFullYear()}</span>
+          {!esCustom && <span className="inf-week-year">{(esMes ? mesAncla : lunes).getFullYear()}</span>}
           {esPeriodoActual && <span className="inf-week-badge">{esMes ? 'Mes actual' : 'Semana actual'}</span>}
         </div>
 
-        <button className="inf-week-nav" onClick={irSiguiente} title={esMes ? 'Mes siguiente' : 'Semana siguiente'}>
-          <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-        </button>
+        {!esCustom && (
+          <button className="inf-week-nav" onClick={irSiguiente} title={esMes ? 'Mes siguiente' : 'Semana siguiente'}>
+            <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+          </button>
+        )}
 
-        {!esPeriodoActual && (
+        {!esPeriodoActual && !esCustom && (
           <button className="inf-today-btn" onClick={irActual}>Hoy</button>
+        )}
+
+        {/* Popup calendario de rango */}
+        {showCalendar && esCustom && (
+          <div className="inf-cal-popup">
+            <div className="inf-cal-title">Elegir rango de fechas</div>
+            <div className="inf-cal-row">
+              <div className="inf-cal-field">
+                <label>Desde</label>
+                <input type="date" value={calDesde} onChange={e => setCalDesde(e.target.value)} />
+              </div>
+              <div className="inf-cal-field">
+                <label>Hasta</label>
+                <input type="date" value={calHasta} min={calDesde} onChange={e => setCalHasta(e.target.value)} />
+              </div>
+            </div>
+            <button className="inf-cal-apply" disabled={!calDesde || !calHasta} onClick={() => setShowCalendar(false)}>
+              Aplicar
+            </button>
+          </div>
         )}
 
         <button className="inf-export-btn" onClick={() => setShowFirma(true)}
@@ -877,7 +916,7 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
       {!loading && registros.length === 0 && (
         <div className="inf-empty">
           <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
-          <p>Sin registros para {esMes ? 'este mes' : 'esta semana'}</p>
+          <p>Sin registros para {esCustom ? 'este rango' : esMes ? 'este mes' : 'esta semana'}</p>
           <span>{fmtFecha(desdeISO)} al {fmtFecha(hastaISO)}</span>
         </div>
       )}
