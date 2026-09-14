@@ -795,14 +795,15 @@ export default function InformeManager() {
     </div>
   </div>`
 
+      // Inyectar CSS en <head> para que html2canvas lo aplique correctamente
+      const style = document.createElement('style')
+      style.setAttribute('data-pdf-general', '1')
+      style.textContent = css
+      document.head.appendChild(style)
+
       const container = document.createElement('div')
       container.style.cssText = 'position:fixed;top:-99999px;left:-99999px;width:794px'
-      const style = document.createElement('style')
-      style.textContent = css
-      container.appendChild(style)
-      const content = document.createElement('div')
-      content.innerHTML = htmlContent
-      container.appendChild(content)
+      container.innerHTML = htmlContent
       document.body.appendChild(container)
 
       await html2pdf().set({
@@ -815,6 +816,7 @@ export default function InformeManager() {
       }).from(container).save()
 
       document.body.removeChild(container)
+      document.head.removeChild(style)
     } catch (e) {
       alert('Error al generar PDF: ' + e.message)
     }
