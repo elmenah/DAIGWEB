@@ -402,15 +402,66 @@ function RegistrosManager() {
   const totalPages = Math.ceil(total / PAGE_SIZE)
   const hayFiltros = filtroTrabajador || filtroEstado || filtroTipo || filtroTexto || filtroFechaDesde || filtroFechaHasta
 
+  const COORD_RE = /^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$/
+  const [geocodingProgress, setGeocodingProgress] = useState(null) // null | { done, total }
+
+  const geocodificarExistentes = async () => {
+    const { data } = await supabase
+      .from('registros_trabajo')
+      .select('id, ubicacion_lat, ubicacion_lng, ubicacion_texto')
+      .not('ubicacion_lat', 'is', null)
+    const pendientes = (data || []).filter(r => !r.ubicacion_texto || COORD_RE.test(r.ubicacion_texto.trim()))
+    if (!pendientes.length) { alert('No hay registros con coordenadas crudas.'); return }
+    if (!window.confirm(`Se van a geocodificar ${pendientes.length} registros. Puede tardar ~${Math.ceil(pendientes.length * 1.2)} segundos. ¿Continuar?`)) return
+    setGeocodingProgress({ done: 0, total: pendientes.length })
+    for (let i = 0; i < pendientes.length; i++) {
+      const r = pendientes[i]
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${r.ubicacion_lat}&lon=${r.ubicacion_lng}&accept-language=es`,
+          { headers: { 'User-Agent': 'DAIG-Admin/1.0 (daigchile.cl)' } }
+        )
+        const d = await res.json()
+        const a = d.address || {}
+        const localidad = a.suburb || a.quarter || a.neighbourhood || a.village || a.town || a.city || ''
+        const comuna = a.city_district || a.city || a.county || ''
+        const region = a.state || ''
+        const texto = [localidad, comuna, region].filter(Boolean).join(', ') || `${r.ubicacion_lat}, ${r.ubicacion_lng}`
+        await supabase.from('registros_trabajo').update({ ubicacion_texto: texto }).eq('id', r.id)
+      } catch { /* fallo silencioso, se queda como estaba */ }
+      setGeocodingProgress({ done: i + 1, total: pendientes.length })
+      if (i < pendientes.length - 1) await new Promise(res => setTimeout(res, 1200))
+    }
+    setGeocodingProgress(null)
+    loadRegistros()
+    alert('Geocodificación completada.')
+  }
+
   return (
     <div className="admin-section">
       {modalUrl && <PhotoModal url={modalUrl} onClose={() => setModalUrl(null)} />}
 
       <div className="admin-section-header">
         <h3>Registros de Trabajadores</h3>
-        <span className="admin-badge">
-          {hayFiltros ? `${total} filtrados` : `${total} registros`}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {geocodingProgress ? (
+            <span style={{ fontSize: '0.8rem', color: '#f5a623' }}>
+              Geocodificando {geocodingProgress.done}/{geocodingProgress.total}…
+            </span>
+          ) : (
+            <button
+              onClick={geocodificarExistentes}
+              style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(245,166,35,0.12)',
+                border: '1px solid rgba(245,166,35,0.3)', borderRadius: 7, color: '#f5a623',
+                cursor: 'pointer', whiteSpace: 'nowrap' }}
+              title="Convierte coordenadas GPS crudas a nombres de localidad">
+              📍 Corregir localidades
+            </button>
+          )}
+          <span className="admin-badge">
+            {hayFiltros ? `${total} filtrados` : `${total} registros`}
+          </span>
+        </div>
       </div>
 
       {/* Stats */}
