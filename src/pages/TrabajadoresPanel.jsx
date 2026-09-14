@@ -36,6 +36,7 @@ function TrabajadoresPanel() {
   const [estado, setEstado] = useState('Terminado')
   const [ubicacionLat, setUbicacionLat] = useState(null)
   const [ubicacionLng, setUbicacionLng] = useState(null)
+  const [ubicacionTexto, setUbicacionTexto] = useState('')
   const [gpsError, setGpsError] = useState('')
   const [fotos, setFotos] = useState([])
   const [fotosPreviews, setFotosPreviews] = useState([])
@@ -80,7 +81,7 @@ function TrabajadoresPanel() {
     setEquipoIntervenido(''); setOt(''); setAvisoSap(''); setPlanta('')
     setDescripcion(''); setMaterialUtilizado('')
     setHorasTrabajadas(''); setEstado('Terminado')
-    setUbicacionLat(null); setUbicacionLng(null); setGpsError('')
+    setUbicacionLat(null); setUbicacionLng(null); setUbicacionTexto(''); setGpsError('')
     setFotos([]); setFotosPreviews([]); setFotosExistentes([])
     setFecha(today()); setHora(nowTime())
     setEditingId(null)
@@ -104,6 +105,7 @@ function TrabajadoresPanel() {
     setEstado(r.estado || 'Terminado')
     setUbicacionLat(r.ubicacion_lat || null)
     setUbicacionLng(r.ubicacion_lng || null)
+    setUbicacionTexto(r.ubicacion_texto || '')
     setGpsError('')
     setFotos([])
     setFotosPreviews([])
@@ -122,9 +124,26 @@ function TrabajadoresPanel() {
     setGpsLoading(true)
     setGpsError('')
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUbicacionLat(pos.coords.latitude)
-        setUbicacionLng(pos.coords.longitude)
+      async (pos) => {
+        const lat = pos.coords.latitude
+        const lng = pos.coords.longitude
+        setUbicacionLat(lat)
+        setUbicacionLng(lng)
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=es`,
+            { headers: { 'User-Agent': 'DAIG-Panel/1.0 (daigchile.cl)' } }
+          )
+          const data = await res.json()
+          const a = data.address || {}
+          const localidad = a.suburb || a.quarter || a.neighbourhood || a.village || a.town || a.city || ''
+          const comuna = a.city_district || a.city || a.county || ''
+          const region = a.state || ''
+          const partes = [localidad, comuna, region].filter(Boolean)
+          setUbicacionTexto(partes.length ? partes.join(', ') : `${lat.toFixed(6)}, ${lng.toFixed(6)}`)
+        } catch {
+          setUbicacionTexto(`${lat.toFixed(6)}, ${lng.toFixed(6)}`)
+        }
         setGpsLoading(false)
       },
       () => {
@@ -309,7 +328,7 @@ function TrabajadoresPanel() {
       material_utilizado: materialUtilizado.trim(),
       horas_trabajadas: horasTrabajadas ? parseFloat(horasTrabajadas) : null,
       estado,
-      ubicacion_texto: `${ubicacionLat.toFixed(6)}, ${ubicacionLng.toFixed(6)}`,
+      ubicacion_texto: ubicacionTexto || `${ubicacionLat.toFixed(6)}, ${ubicacionLng.toFixed(6)}`,
       ubicacion_lat: ubicacionLat,
       ubicacion_lng: ubicacionLng,
     }
@@ -621,6 +640,20 @@ function TrabajadoresPanel() {
                   {gpsLoading ? 'Obteniendo ubicación...' : ubicacionLat ? `✓ Ubicación capturada (${ubicacionLat.toFixed(4)}, ${ubicacionLng.toFixed(4)})` : 'Capturar ubicación actual'}
                 </button>
                 {gpsError && <p className="trab-gps-error">{gpsError}</p>}
+                {ubicacionLat && (
+                  <div style={{ marginTop: 8 }}>
+                    <label style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 4 }}>
+                      Localidad detectada <span style={{ color: 'rgba(255,255,255,0.35)' }}>(puedes editar)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={ubicacionTexto}
+                      onChange={e => setUbicacionTexto(e.target.value)}
+                      placeholder="Ej: Pudahuel, Santiago, Región Metropolitana"
+                      style={{ width: '100%', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="trab-field">
