@@ -6438,17 +6438,31 @@ header.scrolled .navbar {
 
 .inf-root { padding: 0 0 2rem; }
 
-/* Barra de semana */
+/* ── Barra de semana — 2 filas ── */
 .inf-week-bar {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.6rem;
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 12px;
   padding: 0.75rem 1rem;
   margin-bottom: 1.5rem;
+  position: relative;
+}
+.inf-period-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   flex-wrap: wrap;
+}
+.inf-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255,255,255,0.07);
 }
 .inf-modo-toggle {
   display: inline-flex;
@@ -6468,6 +6482,8 @@ header.scrolled .navbar {
   border-radius: 7px;
   cursor: pointer;
   transition: all 0.15s;
+  display: flex;
+  align-items: center;
 }
 .inf-modo-toggle button:hover { color: #d8d8ec; }
 .inf-modo-toggle button.active {
@@ -6480,8 +6496,8 @@ header.scrolled .navbar {
   border-radius: 8px;
   color: #c8c8e0;
   cursor: pointer;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6496,7 +6512,7 @@ header.scrolled .navbar {
   flex: 1;
 }
 .inf-week-range {
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #e8e8ff;
 }
@@ -6519,7 +6535,7 @@ header.scrolled .navbar {
   border-radius: 8px;
   color: #c8c8e0;
   font-size: 0.82rem;
-  padding: 6px 12px;
+  padding: 5px 12px;
   cursor: pointer;
   transition: background 0.15s;
 }
@@ -6550,74 +6566,126 @@ header.scrolled .navbar {
   font-size: 0.82rem;
   padding: 6px 10px;
   cursor: pointer;
-  max-width: 180px;
+  max-width: 200px;
+  flex: 1;
 }
-.inf-worker-select option {
-  background: #1e1e46;
-  color: #e4e4f0;
-}
+.inf-worker-select option { background: #1e1e46; color: #e4e4f0; }
 .inf-worker-select:focus { outline: none; border-color: rgba(34,197,94,0.5); }
 
 /* ── Calendario popup (InformeManager) ── */
+.inf-cal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 299;
+}
 .inf-cal-popup {
   position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 200;
-  background: #1a1a48;
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 14px;
-  padding: 20px 24px;
-  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
-  min-width: 320px;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 300;
+  background: #16163c;
+  border: 1px solid rgba(255,255,255,0.13);
+  border-radius: 16px;
+  padding: 18px 20px 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  min-width: 340px;
+}
+.inf-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
 }
 .inf-cal-title {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: .08em;
+  letter-spacing: .06em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.55);
+}
+.inf-cal-close {
+  background: rgba(255,255,255,0.07);
+  border: none;
+  border-radius: 6px;
+  color: #9a9ab0;
+  cursor: pointer;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s;
+}
+.inf-cal-close:hover { background: rgba(255,255,255,0.14); color: #e4e4f0; }
+.inf-cal-close svg { width: 16px; height: 16px; fill: currentColor; }
+.inf-cal-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-bottom: 14px;
 }
+.inf-cal-quick-btn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  color: #c8c8e0;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: all 0.13s;
+  white-space: nowrap;
+}
+.inf-cal-quick-btn:hover { background: rgba(232,150,46,0.15); border-color: rgba(232,150,46,0.35); color: #e8962e; }
 .inf-cal-row {
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 .inf-cal-field {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 .inf-cal-field label {
-  font-size: 0.72rem;
-  color: rgba(255,255,255,0.5);
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.45);
   text-transform: uppercase;
-  letter-spacing: .06em;
+  letter-spacing: .07em;
 }
 .inf-cal-field input[type="date"] {
   background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.13);
   border-radius: 8px;
   color: #e4e4f0;
-  padding: 7px 10px;
-  font-size: 0.88rem;
+  padding: 8px 10px;
+  font-size: 0.86rem;
   width: 100%;
 }
 .inf-cal-field input[type="date"]:focus { outline: none; border-color: rgba(232,150,46,0.6); }
-.inf-cal-apply {
+.inf-cal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-top: 14px;
-  width: 100%;
+  gap: 10px;
+}
+.inf-cal-preview {
+  font-size: 0.78rem;
+  color: #9a9ab0;
+  white-space: nowrap;
+}
+.inf-cal-apply {
   background: #e8962e;
   border: none;
   border-radius: 8px;
   color: #fff;
   font-weight: 700;
-  font-size: 0.88rem;
-  padding: 9px 0;
+  font-size: 0.86rem;
+  padding: 8px 20px;
   cursor: pointer;
   transition: opacity .15s;
+  white-space: nowrap;
 }
 .inf-cal-apply:disabled { opacity: 0.4; cursor: not-allowed; }
 .inf-cal-apply:hover:not(:disabled) { opacity: 0.88; }

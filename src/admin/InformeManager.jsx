@@ -151,8 +151,11 @@ const fmtFecha = (iso) => {
   return `${d}/${m}/${y}`
 }
 
-const fmtShort = (d) =>
-  d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' }).replace('.', '')
+const fmtShort = (d) => {
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  return `${dd}/${mm}`
+}
 
 // ── geocodificación inversa (Nominatim) ──────────────────────────────────────
 const _geoCache = new Map()
@@ -820,91 +823,136 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
       )}
 
       {/* ── cabecera de periodo ── */}
-      <div className="inf-week-bar" style={{ position: 'relative' }}>
-        <div className="inf-modo-toggle">
-          <button className={!esMes && !esCustom ? 'active' : ''} onClick={() => { setModo('semana'); setShowCalendar(false) }}>Semana</button>
-          <button className={esMes ? 'active' : ''} onClick={() => { setModo('mes'); setShowCalendar(false) }}>Mes</button>
-          <button className={esCustom ? 'active' : ''} onClick={() => { setModo('custom'); setShowCalendar(true) }}>
-            <svg viewBox="0 0 24 24" style={{ width: 13, height: 13, fill: 'currentColor', marginRight: 4 }}><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
-            Rango
-          </button>
+      <div className="inf-week-bar">
+
+        {/* Fila 1: navegación de periodo */}
+        <div className="inf-period-row">
+          <div className="inf-modo-toggle">
+            <button className={!esMes && !esCustom ? 'active' : ''} onClick={() => { setModo('semana'); setShowCalendar(false) }}>Semana</button>
+            <button className={esMes ? 'active' : ''} onClick={() => { setModo('mes'); setShowCalendar(false) }}>Mes</button>
+            <button className={esCustom ? 'active' : ''} onClick={() => {
+              if (esCustom) { setShowCalendar(v => !v) }
+              else { setModo('custom'); setShowCalendar(true) }
+            }}>
+              <svg viewBox="0 0 24 24" style={{ width: 13, height: 13, fill: 'currentColor', marginRight: 4 }}><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+              Rango
+            </button>
+          </div>
+
+          {!esCustom && (
+            <button className="inf-week-nav" onClick={irAnterior} title={esMes ? 'Mes anterior' : 'Semana anterior'}>
+              <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </button>
+          )}
+
+          <div className="inf-week-label" onClick={esCustom ? () => setShowCalendar(v => !v) : undefined}
+            style={esCustom ? { cursor: 'pointer' } : undefined}>
+            <span className="inf-week-range">
+              {esCustom
+                ? (calDesde && calHasta ? `${fmtFecha(calDesde)} – ${fmtFecha(calHasta)}` : 'Elegir rango')
+                : esMes
+                  ? capitalizar(mesAncla.toLocaleDateString('es-CL', { month: 'long' }))
+                  : `${fmtShort(lunes)} – ${fmtShort(domingo)}`}
+            </span>
+            {!esCustom && <span className="inf-week-year">{(esMes ? mesAncla : lunes).getFullYear()}</span>}
+            {esPeriodoActual && <span className="inf-week-badge">{esMes ? 'Mes actual' : 'Semana actual'}</span>}
+          </div>
+
+          {!esCustom && (
+            <button className="inf-week-nav" onClick={irSiguiente} title={esMes ? 'Mes siguiente' : 'Semana siguiente'}>
+              <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+            </button>
+          )}
+
+          {!esPeriodoActual && !esCustom && (
+            <button className="inf-today-btn" onClick={irActual}>Hoy</button>
+          )}
         </div>
 
-        {!esCustom && (
-          <button className="inf-week-nav" onClick={irAnterior} title={esMes ? 'Mes anterior' : 'Semana anterior'}>
-            <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        {/* Fila 2: acciones */}
+        <div className="inf-actions-row">
+          <button className="inf-export-btn" onClick={() => setShowFirma(true)}
+            style={firma ? { background: 'rgba(34,197,94,0.15)', borderColor: 'rgba(34,197,94,0.4)', color: '#4ade80' } : undefined}
+            title="Configurar la firma que aparece en los informes PDF">
+            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            {firma ? 'Firma ✓' : 'Firma'}
           </button>
-        )}
-
-        <div className="inf-week-label" onClick={esCustom ? () => setShowCalendar(v => !v) : undefined}
-          style={esCustom ? { cursor: 'pointer' } : undefined}>
-          <span className="inf-week-range">
-            {esCustom
-              ? (calDesde && calHasta ? `${fmtFecha(calDesde)} – ${fmtFecha(calHasta)}` : 'Elegir rango')
-              : esMes
-                ? capitalizar(mesAncla.toLocaleDateString('es-CL', { month: 'long' }))
-                : `${fmtShort(lunes)} – ${fmtShort(domingo)}`}
-          </span>
-          {!esCustom && <span className="inf-week-year">{(esMes ? mesAncla : lunes).getFullYear()}</span>}
-          {esPeriodoActual && <span className="inf-week-badge">{esMes ? 'Mes actual' : 'Semana actual'}</span>}
+          <select
+            className="inf-worker-select"
+            value={filtroWorkerPDF}
+            onChange={e => setFiltroWorkerPDF(e.target.value)}
+            title="Filtrar PDF por trabajador"
+          >
+            <option value="">Todos los trabajadores</option>
+            {porTrabajador.map(w => (
+              <option key={w.id} value={w.id}>{w.nombre}</option>
+            ))}
+          </select>
+          <button className="inf-export-btn" onClick={generarPDFGeneral} disabled={generandoGeneral || !registros.length}
+            title={filtroWorkerPDF ? `Generar PDF de ${porTrabajador.find(w=>w.id===filtroWorkerPDF)?.nombre || ''}` : 'PDF general'}>
+            <svg viewBox="0 0 24 24"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>
+            {generandoGeneral ? 'Generando...' : filtroWorkerPDF ? 'PDF Trabajador' : 'PDF General'}
+          </button>
+          <button className="inf-export-btn" onClick={handleExport} disabled={exporting || !registros.length}>
+            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            {exporting ? 'Exportando...' : 'Excel'}
+          </button>
         </div>
-
-        {!esCustom && (
-          <button className="inf-week-nav" onClick={irSiguiente} title={esMes ? 'Mes siguiente' : 'Semana siguiente'}>
-            <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-          </button>
-        )}
-
-        {!esPeriodoActual && !esCustom && (
-          <button className="inf-today-btn" onClick={irActual}>Hoy</button>
-        )}
 
         {/* Popup calendario de rango */}
         {showCalendar && esCustom && (
-          <div className="inf-cal-popup">
-            <div className="inf-cal-title">Elegir rango de fechas</div>
-            <div className="inf-cal-row">
-              <div className="inf-cal-field">
-                <label>Desde</label>
-                <input type="date" value={calDesde} onChange={e => setCalDesde(e.target.value)} />
+          <>
+            <div className="inf-cal-backdrop" onClick={() => setShowCalendar(false)} />
+            <div className="inf-cal-popup">
+              <div className="inf-cal-header">
+                <span className="inf-cal-title">Rango de fechas</span>
+                <button className="inf-cal-close" onClick={() => setShowCalendar(false)}>
+                  <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
               </div>
-              <div className="inf-cal-field">
-                <label>Hasta</label>
-                <input type="date" value={calHasta} min={calDesde} onChange={e => setCalHasta(e.target.value)} />
+              <div className="inf-cal-quick">
+                {[
+                  { label: 'Esta semana', fn: () => {
+                    const l = lunesDe(new Date()); const d = domingoDE(l)
+                    setCalDesde(toISO(l)); setCalHasta(toISO(d))
+                  }},
+                  { label: 'Este mes', fn: () => {
+                    const hoy = new Date()
+                    setCalDesde(toISO(primerDiaMes(hoy))); setCalHasta(toISO(ultimoDiaMes(hoy)))
+                  }},
+                  { label: 'Últimos 7 días', fn: () => {
+                    const h = new Date(); const d = new Date(); d.setDate(d.getDate() - 6)
+                    setCalDesde(toISO(d)); setCalHasta(toISO(h))
+                  }},
+                  { label: 'Últimos 30 días', fn: () => {
+                    const h = new Date(); const d = new Date(); d.setDate(d.getDate() - 29)
+                    setCalDesde(toISO(d)); setCalHasta(toISO(h))
+                  }},
+                ].map(({ label, fn }) => (
+                  <button key={label} className="inf-cal-quick-btn" onClick={fn}>{label}</button>
+                ))}
+              </div>
+              <div className="inf-cal-row">
+                <div className="inf-cal-field">
+                  <label>Desde</label>
+                  <input type="date" value={calDesde} onChange={e => setCalDesde(e.target.value)} />
+                </div>
+                <div className="inf-cal-field">
+                  <label>Hasta</label>
+                  <input type="date" value={calHasta} min={calDesde} onChange={e => setCalHasta(e.target.value)} />
+                </div>
+              </div>
+              <div className="inf-cal-footer">
+                {calDesde && calHasta && (
+                  <span className="inf-cal-preview">{fmtFecha(calDesde)} → {fmtFecha(calHasta)}</span>
+                )}
+                <button className="inf-cal-apply" disabled={!calDesde || !calHasta} onClick={() => setShowCalendar(false)}>
+                  Aplicar
+                </button>
               </div>
             </div>
-            <button className="inf-cal-apply" disabled={!calDesde || !calHasta} onClick={() => setShowCalendar(false)}>
-              Aplicar
-            </button>
-          </div>
+          </>
         )}
-
-        <button className="inf-export-btn" onClick={() => setShowFirma(true)}
-          style={firma ? { background: 'rgba(34,197,94,0.15)', borderColor: 'rgba(34,197,94,0.4)', color: '#4ade80' } : undefined}
-          title="Configurar la firma que aparece en los informes PDF">
-          <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-          {firma ? 'Firma ✓' : 'Firma'}
-        </button>
-        <select
-          className="inf-worker-select"
-          value={filtroWorkerPDF}
-          onChange={e => setFiltroWorkerPDF(e.target.value)}
-          title="Filtrar PDF por trabajador"
-        >
-          <option value="">Todos los trabajadores</option>
-          {porTrabajador.map(w => (
-            <option key={w.id} value={w.id}>{w.nombre}</option>
-          ))}
-        </select>
-        <button className="inf-export-btn" onClick={generarPDFGeneral} disabled={generandoGeneral || !registros.length}
-          title={filtroWorkerPDF ? `Generar PDF de ${porTrabajador.find(w=>w.id===filtroWorkerPDF)?.nombre || ''}` : 'Generar PDF general con resumen de todos los trabajadores'}>
-          <svg viewBox="0 0 24 24"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>
-          {generandoGeneral ? 'Generando...' : filtroWorkerPDF ? 'PDF Trabajador' : 'PDF General'}
-        </button>
-        <button className="inf-export-btn" onClick={handleExport} disabled={exporting || !registros.length}>
-          <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-          {exporting ? 'Exportando...' : 'Excel'}
-        </button>
       </div>
 
       {loading && (
