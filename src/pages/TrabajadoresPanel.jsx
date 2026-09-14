@@ -34,6 +34,7 @@ function TrabajadoresPanel() {
   const [materialUtilizado, setMaterialUtilizado] = useState('')
   const [horasTrabajadas, setHorasTrabajadas] = useState('')
   const [estado, setEstado] = useState('Terminado')
+  const [indicadorMantenimiento, setIndicadorMantenimiento] = useState('')
   const [ubicacionLat, setUbicacionLat] = useState(null)
   const [ubicacionLng, setUbicacionLng] = useState(null)
   const [ubicacionTexto, setUbicacionTexto] = useState('')
@@ -80,7 +81,7 @@ function TrabajadoresPanel() {
     setTarea(''); setTipoTrabajo(''); setTipoTrabajoOtro('')
     setEquipoIntervenido(''); setOt(''); setAvisoSap(''); setPlanta('')
     setDescripcion(''); setMaterialUtilizado('')
-    setHorasTrabajadas(''); setEstado('Terminado')
+    setHorasTrabajadas(''); setEstado('Terminado'); setIndicadorMantenimiento('')
     setUbicacionLat(null); setUbicacionLng(null); setUbicacionTexto(''); setGpsError('')
     setFotos([]); setFotosPreviews([]); setFotosExistentes([])
     setFecha(today()); setHora(nowTime())
@@ -103,6 +104,7 @@ function TrabajadoresPanel() {
     setMaterialUtilizado(r.material_utilizado || '')
     setHorasTrabajadas(r.horas_trabajadas?.toString() || '')
     setEstado(r.estado || 'Terminado')
+    setIndicadorMantenimiento(r.indicador_mantenimiento || '')
     setUbicacionLat(r.ubicacion_lat || null)
     setUbicacionLng(r.ubicacion_lng || null)
     setUbicacionTexto(r.ubicacion_texto || '')
@@ -331,6 +333,7 @@ function TrabajadoresPanel() {
       ubicacion_texto: ubicacionTexto || `${ubicacionLat.toFixed(6)}, ${ubicacionLng.toFixed(6)}`,
       ubicacion_lat: ubicacionLat,
       ubicacion_lng: ubicacionLng,
+      indicador_mantenimiento: indicadorMantenimiento || null,
     }
 
     const resumen = {
@@ -583,6 +586,26 @@ function TrabajadoresPanel() {
                     <option>En Proceso</option>
                     <option>Pendiente repuesto</option>
                   </select>
+                </div>
+              </div>
+
+              <div className="trab-field">
+                <label>Indicador de mantenimiento del equipo <span style={{ color: 'rgba(255,255,255,0.35)', fontWeight: 400 }}>(opcional)</span></label>
+                <div className="trab-indicador-grid">
+                  {[
+                    { val: 'Bueno',             color: '#22c55e' },
+                    { val: 'Regular',           color: '#f59e0b' },
+                    { val: 'Requiere atención', color: '#f97316' },
+                    { val: 'Crítico',           color: '#ef4444' },
+                  ].map(({ val, color }) => (
+                    <button key={val} type="button"
+                      className={`trab-indicador-btn ${indicadorMantenimiento === val ? 'active' : ''}`}
+                      style={{ '--ind-color': color }}
+                      onClick={() => setIndicadorMantenimiento(indicadorMantenimiento === val ? '' : val)}>
+                      <span className="trab-indicador-dot" />
+                      {val}
+                    </button>
+                  ))}
                 </div>
               </div>
 

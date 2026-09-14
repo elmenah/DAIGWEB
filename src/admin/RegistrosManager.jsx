@@ -522,25 +522,42 @@ function RegistrosManager() {
         {hayFiltros && <button className="reg-clear-btn" onClick={clearAll}>Limpiar</button>}
       </div>
 
-      {loading && <div className="reg-loading"><div className="admin-spinner"></div></div>}
       {!loading && registros.length === 0 && <p className="reg-empty">No hay registros con los filtros seleccionados.</p>}
 
-      {!loading && registros.length > 0 && (
+      {(loading || registros.length > 0) && (
         <div className="reg-table-wrap">
           <table className="reg-table">
             <thead>
               <tr>
                 {COLUMNS.map(col => (
                   <th key={col.key}
-                    onClick={() => !col.noSort && handleSort(col.key)}
-                    style={{ cursor: col.noSort ? 'default' : 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>
-                    {col.label}{!col.noSort && <SortIcon active={sortCol === col.key} asc={sortAsc} />}
+                    onClick={() => !col.noSort && !loading && handleSort(col.key)}
+                    style={{ cursor: col.noSort || loading ? 'default' : 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>
+                    {col.label}{!col.noSort && !loading && <SortIcon active={sortCol === col.key} asc={sortAsc} />}
                   </th>
                 ))}
                 <th>Fotos</th>
                 <th></th>
               </tr>
             </thead>
+            {loading && (
+              <tbody>
+                {[...Array(8)].map((_, i) => (
+                  <tr key={i} className="reg-row skel-row" style={{ animationDelay: `${i * 0.07}s` }}>
+                    <td><span className="skel" style={{ width: '75%', height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: 70, height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: 50, height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: 80, height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: '90%', height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: 90, height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: 60, height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: 30, height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: 20, height: 13 }} /></td>
+                    <td />
+                  </tr>
+                ))}
+              </tbody>
+            )}
             <tbody>
               {registros.map(r => (
                 <React.Fragment key={r.id}>
@@ -596,6 +613,19 @@ function RegistrosManager() {
                     <tr className="reg-expanded-row">
                       <td colSpan={10}>
                         <div className="reg-expanded-body">
+                          {r.indicador_mantenimiento && (() => {
+                            const IND_COLOR = { 'Bueno': '#22c55e', 'Regular': '#f59e0b', 'Requiere atención': '#f97316', 'Crítico': '#ef4444' }
+                            const color = IND_COLOR[r.indicador_mantenimiento] || '#9a9ab0'
+                            return (
+                              <div className="reg-field">
+                                <span className="reg-label">Indicador de mantenimiento</span>
+                                <span className="ind-badge" style={{ background: `${color}22`, color, border: `1px solid ${color}55` }}>
+                                  <span className="ind-dot" style={{ background: color }} />
+                                  {r.indicador_mantenimiento}
+                                </span>
+                              </div>
+                            )
+                          })()}
                           {r.equipo_intervenido && (
                             <div className="reg-field">
                               <span className="reg-label">Equipo / Activo intervenido</span>

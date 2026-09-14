@@ -232,20 +232,29 @@ function ActivityChart() {
   )
 }
 
+const IND_OPTS = [
+  { val: 'Bueno',             color: '#22c55e' },
+  { val: 'Regular',           color: '#f59e0b' },
+  { val: 'Requiere atención', color: '#f97316' },
+  { val: 'Crítico',           color: '#ef4444' },
+]
+
 function DashboardHome({ nombre, onGo }) {
   const [stats, setStats] = useState(null)
+  const [mantStats, setMantStats] = useState(null)
 
   useEffect(() => {
     let alive = true
     ;(async () => {
       const hoy = new Date().toISOString().split('T')[0]
       const lunes = lunesDeEstaSemana()
-      const [hoyRes, semanaRes, pendRes, sinRevRes, usersRes] = await Promise.all([
+      const [hoyRes, semanaRes, pendRes, sinRevRes, usersRes, mantRes] = await Promise.all([
         supabase.from('registros_trabajo').select('id', { count: 'exact', head: true }).eq('fecha', hoy),
         supabase.from('registros_trabajo').select('horas_trabajadas').gte('fecha', lunes),
         supabase.from('registros_trabajo').select('id', { count: 'exact', head: true }).eq('estado', 'Pendiente repuesto'),
         supabase.from('registros_trabajo').select('id', { count: 'exact', head: true }).is('revisado_por', null),
         supabase.from('profiles').select('role'),
+        supabase.from('registros_trabajo').select('indicador_mantenimiento').gte('fecha', lunes).not('indicador_mantenimiento', 'is', null),
       ])
       if (!alive) return
       const semana = semanaRes.data || []
@@ -259,6 +268,10 @@ function DashboardHome({ nombre, onGo }) {
         sinRevisar: sinRevRes.count || 0,
         trabajadores,
       })
+      const mantRows = mantRes.data || []
+      const counts = {}
+      for (const r of mantRows) counts[r.indicador_mantenimiento] = (counts[r.indicador_mantenimiento] || 0) + 1
+      setMantStats({ counts, total: mantRows.length })
     })()
     return () => { alive = false }
   }, [])
@@ -271,7 +284,11 @@ function DashboardHome({ nombre, onGo }) {
       </div>
 
       {!stats ? (
-        <div className="admin-loading" style={{ minHeight: 120 }}><div className="admin-spinner"></div></div>
+        <div className="admin-kpi-grid">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="skel-kpi" style={{ animationDelay: `${i * 0.1}s` }} />
+          ))}
+        </div>
       ) : (
         <>
           <div className="admin-kpi-grid">
@@ -282,6 +299,22 @@ function DashboardHome({ nombre, onGo }) {
             <KpiCard label="Sin revisar"           value={stats.sinRevisar}   color="#f59e0b" icon={ICON.alerta}   sub={stats.sinRevisar > 0 ? 'requieren revisión' : 'al día'} onClick={() => onGo('registros')} />
             <KpiCard label="Pendiente repuesto"    value={stats.pendientes}   color="#ef4444" icon={ICON.repuesto} sub={stats.pendientes > 0 ? 'requieren atención' : ''} onClick={() => onGo('registros')} />
           </div>
+
+          {mantStats && mantStats.total > 0 && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+                Indicadores de mantenimiento — esta semana
+              </p>
+              <div className="dash-mant-grid">
+                {IND_OPTS.map(({ val, color }) => (
+                  <div key={val} className="dash-mant-card" style={{ borderColor: `${color}33` }}>
+                    <div className="dash-mant-val" style={{ color }}>{mantStats.counts[val] || 0}</div>
+                    <div className="dash-mant-lbl">{val}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <ActivityChart />
 

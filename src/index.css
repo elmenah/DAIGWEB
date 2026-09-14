@@ -4141,6 +4141,91 @@ header.scrolled .navbar {
   }
 }
 
+/* ── Skeleton loading ── */
+@keyframes skel-pulse {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 0.65; }
+}
+.skel {
+  background: rgba(255,255,255,0.1);
+  border-radius: 5px;
+  animation: skel-pulse 1.5s ease-in-out infinite;
+  display: block;
+}
+.skel-kpi {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 1.1rem 1.25rem;
+  min-height: 112px;
+  animation: skel-pulse 1.5s ease-in-out infinite;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.skel-kpi .skel { animation: none; background: rgba(255,255,255,0.1); }
+.skel-row td .skel { height: 13px; }
+
+/* ── Indicador mantenimiento ── */
+.trab-indicador-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.trab-indicador-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: #c8c8e0;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+.trab-indicador-btn:hover { border-color: var(--ind-color); background: rgba(255,255,255,0.07); }
+.trab-indicador-btn.active { border-color: var(--ind-color); background: color-mix(in srgb, var(--ind-color) 15%, transparent); color: #fff; }
+.trab-indicador-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--ind-color);
+  flex-shrink: 0;
+}
+.ind-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.ind-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Resumen mantenimiento Home ── */
+.dash-mant-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 1.25rem;
+}
+@media (max-width: 600px) { .dash-mant-grid { grid-template-columns: repeat(2, 1fr); } }
+.dash-mant-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dash-mant-val { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+.dash-mant-lbl { font-size: 0.74rem; color: rgba(255,255,255,0.5); }
+
 /* ======= Admin Panel ======= */
 .admin-loading {
   display: flex;
