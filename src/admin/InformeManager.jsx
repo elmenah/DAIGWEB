@@ -183,7 +183,8 @@ async function resolverUbicacion(val) {
 // ── componente principal ──────────────────────────────────────────────────────
 
 export default function InformeManager() {
-  const [modo, setModo] = useState('semana') // 'semana' | 'mes' | 'custom'
+  const [modo, setModo] = useState('semana') // 'dia' | 'semana' | 'mes' | 'custom'
+  const [diaAncla, setDiaAncla] = useState(() => new Date())
   const [lunes, setLunes] = useState(() => lunesDe(new Date()))
   const [mesAncla, setMesAncla] = useState(() => primerDiaMes(new Date()))
   const [showCalendar, setShowCalendar] = useState(false)
@@ -195,20 +196,24 @@ export default function InformeManager() {
   const [exporting, setExporting] = useState(false)
   const [exportingWorker, setExportingWorker] = useState(null)
 
+  const esDia = modo === 'dia'
   const esMes = modo === 'mes'
   const esCustom = modo === 'custom'
   const domingo = domingoDE(lunes)
   const rangoDesde = esCustom
     ? (calDesde ? new Date(calDesde + 'T00:00:00') : lunes)
+    : esDia ? diaAncla
     : (esMes ? primerDiaMes(mesAncla) : lunes)
   const rangoHasta = esCustom
     ? (calHasta ? new Date(calHasta + 'T00:00:00') : domingo)
+    : esDia ? diaAncla
     : (esMes ? ultimoDiaMes(mesAncla) : domingo)
   const desdeISO = toISO(rangoDesde)
   const hastaISO = toISO(rangoHasta)
 
   const esPeriodoActual = !esCustom && (esMes
     ? toISO(primerDiaMes(new Date())) === toISO(primerDiaMes(mesAncla))
+    : esDia ? toISO(new Date()) === toISO(diaAncla)
     : toISO(lunesDe(new Date())) === toISO(lunes))
 
   // ── carga ─────────────────────────────────────────────────────────────────
@@ -233,14 +238,17 @@ export default function InformeManager() {
 
   const irAnterior = () => {
     if (esMes) { const d = new Date(mesAncla); d.setMonth(d.getMonth() - 1); setMesAncla(primerDiaMes(d)) }
+    else if (esDia) { const d = new Date(diaAncla); d.setDate(d.getDate() - 1); setDiaAncla(d) }
     else { const d = new Date(lunes); d.setDate(d.getDate() - 7); setLunes(d) }
   }
   const irSiguiente = () => {
     if (esMes) { const d = new Date(mesAncla); d.setMonth(d.getMonth() + 1); setMesAncla(primerDiaMes(d)) }
+    else if (esDia) { const d = new Date(diaAncla); d.setDate(d.getDate() + 1); setDiaAncla(d) }
     else { const d = new Date(lunes); d.setDate(d.getDate() + 7); setLunes(d) }
   }
   const irActual = () => {
     if (esMes) setMesAncla(primerDiaMes(new Date()))
+    else if (esDia) setDiaAncla(new Date())
     else setLunes(lunesDe(new Date()))
   }
 
@@ -299,8 +307,8 @@ export default function InformeManager() {
     setExporting(true)
     try {
       const XLSX = await loadXLSX()
-      const periodo = `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
-      const tipoTxt = esMes ? 'mensual' : 'semanal'
+      const periodo = esDia ? fmtFecha(desdeISO) : `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
+      const tipoTxt = esDia ? 'diario' : esMes ? 'mensual' : 'semanal'
       const wb = XLSX.utils.book_new()
 
       const wsRes = buildStyledSheet(XLSX, {
@@ -339,8 +347,8 @@ export default function InformeManager() {
     setExportingWorker(worker.id)
     try {
       const XLSX = await loadXLSX()
-      const periodo = `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
-      const tipoTxt = esMes ? 'mensual' : 'semanal'
+      const periodo = esDia ? fmtFecha(desdeISO) : `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
+      const tipoTxt = esDia ? 'diario' : esMes ? 'mensual' : 'semanal'
       const wb = XLSX.utils.book_new()
 
       const ws = buildStyledSheet(XLSX, {
@@ -394,9 +402,9 @@ export default function InformeManager() {
     try {
       const html2pdf = (await import('html2pdf.js')).default
       const logoUrl = window.location.origin + logoImg
-      const periodo = `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
-      const tituloTipo = esMes ? 'MENSUALES' : 'SEMANALES'
-      const tituloTipoCap = esMes ? 'Mensuales' : 'Semanales'
+      const periodo = esDia ? fmtFecha(desdeISO) : `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
+      const tituloTipo = esDia ? 'DIARIAS' : esMes ? 'MENSUALES' : 'SEMANALES'
+      const tituloTipoCap = esDia ? 'Diarias' : esMes ? 'Mensuales' : 'Semanales'
       const equipos = [...worker.equipos].join(', ') || '—'
       const estados = [...new Set(worker.registros.map(r => r.estado).filter(Boolean))].join(', ') || '—'
 
@@ -651,9 +659,9 @@ export default function InformeManager() {
     setGenerandoGeneral(true)
     try {
       const logoUrl = window.location.origin + logoImg
-      const periodo = `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
-      const tituloTipo = esMes ? 'MENSUAL' : 'SEMANAL'
-      const tituloTipoCap = esMes ? 'Mensual' : 'Semanal'
+      const periodo = esDia ? fmtFecha(desdeISO) : `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
+      const tituloTipo = esDia ? 'DIARIO' : esMes ? 'MENSUAL' : 'SEMANAL'
+      const tituloTipoCap = esDia ? 'Diario' : esMes ? 'Mensual' : 'Semanal'
 
       // Filtrar por trabajador si hay uno seleccionado
       const workerFiltrado = filtroWorkerPDF ? porTrabajador.find(w => w.id === filtroWorkerPDF) : null
@@ -828,7 +836,8 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
         {/* Fila 1: navegación de periodo */}
         <div className="inf-period-row">
           <div className="inf-modo-toggle">
-            <button className={!esMes && !esCustom ? 'active' : ''} onClick={() => { setModo('semana'); setShowCalendar(false) }}>Semana</button>
+            <button className={esDia ? 'active' : ''} onClick={() => { setModo('dia'); setShowCalendar(false) }}>Día</button>
+            <button className={!esDia && !esMes && !esCustom ? 'active' : ''} onClick={() => { setModo('semana'); setShowCalendar(false) }}>Semana</button>
             <button className={esMes ? 'active' : ''} onClick={() => { setModo('mes'); setShowCalendar(false) }}>Mes</button>
             <button className={esCustom ? 'active' : ''} onClick={() => {
               if (esCustom) { setShowCalendar(v => !v) }
@@ -850,12 +859,14 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
             <span className="inf-week-range">
               {esCustom
                 ? (calDesde && calHasta ? `${fmtFecha(calDesde)} – ${fmtFecha(calHasta)}` : 'Elegir rango')
-                : esMes
-                  ? capitalizar(mesAncla.toLocaleDateString('es-CL', { month: 'long' }))
-                  : `${fmtShort(lunes)} – ${fmtShort(domingo)}`}
+                : esDia
+                  ? capitalizar(diaAncla.toLocaleDateString('es-CL', { weekday: 'long', day: '2-digit', month: 'long' }))
+                  : esMes
+                    ? capitalizar(mesAncla.toLocaleDateString('es-CL', { month: 'long' }))
+                    : `${fmtShort(lunes)} – ${fmtShort(domingo)}`}
             </span>
-            {!esCustom && <span className="inf-week-year">{(esMes ? mesAncla : lunes).getFullYear()}</span>}
-            {esPeriodoActual && <span className="inf-week-badge">{esMes ? 'Mes actual' : 'Semana actual'}</span>}
+            {!esCustom && <span className="inf-week-year">{(esDia ? diaAncla : esMes ? mesAncla : lunes).getFullYear()}</span>}
+            {esPeriodoActual && <span className="inf-week-badge">{esDia ? 'Hoy' : esMes ? 'Mes actual' : 'Semana actual'}</span>}
           </div>
 
           {!esCustom && (
