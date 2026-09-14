@@ -73,12 +73,10 @@ function DesignServices() {
                     </li>
                   ))}
                 </ul>
-                <a href="#contacto" className="btn-primary">
-                  Cotizar
-                </a>
-                <a href="/servicios/diseno-mecanico" className="btn-secondary" style={{ marginLeft: '0.75rem' }}>
-                  Ver servicio
-                </a>
+                <div className="design-card-actions">
+                  <a href="#contacto" className="btn-primary">Cotizar</a>
+                  <a href="/servicios/diseno-mecanico" className="btn-secondary">Ver servicio</a>
+                </div>
               </div>
             </div>
           ))}

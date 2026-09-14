@@ -1907,8 +1907,11 @@ header.scrolled .navbar {
   flex-shrink: 0;
 }
 
-.design-card-body .btn-primary {
-  align-self: flex-start;
+.design-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
 }
 
 @media (max-width: 768px) {
