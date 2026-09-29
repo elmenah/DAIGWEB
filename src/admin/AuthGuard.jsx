@@ -15,7 +15,7 @@ const authDebugLog = (...args) => {
 }
 
 function AuthGuard({ children, allowedRoles = [] }) {
-  const { isAuthenticated, loading, role, hasHydratedSession } = useAuth()
+  const { isAuthenticated, loading, role, hasHydratedSession, logout } = useAuth()
   const location = useLocation()
 
   useEffect(() => {
@@ -29,13 +29,21 @@ function AuthGuard({ children, allowedRoles = [] }) {
     })
   }, [location.pathname, loading, hasHydratedSession, isAuthenticated, role, allowedRoles])
 
-  if (loading || !hasHydratedSession || (isAuthenticated && !role)) {
+  if (loading || !hasHydratedSession) {
     authDebugLog('decision', { result: 'loading-screen', path: location.pathname })
     return (
       <div className="admin-loading">
         <div className="admin-spinner"></div>
       </div>
     )
+  }
+
+  if (isAuthenticated && !role) {
+    return <div className="admin-loading"><div role="alert">
+      <p>No se pudo cargar tu perfil. Revisa la conexión e inténtalo nuevamente.</p>
+      <button type="button" onClick={() => window.location.reload()}>Reintentar</button>
+      <button type="button" onClick={logout}>Cerrar sesión</button>
+    </div></div>
   }
 
   if (!isAuthenticated) {

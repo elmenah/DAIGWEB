@@ -5,6 +5,9 @@ import { supabase } from '../lib/supabase'
 import { isHeicFile, isHeicByHeader, heicBlobToJpeg } from '../lib/heic'
 import { addPending, getPending, deletePending, countPending } from '../lib/offlineQueue'
 import logoImg from '../assets/logo.jpeg'
+import InvoiceImage from '../components/InvoiceImage'
+import { uploadInvoice, validateInvoice } from '../lib/invoice'
+import { saveWorkRecord } from '../lib/saveWorkRecord'
 
 const today = () => new Date().toISOString().split('T')[0]
 const nowTime = () => new Date().toTimeString().slice(0, 5)
@@ -40,6 +43,34 @@ function TrabajadoresPanel() {
   const [fotos, setFotos] = useState([])
   const [fotosPreviews, setFotosPreviews] = useState([])
   const [fotosExistentes, setFotosExistentes] = useState([])
+  const [factura, setFactura] = useState(null)
+  const [facturaPath, setFacturaPath] = useState(null)
+  const [facturaPreview, setFacturaPreview] = useState(null)
+  const [facturaError, setFacturaError] = useState('')
+  const [sendError, setSendError] = useState('')
+  const facturaInputRef = useRef(null)
+  const facturaCameraRef = useRef(null)
+  const draftIdRef = useRef(crypto.randomUUID())
+
+  useEffect(() => {
+    if (!factura) { setFacturaPreview(null); return }
+    const url = URL.createObjectURL(factura)
+    setFacturaPreview(url)
+    return () => URL.revokeObjectURL(url)
+  }, [factura])
+
+  const handleFactura = (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    try {
+      validateInvoice(file)
+      setFactura(file)
+      setFacturaError('')
+    } catch (error) {
+      setFacturaError(error.message)
+    }
+  }
   const [gpsLoading, setGpsLoading] = useState(false)
   const [sending, setSending] = useState(false)
   const [sendStatus, setSendStatus] = useState(null)
@@ -82,6 +113,8 @@ function TrabajadoresPanel() {
     setHorasTrabajadas(''); setEstado('Terminado')
     setUbicacionLat(null); setUbicacionLng(null); setGpsError('')
     setFotos([]); setFotosPreviews([]); setFotosExistentes([])
+    setFactura(null); setFacturaPath(null); setFacturaError('')
+    draftIdRef.current = crypto.randomUUID()
     setFecha(today()); setHora(nowTime())
     setEditingId(null)
   }
@@ -108,6 +141,7 @@ function TrabajadoresPanel() {
     setFotos([])
     setFotosPreviews([])
     setFotosExistentes(r.fotos || [])
+    setFactura(null); setFacturaPath(r.factura_path || null); setFacturaError('')
     setEditingId(r.id)
     setSendStatus(null)
     setView('form')
@@ -182,7 +216,8 @@ function TrabajadoresPanel() {
       const { error } = await supabase.storage
         .from('registros-fotos')
         .upload(path, blob, { cacheControl: '3600', upsert: false, contentType })
-      if (!error) {
+      if (error) throw error
+      {
         const { data: urlData } = supabase.storage.from('registros-fotos').getPublicUrl(path)
         urls.push(urlData.publicUrl)
       }
@@ -202,49 +237,31 @@ function TrabajadoresPanel() {
       URL.revokeObjectURL(url)
       canvas.toBlob((b) => b ? resolve(b) : reject(new Error('canvas toBlob failed')), 'image/jpeg', 0.88)
     }
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(file) }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('No se pudo leer la imagen. Elige una foto válida.')) }
     img.src = url
   })
 
   // Notifica por correo cada registro nuevo, de cualquier trabajador. No bloquea.
-  const notificarRegistro = (base, trabajadorNombre, fotosCount) => {
-    fetch('/.netlify/functions/notify-registro', {
+  const notificarRegistro = async (registroId) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    await fetch('/.netlify/functions/notify-registro', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
       body: JSON.stringify({
-        trabajador_nombre: trabajadorNombre,
-        fecha: base.fecha,
-        hora: base.hora,
-        ot: base.ot,
-        tipo_trabajo: base.tipo_trabajo,
-        planta: base.planta,
-        aviso_sap: base.aviso_sap,
-        equipo_intervenido: base.equipo_intervenido,
-        tarea: base.tarea,
-        estado: base.estado,
-        horas_trabajadas: base.horas_trabajadas,
-        ubicacion_lat: base.ubicacion_lat,
-        ubicacion_lng: base.ubicacion_lng,
-        fotos_count: fotosCount,
+        registro_id: registroId,
       }),
     }).catch(() => {})
   }
 
   // Sube fotos + inserta un registro NUEVO y notifica. Lanza si falla (red/DB).
-  const enviarRegistroNuevo = async ({ base, trabajadorId, trabajadorNombre, fotosExistentes = [], fotosNuevas = [] }) => {
-    const nuevasUrls = fotosNuevas.length > 0 ? await uploadFotos(fotosNuevas) : []
-    const fotosFinales = [...fotosExistentes, ...nuevasUrls]
-    const { error } = await supabase
-      .from('registros_trabajo')
-      .insert({ ...base, trabajador_nombre: trabajadorNombre, trabajador_id: trabajadorId, fotos: fotosFinales })
-    if (error) throw error
-    notificarRegistro(base, trabajadorNombre, fotosFinales.length)
-    return fotosFinales.length
-  }
+  const enviarRegistroNuevo = (payload) => saveWorkRecord(payload, {
+    client: supabase, uploadPhotos: uploadFotos, uploadInvoice, notify: notificarRegistro,
+  })
 
   const refreshPendientes = useCallback(async () => {
-    setPendientes(await countPending())
-  }, [])
+    setPendientes(await countPending(user?.id))
+  }, [user?.id])
 
   // Envía a la BDD los registros guardados offline. Reintenta silenciosamente.
   const flushQueue = useCallback(async () => {
@@ -253,13 +270,22 @@ function TrabajadoresPanel() {
     try {
       const items = await getPending()
       for (const item of items) {
+        if (item.trabajador_id !== user?.id) continue
         try {
+          // Compatibilidad con colas antiguas cuyos IDs no eran UUID.
+          if (!/^[0-9a-f-]{36}$/i.test(item.id) && !item.registroId) {
+            item.registroId = crypto.randomUUID()
+            await addPending(item)
+          }
           await enviarRegistroNuevo({
+            id: item.registroId || item.id,
             base: item.payloadBase,
             trabajadorId: item.trabajador_id,
             trabajadorNombre: item.trabajador_nombre,
             fotosExistentes: item.fotosExistentes || [],
             fotosNuevas: item.fotosNuevas || [],
+            facturaNueva: item.facturaNueva || null,
+            facturaExistente: item.facturaExistente || null,
           })
           await deletePending(item.id)
         } catch {
@@ -271,7 +297,7 @@ function TrabajadoresPanel() {
       refreshPendientes()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshPendientes])
+  }, [refreshPendientes, user?.id])
 
   // Sincroniza la cola offline al montar y cuando vuelve la conexión.
   // Debe ir DESPUÉS de declarar flushQueue/refreshPendientes (evita TDZ).
@@ -292,6 +318,7 @@ function TrabajadoresPanel() {
     }
     setSending(true)
     setSendStatus(null)
+    setSendError('')
 
     const tipoFinal = tipoTrabajo === 'Otro' ? tipoTrabajoOtro.trim() || 'Otro' : tipoTrabajo
 
@@ -318,25 +345,32 @@ function TrabajadoresPanel() {
       fecha, hora, ot: ot.trim(), tarea: tarea.trim(), tipo: tipoFinal,
       estado, planta: planta.trim(), equipo: equipoIntervenido.trim(),
       fotos: fotosExistentes.length + fotos.length, editingId,
+      factura: !!(factura || facturaPath),
     }
 
     try {
+      if (!navigator.onLine) throw new Error('Network offline')
       if (editingId) {
         // Edición: requiere conexión (sube fotos y actualiza)
         const nuevasUrls = fotos.length > 0 ? await uploadFotos() : []
         const fotosFinales = [...fotosExistentes, ...nuevasUrls]
-        const { error } = await supabase
+        const invoicePath = factura ? await uploadInvoice(factura, user.id) : facturaPath
+        const { data: updated, error } = await supabase
           .from('registros_trabajo')
-          .update({ ...base, trabajador_nombre: workerName, fotos: fotosFinales })
+          .update({ ...base, trabajador_nombre: workerName, fotos: fotosFinales, factura_path: invoicePath })
           .eq('id', editingId)
+          .select('id').single()
         if (error) throw error
+        if (!updated) throw new Error('No tienes permiso para actualizar este registro.')
         setSubmittedData({ ...resumen, fotos: fotosFinales.length })
         setSendStatus('edited')
         resetForm()
       } else {
         const n = await enviarRegistroNuevo({
+          id: draftIdRef.current,
           base, trabajadorId: user.id, trabajadorNombre: workerName,
           fotosExistentes, fotosNuevas: fotos,
+          facturaNueva: factura, facturaExistente: facturaPath,
         })
         setSubmittedData({ ...resumen, fotos: n })
         setSendStatus('ok')
@@ -349,12 +383,14 @@ function TrabajadoresPanel() {
       if (!editingId && offline) {
         try {
           await addPending({
-            id: (crypto.randomUUID && crypto.randomUUID()) || `${Date.now()}-${Math.random()}`,
+            id: draftIdRef.current,
             trabajador_id: user.id,
             trabajador_nombre: workerName,
             payloadBase: base,
             fotosExistentes,
             fotosNuevas: fotos,
+            facturaNueva: factura,
+            facturaExistente: facturaPath,
             createdAt: Date.now(),
           })
           setSubmittedData({ ...resumen, offline: true })
@@ -368,6 +404,7 @@ function TrabajadoresPanel() {
         }
       }
       setSendStatus('error')
+      setSendError(err?.message || 'No se pudo guardar el registro. Tus adjuntos siguen en el formulario.')
     }
     setSending(false)
   }
@@ -486,6 +523,7 @@ function TrabajadoresPanel() {
                   <span>{submittedData.fotos} {submittedData.fotos === 1 ? 'foto' : 'fotos'} adjuntadas</span>
                 </div>
               )}
+              {submittedData.factura && <div className="trab-success-row"><span className="trab-success-label">Factura</span><span>{submittedData.offline ? 'Guardada para enviar' : 'Adjuntada'}</span></div>}
             </div>
 
             <div className="trab-success-actions">
@@ -518,7 +556,7 @@ function TrabajadoresPanel() {
             </div>
 
             {sendStatus === 'error' && (
-              <div className="trab-alert trab-alert--error">Error al enviar. Verifica tu conexión e intenta nuevamente.</div>
+              <div role="alert" className="trab-alert trab-alert--error">{sendError}</div>
             )}
 
             <form onSubmit={handleSubmit} className="trab-form">
@@ -666,6 +704,24 @@ function TrabajadoresPanel() {
                 )}
               </div>
 
+              <fieldset className="trab-field trab-invoice" disabled={sending}>
+                <legend>Foto de la factura <span>(opcional)</span></legend>
+                <p id="factura-help">Adjunta una imagen legible de la factura. JPG, PNG, WebP o HEIC, máximo 15 MB.</p>
+                <div className="trab-foto-btns">
+                  <button type="button" className="trab-foto-btn trab-foto-btn--camera" onClick={() => facturaCameraRef.current?.click()}>Tomar foto de factura</button>
+                  <button type="button" className="trab-foto-btn trab-foto-btn--gallery" onClick={() => facturaInputRef.current?.click()}>{factura || facturaPath ? 'Reemplazar factura' : 'Elegir factura'}</button>
+                </div>
+                <input ref={facturaCameraRef} type="file" accept="image/*" capture="environment" aria-label="Tomar foto de factura" onChange={handleFactura} hidden />
+                <input ref={facturaInputRef} type="file" accept="image/jpeg,image/png,image/webp,.heic,.heif" aria-label="Elegir foto de factura" aria-describedby="factura-help" onChange={handleFactura} hidden />
+                {facturaError && <p role="alert" className="trab-gps-error">{facturaError}</p>}
+                {factura ? <div className="trab-invoice-preview">
+                  {facturaPreview && !isHeicFile(factura) && <img src={facturaPreview} alt="Vista previa de la factura seleccionada" />}
+                  <p>{factura.name}</p>
+                  {isHeicFile(factura) && <small>La imagen HEIC se convertirá al enviar.</small>}
+                </div> : facturaPath ? <InvoiceImage path={facturaPath} /> : null}
+                {(factura || facturaPath) && <button type="button" className="trab-edit-btn" onClick={() => { setFactura(null); setFacturaPath(null); setFacturaError('') }}>Quitar factura</button>}
+              </fieldset>
+
               <button type="submit" className="trab-submit-btn" disabled={sending}>
                 {sending ? (
                   <><span className="trab-spinner"></span>Enviando...</>
@@ -776,6 +832,7 @@ function TrabajadoresPanel() {
                           </div>
                         </div>
                       )}
+                      {r.factura_path && <div className="trab-hist-field"><span className="trab-hist-label">Factura</span><InvoiceImage path={r.factura_path} /></div>}
                       {r.comentario_admin && (
                         <div className="trab-hist-field" style={{ background: 'rgba(232,150,46,0.08)', borderRadius: 6, padding: '8px 10px' }}>
                           <span className="trab-hist-label" style={{ color: 'var(--color-accent)' }}>Comentario del supervisor</span>

@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { createClient } from '@supabase/supabase-js'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -38,7 +39,25 @@ export const handler = async (event) => {
     return json(400, { error: 'JSON inválido' }, corsHeaders)
   }
 
-  const r = body || {}
+  const token = event.headers?.authorization?.replace(/^Bearer\s+/i, '').trim()
+  if (!token) return json(401, { error: 'Debes iniciar sesión' }, corsHeaders)
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body?.registro_id || '')) {
+    return json(400, { error: 'Registro inválido' }, corsHeaders)
+  }
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+  const key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
+  if (!url || !key) return json(500, { error: 'Servidor no configurado' }, corsHeaders)
+  const client = createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  })
+  const { data: { user }, error: authError } = await client.auth.getUser(token)
+  if (authError || !user) return json(401, { error: 'Sesión inválida' }, corsHeaders)
+  // La notificación se construye con datos persistidos y del propio trabajador.
+  const { data: record, error: recordError } = await client.from('registros_trabajo')
+    .select('*').eq('id', body.registro_id).eq('trabajador_id', user.id).single()
+  if (recordError || !record) return json(404, { error: 'Registro no disponible' }, corsHeaders)
+  const r = { ...record, fotos_count: record.fotos?.length || 0 }
   const nombre = String(r.trabajador_nombre || 'Trabajador').trim()
   const fecha = String(r.fecha || '').trim()
   const hora = String(r.hora || '').trim()
@@ -94,13 +113,14 @@ export const handler = async (event) => {
   ].filter(Boolean).join('\n')
 
   try {
-    await resend.emails.send({
+    const { error: sendError } = await resend.emails.send({
       from: fromEmail,
       to: DEST_EMAILS,
       subject: `[DAIG] Nuevo registro de ${nombre}${r.ot ? ` · OT ${r.ot}` : ''}`,
       html,
       text,
-    })
+    }, { idempotencyKey: `registro/${record.id}` })
+    if (sendError) throw new Error(sendError.message)
     return json(200, { ok: true }, corsHeaders)
   } catch (err) {
     console.error('Resend error (notify-registro):', err)
@@ -114,7 +134,7 @@ function corsFor(event) {
   return {
     'Access-Control-Allow-Origin': corsOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   }
 }
 

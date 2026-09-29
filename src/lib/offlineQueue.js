@@ -50,8 +50,9 @@ export async function deletePending(id) {
   })
 }
 
-export async function countPending() {
+export async function countPending(userId) {
   try {
+    if (userId) return (await getPending()).filter(item => item.trabajador_id === userId).length
     const db = await openDB()
     return await new Promise((resolve) => {
       const tx = db.transaction(STORE, 'readonly')

@@ -95,12 +95,13 @@ export const handler = async () => {
     </div>`
 
   try {
-    await resend.emails.send({
+    const { error: sendError } = await resend.emails.send({
       from: fromEmail,
       to: DEST_EMAILS,
       subject: `[DAIG] Resumen semanal · ${fmt(desdeISO)} al ${fmt(hastaISO)} · ${regs.length} registros`,
       html,
     })
+    if (sendError) throw new Error(sendError.message)
     return { statusCode: 200, body: 'ok' }
   } catch (err) {
     console.error('weekly-digest: error enviando correo', err)

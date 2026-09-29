@@ -190,7 +190,7 @@ export const handler = async (event) => {
   ].join('\n')
 
   try {
-    await resend.emails.send({
+    const { error: sendError } = await resend.emails.send({
       from: fromEmail,
       to: DEST_EMAIL,
       reply_to: cleanEmail,
@@ -198,16 +198,18 @@ export const handler = async (event) => {
       html,
       text: internalText,
     })
+    if (sendError) throw new Error(sendError.message)
 
     // No bloquea la entrega principal si falla la autorespuesta.
     try {
-      await resend.emails.send({
+      const { error: autoReplyError } = await resend.emails.send({
         from: fromEmail,
         to: cleanEmail,
         subject: 'Hemos recibido tu solicitud - DAIG',
         html: autoReplyHtml,
         text: autoReplyText,
       })
+      if (autoReplyError) throw new Error(autoReplyError.message)
     } catch (autoReplyError) {
       console.error('Auto-reply error:', autoReplyError)
     }

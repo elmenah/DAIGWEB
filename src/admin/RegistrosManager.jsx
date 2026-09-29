@@ -4,6 +4,8 @@ import { useAuth } from './AuthContext'
 import HeicImage from '../components/HeicImage'
 import { isHeic, heicBlobToJpeg } from '../lib/heic'
 
+import InvoiceImage from '../components/InvoiceImage'
+
 const FOTOS_BUCKET = 'registros-fotos'
 
 // Deriva el path dentro del bucket a partir de la URL pública
@@ -581,6 +583,7 @@ function RegistrosManager() {
                               )}
                             </div>
                           )}
+                          {r.factura_path && <div className="reg-detail-field"><span className="reg-label">Factura</span><InvoiceImage path={r.factura_path} /></div>}
                           {r.fotos?.length > 0 && (
                             <div className="reg-field">
                               <span className="reg-label">Todas las fotos ({r.fotos.length})</span>

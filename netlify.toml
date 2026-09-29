@@ -4,10 +4,13 @@
   functions = "netlify/functions"
 
 [dev]
-  command = "npm run dev"
+  command = "npm run dev -- --port 5174 --strictPort"
   targetPort = 5174
   port = 5173
   functions = "netlify/functions"
+
+[functions."tech-docs"]
+  included_files = ["private/docs/*.html"]
 
 # Resumen semanal automático: lunes 12:00 UTC (~08-09 hrs Chile)
 [functions."weekly-digest"]

@@ -159,7 +159,8 @@ export const handler = async (event) => {
     if (nombre !== undefined) profileUpdates.nombre = String(nombre).trim() || null
 
     if (Object.keys(profileUpdates).length > 0) {
-      await supabaseAdmin.from('profiles').update(profileUpdates).eq('id', userId)
+      const { error: updateError } = await supabaseAdmin.from('profiles').update(profileUpdates).eq('id', userId).select('id').single()
+      if (updateError) return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: 'No se pudo actualizar el perfil' }) }
     }
 
     if (password) {

@@ -69,6 +69,8 @@ export function AuthProvider({ children }) {
 
       if (error) {
         authDebugLog('fetchRole:error', { userId, message: error.message })
+        setRole(null)
+        setNombre(null)
         return false
       }
 
@@ -78,6 +80,8 @@ export function AuthProvider({ children }) {
       return true
     } catch {
       authDebugLog('fetchRole:exception', { userId })
+      setRole(null)
+      setNombre(null)
       return false
     }
   }
@@ -138,111 +142,119 @@ export function AuthProvider({ children }) {
 
     initializeSession()
 
+    const timers = new Set()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!isMounted) return
-        setHasHydratedSession(true)
+      (event, session) => {
+        // No esperar llamadas Supabase dentro del callback: la sesión aún
+        // mantiene su bloqueo interno hasta que este callback termina.
+        const timer = setTimeout(async () => {
+          timers.delete(timer)
+          if (!isMounted) return
+          setHasHydratedSession(true)
 
-        authDebugLog('onAuthStateChange', {
-          event,
-          hasUser: !!session?.user,
-          userId: session?.user?.id ?? null,
-        })
+          authDebugLog('onAuthStateChange', {
+            event,
+            hasUser: !!session?.user,
+            userId: session?.user?.id ?? null,
+          })
 
-        // Token refresh: solo actualizar usuario, sin re-fetch de rol
-        if (event === 'TOKEN_REFRESHED') {
-          const refreshedUser = session?.user ?? null
-          setUser(refreshedUser)
+          // Token refresh: solo actualizar usuario, sin re-fetch de rol
+          if (event === 'TOKEN_REFRESHED') {
+            const refreshedUser = session?.user ?? null
+            setUser(refreshedUser)
 
-          // Si llega token valido y ya tenemos rol, no bloquear UI con spinner.
-          if (refreshedUser) {
-            const sameUser = userRef.current?.id === refreshedUser.id
+            // Si llega token valido y ya tenemos rol, no bloquear UI con spinner.
+            if (refreshedUser) {
+              const sameUser = userRef.current?.id === refreshedUser.id
 
-            if (!roleRef.current || !sameUser) {
-              setLoading(true)
-              try {
-                await fetchRole(refreshedUser.id)
-              } finally {
-                if (isMounted) setLoading(false)
+              if (!roleRef.current || !sameUser) {
+                setLoading(true)
+                try {
+                  await fetchRole(refreshedUser.id)
+                } finally {
+                  if (isMounted) setLoading(false)
+                }
+              } else {
+                authDebugLog('tokenRefresh:skip-role-fetch', { userId: refreshedUser.id })
               }
             } else {
-              authDebugLog('tokenRefresh:skip-role-fetch', { userId: refreshedUser.id })
+              if (isMounted) {
+                setRole(null)
+                setNombre(null)
+                setLoading(false)
+              }
             }
-          } else {
-            if (isMounted) {
-              setRole(null)
-              setNombre(null)
-              setLoading(false)
-            }
+            return
           }
-          return
-        }
 
-        const u = session?.user ?? null
-        setUser(u)
+          const u = session?.user ?? null
+          setUser(u)
 
-        if (!u) {
-          // Al volver al foco, algunos navegadores pueden emitir eventos
-          // transitorios sin sesion. Confirmamos antes de limpiar auth.
-          if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
-            clearAuthState()
+          if (!u) {
+            // Al volver al foco, algunos navegadores pueden emitir eventos
+            // transitorios sin sesion. Confirmamos antes de limpiar auth.
+            if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+              clearAuthState()
+              return
+            }
+
+            setLoading(true)
+
+            try {
+              const sessionResponse = await withTimeout(
+                supabase.auth.getSession(),
+                AUTH_TIMEOUT_MS,
+                'confirmSessionAfterNullEvent'
+              )
+
+              const confirmedUser = sessionResponse?.data?.session?.user ?? null
+
+              authDebugLog('confirmSessionAfterNullEvent', {
+                event,
+                hasUser: !!confirmedUser,
+                userId: confirmedUser?.id ?? null,
+              })
+
+              if (!confirmedUser) {
+                clearAuthState()
+                return
+              }
+
+              setUser(confirmedUser)
+              await fetchRole(confirmedUser.id)
+            } catch {
+              authDebugLog('confirmSessionAfterNullEvent:exception', { event })
+              // Mantener estado actual para no expulsar al usuario por falsos nulos.
+            } finally {
+              if (isMounted) setLoading(false)
+            }
+
+            return
+          }
+
+          const sameUser = userRef.current?.id === u.id
+          if (sameUser && roleRef.current) {
+            authDebugLog('authEvent:skip-role-fetch', { event, userId: u.id })
+            setLoading(false)
             return
           }
 
           setLoading(true)
 
           try {
-            const sessionResponse = await withTimeout(
-              supabase.auth.getSession(),
-              AUTH_TIMEOUT_MS,
-              'confirmSessionAfterNullEvent'
-            )
-
-            const confirmedUser = sessionResponse?.data?.session?.user ?? null
-
-            authDebugLog('confirmSessionAfterNullEvent', {
-              event,
-              hasUser: !!confirmedUser,
-              userId: confirmedUser?.id ?? null,
-            })
-
-            if (!confirmedUser) {
-              clearAuthState()
-              return
-            }
-
-            setUser(confirmedUser)
-            await fetchRole(confirmedUser.id)
-          } catch {
-            authDebugLog('confirmSessionAfterNullEvent:exception', { event })
-            // Mantener estado actual para no expulsar al usuario por falsos nulos.
+            await fetchRole(u.id)
           } finally {
-            if (isMounted) setLoading(false)
+            setLoading(false)
           }
-
-          return
-        }
-
-        const sameUser = userRef.current?.id === u.id
-        if (sameUser && roleRef.current) {
-          authDebugLog('authEvent:skip-role-fetch', { event, userId: u.id })
-          setLoading(false)
-          return
-        }
-
-        setLoading(true)
-
-        try {
-          await fetchRole(u.id)
-        } finally {
-          setLoading(false)
-        }
+        }, 0)
+        timers.add(timer)
       }
     )
 
     return () => {
       isMounted = false
       clearTimeout(failsafeTimer)
+      timers.forEach(clearTimeout)
       subscription.unsubscribe()
     }
   }, [])

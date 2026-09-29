@@ -12,7 +12,25 @@
       "Bash(rmdir src/permisos)",
       "Bash(npm install *)",
       "Read(//tmp/**)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(cd \"C:/Users/Menah/Documents/GitHub/DAIGWEB\" && npm install heic-convert 2>&1 | tail -3 && ls -la \"C:/Users/Menah/Downloads/1787765381249-amvwjukwcx5.heic\" 2>&1)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('deps:', Object.keys\\(p.dependencies\\).join\\(', '\\)\\); console.log\\('devDeps:', Object.keys\\(p.devDependencies\\).join\\(', '\\)\\)\")",
+      "Bash(node scripts/migrate-heic-to-jpg.mjs)",
+      "Bash(node -e ' *)",
+      "Bash(git commit -q -m ' *)",
+      "Bash(node --check scripts/migrate-heic-to-jpg.mjs)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(Object.entries\\(p.dependencies\\).map\\(\\([k,v]\\)=>k+'@'+v\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(node -e \"const p=require\\('./package.json'\\); const fs=require\\('fs'\\); for\\(const d of Object.keys\\(p.dependencies\\)\\){ if\\(!fs.existsSync\\('node_modules/'+d\\)\\) console.log\\('FALTA:', d\\); } console.log\\('\\(fin\\)'\\)\")",
+      "Bash(echo \"install exit: $?\")",
+      "Bash(node --check netlify/functions/notify-registro.js)",
+      "Bash(node --check netlify/functions/weekly-digest.js)",
+      "Read(//c/Users/Menah/.claude/plugins/cache/ui-ux-pro-max-skill/ui-ux-pro-max/2.13.0/.claude/skills/ui-ux-pro-max/**)",
+      "Bash(python scripts/search.py \"industrial maintenance operations dashboard dark\" --design-system --density 8 --variance 6 -p \"DAIG Admin\")",
+      "Bash(python3 scripts/search.py \"industrial maintenance operations dashboard dark\" --design-system --density 8 --variance 6 -p \"DAIG Admin\")",
+      "mcp__visualize__read_me",
+      "Bash(node --check netlify/functions/manage-users.js)",
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\(JSON.stringify\\({...p.dependencies,...p.devDependencies},null,0\\)\\)\")",
+      "Bash(node -e \"console.log\\('xlsx-js-style', require\\('xlsx-js-style/package.json'\\).version\\)\")"
     ]
   }
 }
