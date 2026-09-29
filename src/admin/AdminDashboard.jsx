@@ -7,6 +7,7 @@ import UserManager from './UserManager'
 import GalleryManager from './GalleryManager'
 import InformeManager from './InformeManager'
 import MapaManager from './MapaManager'
+import EquiposManager from './EquiposManager'
 import logoImg from '../assets/logo.jpeg'
 import { isHeic, heicBlobToJpeg } from '../lib/heic'
 
@@ -28,15 +29,19 @@ const ICON = {
   horas:     'M15 1H9v2h6V1zm-4 13h2V8h-2v6zm8.03-6.61l1.42-1.42c-.43-.51-.9-.99-1.41-1.41l-1.42 1.42A8.962 8.962 0 0012 4c-4.97 0-9 4.03-9 9s4.02 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61zM12 20c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z',
   alerta:    'M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z',
   repuesto:  'M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z',
+  mant:      'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z',
+  equipos:   'M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z',
 }
 
 const NAV = [
-  { key: 'inicio',    label: 'Inicio',    roles: ['admin', 'directiva'] },
-  { key: 'registros', label: 'Registros', roles: ['admin', 'directiva'] },
-  { key: 'mapa',      label: 'Mapa',      roles: ['admin', 'directiva'] },
-  { key: 'informes',  label: 'Informes',  roles: ['admin', 'directiva'] },
-  { key: 'usuarios',  label: 'Usuarios',  roles: ['admin'] },
-  { key: 'galeria',   label: 'Galería',   roles: ['admin'] },
+  { key: 'inicio',    label: 'Inicio',        roles: ['admin', 'directiva'] },
+  { key: 'registros', label: 'Registros',     roles: ['admin', 'directiva'] },
+  { key: 'mapa',      label: 'Mapa',          roles: ['admin', 'directiva'] },
+  { key: 'informes',  label: 'Informes',      roles: ['admin', 'directiva'] },
+  { key: 'equipos',   label: 'Equipos',       roles: ['admin', 'directiva'] },
+  { key: 'mant',      label: 'Mantenimiento', roles: ['admin', 'directiva'] },
+  { key: 'usuarios',  label: 'Usuarios',      roles: ['admin'] },
+  { key: 'galeria',   label: 'Galería',       roles: ['admin'] },
 ]
 
 const lunesDeEstaSemana = () => {
@@ -232,20 +237,29 @@ function ActivityChart() {
   )
 }
 
+const IND_OPTS = [
+  { val: 'Bueno',             color: '#22c55e' },
+  { val: 'Regular',           color: '#f59e0b' },
+  { val: 'Requiere atención', color: '#f97316' },
+  { val: 'Crítico',           color: '#ef4444' },
+]
+
 function DashboardHome({ nombre, onGo }) {
   const [stats, setStats] = useState(null)
+  const [mantStats, setMantStats] = useState(null)
 
   useEffect(() => {
     let alive = true
     ;(async () => {
       const hoy = new Date().toISOString().split('T')[0]
       const lunes = lunesDeEstaSemana()
-      const [hoyRes, semanaRes, pendRes, sinRevRes, usersRes] = await Promise.all([
+      const [hoyRes, semanaRes, pendRes, sinRevRes, usersRes, mantRes] = await Promise.all([
         supabase.from('registros_trabajo').select('id', { count: 'exact', head: true }).eq('fecha', hoy),
         supabase.from('registros_trabajo').select('horas_trabajadas').gte('fecha', lunes),
         supabase.from('registros_trabajo').select('id', { count: 'exact', head: true }).eq('estado', 'Pendiente repuesto'),
         supabase.from('registros_trabajo').select('id', { count: 'exact', head: true }).is('revisado_por', null),
         supabase.from('profiles').select('role'),
+        supabase.from('registros_trabajo').select('indicador_mantenimiento').gte('fecha', lunes).not('indicador_mantenimiento', 'is', null),
       ])
       if (!alive) return
       const semana = semanaRes.data || []
@@ -259,6 +273,10 @@ function DashboardHome({ nombre, onGo }) {
         sinRevisar: sinRevRes.count || 0,
         trabajadores,
       })
+      const mantRows = mantRes.data || []
+      const counts = {}
+      for (const r of mantRows) counts[r.indicador_mantenimiento] = (counts[r.indicador_mantenimiento] || 0) + 1
+      setMantStats({ counts, total: mantRows.length })
     })()
     return () => { alive = false }
   }, [])
@@ -271,7 +289,11 @@ function DashboardHome({ nombre, onGo }) {
       </div>
 
       {!stats ? (
-        <div className="admin-loading" style={{ minHeight: 120 }}><div className="admin-spinner"></div></div>
+        <div className="admin-kpi-grid">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="skel-kpi" style={{ animationDelay: `${i * 0.1}s` }} />
+          ))}
+        </div>
       ) : (
         <>
           <div className="admin-kpi-grid">
@@ -282,6 +304,22 @@ function DashboardHome({ nombre, onGo }) {
             <KpiCard label="Sin revisar"           value={stats.sinRevisar}   color="#f59e0b" icon={ICON.alerta}   sub={stats.sinRevisar > 0 ? 'requieren revisión' : 'al día'} onClick={() => onGo('registros')} />
             <KpiCard label="Pendiente repuesto"    value={stats.pendientes}   color="#ef4444" icon={ICON.repuesto} sub={stats.pendientes > 0 ? 'requieren atención' : ''} onClick={() => onGo('registros')} />
           </div>
+
+          {mantStats && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+                Indicadores de mantenimiento — esta semana
+              </p>
+              <div className="dash-mant-grid">
+                {IND_OPTS.map(({ val, color }) => (
+                  <div key={val} className="dash-mant-card" style={{ borderColor: `${color}33` }}>
+                    <div className="dash-mant-val" style={{ color }}>{mantStats.counts[val] || 0}</div>
+                    <div className="dash-mant-lbl">{val}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <ActivityChart />
 
@@ -471,6 +509,135 @@ function MigradorHeic() {
   )
 }
 
+function MantenimientoManager() {
+  const [registros, setRegistros] = useState([])
+  const [loading, setLoading]     = useState(true)
+  const [filtroInd, setFiltroInd] = useState('')
+  const [filtroDesde, setFiltroDesde] = useState('')
+  const [filtroHasta, setFiltroHasta] = useState('')
+
+  useEffect(() => {
+    setLoading(true)
+    let q = supabase
+      .from('registros_trabajo')
+      .select('id, fecha, trabajador_nombre, planta, equipo, estado, indicador_mantenimiento, observaciones')
+      .not('indicador_mantenimiento', 'is', null)
+      .order('fecha', { ascending: false })
+      .order('id', { ascending: false })
+    if (filtroInd)   q = q.eq('indicador_mantenimiento', filtroInd)
+    if (filtroDesde) q = q.gte('fecha', filtroDesde)
+    if (filtroHasta) q = q.lte('fecha', filtroHasta)
+    q.then(({ data }) => { setRegistros(data || []); setLoading(false) })
+  }, [filtroInd, filtroDesde, filtroHasta])
+
+  const totales = IND_OPTS.reduce((acc, { val }) => {
+    acc[val] = registros.filter(r => r.indicador_mantenimiento === val).length
+    return acc
+  }, {})
+
+  return (
+    <div className="admin-section">
+      <div className="admin-section-header">
+        <h3>Indicadores de mantenimiento</h3>
+        <span className="admin-badge">{registros.length} registros</span>
+      </div>
+
+      {/* Resumen por estado */}
+      <div className="dash-mant-grid" style={{ marginBottom: '1.25rem' }}>
+        {IND_OPTS.map(({ val, color }) => (
+          <div key={val} className="dash-mant-card"
+            style={{ borderColor: `${color}44`, cursor: 'pointer', outline: filtroInd === val ? `2px solid ${color}` : 'none' }}
+            onClick={() => setFiltroInd(filtroInd === val ? '' : val)}>
+            <div className="dash-mant-val" style={{ color }}>{totales[val] || 0}</div>
+            <div className="dash-mant-lbl">{val}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filtros */}
+      <div className="reg-filters" style={{ marginBottom: '1rem' }}>
+        <div className="reg-filter-group">
+          <label>Indicador</label>
+          <select value={filtroInd} onChange={e => setFiltroInd(e.target.value)}>
+            <option value="">Todos</option>
+            {IND_OPTS.map(({ val }) => <option key={val} value={val}>{val}</option>)}
+          </select>
+        </div>
+        <div className="reg-filter-group">
+          <label>Desde</label>
+          <input type="date" value={filtroDesde} onChange={e => setFiltroDesde(e.target.value)} />
+        </div>
+        <div className="reg-filter-group">
+          <label>Hasta</label>
+          <input type="date" value={filtroHasta} onChange={e => setFiltroHasta(e.target.value)} />
+        </div>
+        {(filtroInd || filtroDesde || filtroHasta) && (
+          <button className="reg-clear-btn" onClick={() => { setFiltroInd(''); setFiltroDesde(''); setFiltroHasta('') }}>
+            Limpiar filtros
+          </button>
+        )}
+      </div>
+
+      {loading ? (
+        <div className="reg-table-wrap">
+          <table className="reg-table">
+            <thead><tr><th>Fecha</th><th>Trabajador</th><th>Equipo</th><th>Planta</th><th>Indicador</th><th>Observación</th></tr></thead>
+            <tbody>
+              {[...Array(6)].map((_, i) => (
+                <tr key={i} className="reg-row skel-row" style={{ animationDelay: `${i * 0.07}s` }}>
+                  {[70, 100, 90, 80, 90, '70%'].map((w, j) => (
+                    <td key={j}><span className="skel" style={{ width: w, height: 13 }} /></td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : registros.length === 0 ? (
+        <p className="reg-empty">No hay registros con indicador de mantenimiento para los filtros seleccionados.</p>
+      ) : (
+        <div className="reg-table-wrap">
+          <table className="reg-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Trabajador</th>
+                <th>Equipo</th>
+                <th>Planta</th>
+                <th>Indicador</th>
+                <th>Observación</th>
+              </tr>
+            </thead>
+            <tbody>
+              {registros.map(r => {
+                const opt = IND_OPTS.find(o => o.val === r.indicador_mantenimiento)
+                const color = opt?.color || '#9a9ab0'
+                return (
+                  <tr key={r.id} className="reg-row">
+                    <td>{r.fecha}</td>
+                    <td>{r.trabajador_nombre || '—'}</td>
+                    <td>{r.equipo || '—'}</td>
+                    <td>{r.planta || '—'}</td>
+                    <td>
+                      <span className="ind-badge" style={{ background: `${color}22`, color, border: `1px solid ${color}55` }}>
+                        <span className="ind-dot" style={{ background: color }} />
+                        {r.indicador_mantenimiento}
+                      </span>
+                    </td>
+                    <td style={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'rgba(255,255,255,0.55)', fontSize: '0.82rem' }}>
+                      {r.observaciones || '—'}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function AdminDashboard() {
   const { logout, role, user } = useAuth()
   const navigate = useNavigate()
@@ -550,6 +717,8 @@ function AdminDashboard() {
           {active === 'registros' && <RegistrosManager />}
           {active === 'mapa' && <MapaManager />}
           {active === 'informes' && <InformeManager />}
+          {active === 'equipos' && <EquiposManager />}
+          {active === 'mant' && <MantenimientoManager />}
           {active === 'usuarios' && isAdmin && <UserManager />}
           {active === 'galeria' && isAdmin && <GalleryManager />}
         </main>

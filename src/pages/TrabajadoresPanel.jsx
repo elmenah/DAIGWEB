@@ -37,8 +37,10 @@ function TrabajadoresPanel() {
   const [materialUtilizado, setMaterialUtilizado] = useState('')
   const [horasTrabajadas, setHorasTrabajadas] = useState('')
   const [estado, setEstado] = useState('Terminado')
+  const [indicadorMantenimiento, setIndicadorMantenimiento] = useState('')
   const [ubicacionLat, setUbicacionLat] = useState(null)
   const [ubicacionLng, setUbicacionLng] = useState(null)
+  const [ubicacionTexto, setUbicacionTexto] = useState('')
   const [gpsError, setGpsError] = useState('')
   const [fotos, setFotos] = useState([])
   const [fotosPreviews, setFotosPreviews] = useState([])
@@ -110,8 +112,8 @@ function TrabajadoresPanel() {
     setTarea(''); setTipoTrabajo(''); setTipoTrabajoOtro('')
     setEquipoIntervenido(''); setOt(''); setAvisoSap(''); setPlanta('')
     setDescripcion(''); setMaterialUtilizado('')
-    setHorasTrabajadas(''); setEstado('Terminado')
-    setUbicacionLat(null); setUbicacionLng(null); setGpsError('')
+    setHorasTrabajadas(''); setEstado('Terminado'); setIndicadorMantenimiento('')
+    setUbicacionLat(null); setUbicacionLng(null); setUbicacionTexto(''); setGpsError('')
     setFotos([]); setFotosPreviews([]); setFotosExistentes([])
     setFactura(null); setFacturaPath(null); setFacturaError('')
     draftIdRef.current = crypto.randomUUID()
@@ -135,8 +137,10 @@ function TrabajadoresPanel() {
     setMaterialUtilizado(r.material_utilizado || '')
     setHorasTrabajadas(r.horas_trabajadas?.toString() || '')
     setEstado(r.estado || 'Terminado')
+    setIndicadorMantenimiento(r.indicador_mantenimiento || '')
     setUbicacionLat(r.ubicacion_lat || null)
     setUbicacionLng(r.ubicacion_lng || null)
+    setUbicacionTexto(r.ubicacion_texto || '')
     setGpsError('')
     setFotos([])
     setFotosPreviews([])
@@ -156,9 +160,26 @@ function TrabajadoresPanel() {
     setGpsLoading(true)
     setGpsError('')
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUbicacionLat(pos.coords.latitude)
-        setUbicacionLng(pos.coords.longitude)
+      async (pos) => {
+        const lat = pos.coords.latitude
+        const lng = pos.coords.longitude
+        setUbicacionLat(lat)
+        setUbicacionLng(lng)
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=es`,
+            { headers: { 'User-Agent': 'DAIG-Panel/1.0 (daigchile.cl)' } }
+          )
+          const data = await res.json()
+          const a = data.address || {}
+          const localidad = a.suburb || a.quarter || a.neighbourhood || a.village || a.town || a.city || ''
+          const comuna = a.city_district || a.city || a.county || ''
+          const region = a.state || ''
+          const partes = [localidad, comuna, region].filter(Boolean)
+          setUbicacionTexto(partes.length ? partes.join(', ') : `${lat.toFixed(6)}, ${lng.toFixed(6)}`)
+        } catch {
+          setUbicacionTexto(`${lat.toFixed(6)}, ${lng.toFixed(6)}`)
+        }
         setGpsLoading(false)
       },
       () => {
@@ -336,9 +357,10 @@ function TrabajadoresPanel() {
       material_utilizado: materialUtilizado.trim(),
       horas_trabajadas: horasTrabajadas ? parseFloat(horasTrabajadas) : null,
       estado,
-      ubicacion_texto: `${ubicacionLat.toFixed(6)}, ${ubicacionLng.toFixed(6)}`,
+      ubicacion_texto: ubicacionTexto || `${ubicacionLat.toFixed(6)}, ${ubicacionLng.toFixed(6)}`,
       ubicacion_lat: ubicacionLat,
       ubicacion_lng: ubicacionLng,
+      indicador_mantenimiento: indicadorMantenimiento || null,
     }
 
     const resumen = {
@@ -606,6 +628,26 @@ function TrabajadoresPanel() {
               </div>
 
               <div className="trab-field">
+                <label>Indicador de mantenimiento del equipo <span style={{ color: 'rgba(255,255,255,0.35)', fontWeight: 400 }}>(opcional)</span></label>
+                <div className="trab-indicador-grid">
+                  {[
+                    { val: 'Bueno',             color: '#22c55e' },
+                    { val: 'Regular',           color: '#f59e0b' },
+                    { val: 'Requiere atención', color: '#f97316' },
+                    { val: 'Crítico',           color: '#ef4444' },
+                  ].map(({ val, color }) => (
+                    <button key={val} type="button"
+                      className={`trab-indicador-btn ${indicadorMantenimiento === val ? 'active' : ''}`}
+                      style={{ '--ind-color': color }}
+                      onClick={() => setIndicadorMantenimiento(indicadorMantenimiento === val ? '' : val)}>
+                      <span className="trab-indicador-dot" />
+                      {val}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="trab-field">
                 <label htmlFor="t-equipo">Equipo / Activo intervenido</label>
                 <input id="t-equipo" type="text" value={equipoIntervenido} onChange={e => setEquipoIntervenido(e.target.value)}
                   placeholder="Ej: Bomba centrífuga B-03, Compresor sector norte" />
@@ -659,6 +701,20 @@ function TrabajadoresPanel() {
                   {gpsLoading ? 'Obteniendo ubicación...' : ubicacionLat ? `✓ Ubicación capturada (${ubicacionLat.toFixed(4)}, ${ubicacionLng.toFixed(4)})` : 'Capturar ubicación actual'}
                 </button>
                 {gpsError && <p className="trab-gps-error">{gpsError}</p>}
+                {ubicacionLat && (
+                  <div style={{ marginTop: 8 }}>
+                    <label style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 4 }}>
+                      Localidad detectada <span style={{ color: 'rgba(255,255,255,0.35)' }}>(puedes editar)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={ubicacionTexto}
+                      onChange={e => setUbicacionTexto(e.target.value)}
+                      placeholder="Ej: Pudahuel, Santiago, Región Metropolitana"
+                      style={{ width: '100%', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="trab-field">
@@ -840,8 +896,14 @@ function TrabajadoresPanel() {
                         </div>
                       )}
                       {r.revisado_por && (
-                        <div style={{ marginTop: 8, fontSize: '0.8rem', color: '#22c55e', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          ✓ Revisado por {r.revisado_por} — {new Date(r.revisado_at).toLocaleDateString('es-CL')}
+                        <div style={{ marginTop: 10, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 10 }}>
+                          {r.firma_admin && (
+                            <img src={r.firma_admin} alt="Firma supervisor"
+                              style={{ height: 56, display: 'block', marginBottom: 4, filter: 'invert(1)' }} />
+                          )}
+                          <div style={{ fontSize: '0.8rem', color: '#22c55e', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            ✓ Revisado por {r.revisado_por} — {new Date(r.revisado_at).toLocaleDateString('es-CL')}
+                          </div>
                         </div>
                       )}
 

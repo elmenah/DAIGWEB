@@ -151,8 +151,11 @@ const fmtFecha = (iso) => {
   return `${d}/${m}/${y}`
 }
 
-const fmtShort = (d) =>
-  d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' }).replace('.', '')
+const fmtShort = (d) => {
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  return `${dd}/${mm}`
+}
 
 // ── geocodificación inversa (Nominatim) ──────────────────────────────────────
 const _geoCache = new Map()
@@ -180,25 +183,38 @@ async function resolverUbicacion(val) {
 // ── componente principal ──────────────────────────────────────────────────────
 
 export default function InformeManager() {
-  const [modo, setModo] = useState('semana') // 'semana' | 'mes'
+  const [modo, setModo] = useState('semana') // 'dia' | 'semana' | 'mes' | 'custom'
+  const [diaAncla, setDiaAncla] = useState(() => new Date())
   const [lunes, setLunes] = useState(() => lunesDe(new Date()))
   const [mesAncla, setMesAncla] = useState(() => primerDiaMes(new Date()))
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [calDesde, setCalDesde] = useState('')
+  const [calHasta, setCalHasta] = useState('')
   const [registros, setRegistros] = useState([])
   const [loading, setLoading] = useState(false)
   const [expandedWorker, setExpandedWorker] = useState(null)
   const [exporting, setExporting] = useState(false)
   const [exportingWorker, setExportingWorker] = useState(null)
 
+  const esDia = modo === 'dia'
   const esMes = modo === 'mes'
+  const esCustom = modo === 'custom'
   const domingo = domingoDE(lunes)
-  const rangoDesde = esMes ? primerDiaMes(mesAncla) : lunes
-  const rangoHasta = esMes ? ultimoDiaMes(mesAncla) : domingo
+  const rangoDesde = esCustom
+    ? (calDesde ? new Date(calDesde + 'T00:00:00') : lunes)
+    : esDia ? diaAncla
+    : (esMes ? primerDiaMes(mesAncla) : lunes)
+  const rangoHasta = esCustom
+    ? (calHasta ? new Date(calHasta + 'T00:00:00') : domingo)
+    : esDia ? diaAncla
+    : (esMes ? ultimoDiaMes(mesAncla) : domingo)
   const desdeISO = toISO(rangoDesde)
   const hastaISO = toISO(rangoHasta)
 
-  const esPeriodoActual = esMes
+  const esPeriodoActual = !esCustom && (esMes
     ? toISO(primerDiaMes(new Date())) === toISO(primerDiaMes(mesAncla))
-    : toISO(lunesDe(new Date())) === toISO(lunes)
+    : esDia ? toISO(new Date()) === toISO(diaAncla)
+    : toISO(lunesDe(new Date())) === toISO(lunes))
 
   // ── carga ─────────────────────────────────────────────────────────────────
 
@@ -222,14 +238,17 @@ export default function InformeManager() {
 
   const irAnterior = () => {
     if (esMes) { const d = new Date(mesAncla); d.setMonth(d.getMonth() - 1); setMesAncla(primerDiaMes(d)) }
+    else if (esDia) { const d = new Date(diaAncla); d.setDate(d.getDate() - 1); setDiaAncla(d) }
     else { const d = new Date(lunes); d.setDate(d.getDate() - 7); setLunes(d) }
   }
   const irSiguiente = () => {
     if (esMes) { const d = new Date(mesAncla); d.setMonth(d.getMonth() + 1); setMesAncla(primerDiaMes(d)) }
+    else if (esDia) { const d = new Date(diaAncla); d.setDate(d.getDate() + 1); setDiaAncla(d) }
     else { const d = new Date(lunes); d.setDate(d.getDate() + 7); setLunes(d) }
   }
   const irActual = () => {
     if (esMes) setMesAncla(primerDiaMes(new Date()))
+    else if (esDia) setDiaAncla(new Date())
     else setLunes(lunesDe(new Date()))
   }
 
@@ -288,8 +307,8 @@ export default function InformeManager() {
     setExporting(true)
     try {
       const XLSX = await loadXLSX()
-      const periodo = `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
-      const tipoTxt = esMes ? 'mensual' : 'semanal'
+      const periodo = esDia ? fmtFecha(desdeISO) : `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
+      const tipoTxt = esDia ? 'diario' : esMes ? 'mensual' : 'semanal'
       const wb = XLSX.utils.book_new()
 
       const wsRes = buildStyledSheet(XLSX, {
@@ -328,8 +347,8 @@ export default function InformeManager() {
     setExportingWorker(worker.id)
     try {
       const XLSX = await loadXLSX()
-      const periodo = `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
-      const tipoTxt = esMes ? 'mensual' : 'semanal'
+      const periodo = esDia ? fmtFecha(desdeISO) : `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
+      const tipoTxt = esDia ? 'diario' : esMes ? 'mensual' : 'semanal'
       const wb = XLSX.utils.book_new()
 
       const ws = buildStyledSheet(XLSX, {
@@ -361,6 +380,8 @@ export default function InformeManager() {
   // ── generar informe PDF (ventana imprimible) ──────────────────────────────
 
   const [generando, setGenerando] = useState(null) // trabajador_id en curso
+  const [generandoGeneral, setGenerandoGeneral] = useState(false)
+  const [filtroWorkerPDF, setFiltroWorkerPDF] = useState('')
 
   // Firma del supervisor para incrustar en los PDF (se guarda en este dispositivo)
   const [firma, setFirma] = useState(() => {
@@ -381,9 +402,9 @@ export default function InformeManager() {
     try {
       const html2pdf = (await import('html2pdf.js')).default
       const logoUrl = window.location.origin + logoImg
-      const periodo = `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
-      const tituloTipo = esMes ? 'MENSUALES' : 'SEMANALES'
-      const tituloTipoCap = esMes ? 'Mensuales' : 'Semanales'
+      const periodo = esDia ? fmtFecha(desdeISO) : `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
+      const tituloTipo = esDia ? 'DIARIAS' : esMes ? 'MENSUALES' : 'SEMANALES'
+      const tituloTipoCap = esDia ? 'Diarias' : esMes ? 'Mensuales' : 'Semanales'
       const equipos = [...worker.equipos].join(', ') || '—'
       const estados = [...new Set(worker.registros.map(r => r.estado).filter(Boolean))].join(', ') || '—'
 
@@ -631,6 +652,175 @@ export default function InformeManager() {
     setGenerando(null)
   }
 
+  // ── generar PDF general (todos los trabajadores) ─────────────────────────
+
+  const generarPDFGeneral = () => {
+    if (!registros.length) return
+    setGenerandoGeneral(true)
+    try {
+      const logoUrl = window.location.origin + logoImg
+      const periodo = esDia ? fmtFecha(desdeISO) : `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
+      const tituloTipo = esDia ? 'DIARIO' : esMes ? 'MENSUAL' : 'SEMANAL'
+      const tituloTipoCap = esDia ? 'Diario' : esMes ? 'Mensual' : 'Semanal'
+
+      // Filtrar por trabajador si hay uno seleccionado
+      const workerFiltrado = filtroWorkerPDF ? porTrabajador.find(w => w.id === filtroWorkerPDF) : null
+      const regsUsados = workerFiltrado ? workerFiltrado.registros : registros
+      const trabUsados = workerFiltrado ? [workerFiltrado] : porTrabajador
+      const horasUsadas = workerFiltrado ? workerFiltrado.horas : totalHoras
+      const trabActivosUsados = workerFiltrado ? 1 : trabajadoresActivos
+      const tituloPortada = workerFiltrado
+        ? `INFORME<br>${workerFiltrado.nombre.toUpperCase()}<br>${tituloTipo}`
+        : `INFORME GENERAL<br>DE ACTIVIDADES<br>${tituloTipo}`
+
+      const porFechaUsado = regsUsados.reduce((acc, r) => {
+        ;(acc[r.fecha] = acc[r.fecha] || []).push(r)
+        return acc
+      }, {})
+
+      const porTipoUsado = regsUsados.reduce((acc, r) => {
+        const t = r.tipo_trabajo || 'Sin tipo'; acc[t] = (acc[t] || 0) + 1; return acc
+      }, {})
+      const porEstadoUsado = regsUsados.reduce((acc, r) => {
+        const e = r.estado || 'Sin estado'; acc[e] = (acc[e] || 0) + 1; return acc
+      }, {})
+
+      const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>Informe General ${tituloTipoCap} — ${periodo}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;background:#fff}
+@page{size:A4;margin:15mm 20mm}
+@media print{
+  .portada{page-break-after:always}
+  .inner-page{page-break-before:always}
+  .fecha-grupo{page-break-inside:avoid}
+  .no-print{display:none}
+}
+.portada{height:100vh;min-height:250mm;display:flex;flex-direction:column;justify-content:center;
+  align-items:center;text-align:center;background:#12123a;color:#fff;padding:3rem;position:relative;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+.portada-logo{width:90px;height:90px;object-fit:contain;border-radius:12px;margin-bottom:1.75rem}
+.portada-empresa{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:.3rem}
+.portada-sub{font-size:.8rem;color:rgba(255,255,255,.4);margin-bottom:2.5rem}
+.portada-titulo{font-size:2.4rem;font-weight:900;line-height:1.1;letter-spacing:-.02em}
+.portada-divider{width:56px;height:4px;background:#f5a623;border-radius:2px;margin:1.4rem auto;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.portada-periodo{font-size:.95rem;color:rgba(255,255,255,.65);margin-top:.4rem}
+.portada-kpis{display:flex;gap:1.5rem;margin-top:2rem}
+.portada-kpi-val{font-size:2rem;font-weight:900;color:#f5a623}
+.portada-kpi-lbl{font-size:.75rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em}
+.portada-footer{position:absolute;bottom:1.75rem;font-size:.7rem;color:rgba(255,255,255,.25)}
+.inner-page{padding:0}
+.inner-header{display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:.65rem;border-bottom:3px solid #f5a623;margin-bottom:1.5rem;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.ih-brand{display:flex;align-items:center;gap:.5rem}
+.ih-brand img{height:30px;border-radius:4px}
+.ih-brand span{font-weight:900;font-size:.95rem;color:#12123a}
+.ih-right{font-size:.72rem;color:#9a9ab0;text-align:right;line-height:1.4}
+.seccion{margin-bottom:2rem}
+.sec-titulo{font-size:.95rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  color:#12123a;border-left:4px solid #f5a623;padding:.45rem .75rem;background:#f8f8fc;margin-bottom:1rem;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sec-num{color:#f5a623;margin-right:.35rem}
+.tabla-res{width:100%;border-collapse:collapse;font-size:.85rem;margin-bottom:1.25rem}
+.tabla-res th{background:#12123a;color:#fff;padding:7px 10px;text-align:left;font-size:.75rem;letter-spacing:.04em;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.tabla-res td{padding:6px 10px;border:1px solid #e0e0ec;vertical-align:top}
+.tabla-res tr:nth-child(even) td{background:#f8f8fc;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.tabla-res tr.total-row td{background:#ececf6;font-weight:700;color:#12123a;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.75rem}
+.chip{background:#f0f0f8;border:1px solid #e0e0ec;border-radius:20px;padding:4px 12px;font-size:.82rem;color:#12123a;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.fecha-grupo{margin-bottom:1.5rem}
+.fecha-lbl{font-weight:700;font-size:.85rem;color:#12123a;background:#f0f0f8;border-left:3px solid #f5a623;padding:.3rem .75rem;margin-bottom:.5rem;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.tabla-act{width:100%;border-collapse:collapse;font-size:.82rem}
+.tabla-act th{background:#12123a;color:#fff;padding:6px 8px;text-align:left;font-size:.72rem;letter-spacing:.04em;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.tabla-act td{padding:5px 8px;border:1px solid #e0e0ec;vertical-align:top}
+.tabla-act tr:nth-child(even) td{background:#f8f8fc;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.firma{text-align:center;margin-top:3rem}
+.firma-linea{width:200px;height:1px;background:#333;margin:0 auto .5rem}
+.firma-nombre{font-weight:700;font-size:1rem}
+.firma-cargo{color:#6b6b8a;font-size:.85rem;margin-top:.15rem}
+.firma-contacto{color:#9a9ab0;font-size:.75rem;margin-top:.15rem}
+.print-btn{position:fixed;top:16px;right:16px;background:#12123a;color:#fff;border:none;
+  padding:10px 20px;border-radius:8px;cursor:pointer;font-size:.9rem;font-weight:700;z-index:9999}
+</style></head><body>
+<button class="print-btn no-print" onclick="window.print()">Imprimir / Guardar PDF</button>
+
+<div class="portada">
+  <img class="portada-logo" src="${logoUrl}" alt="DAIG">
+  <div class="portada-empresa">DAIG SpA</div>
+  <div class="portada-sub">Ingeniería en Mecánica de Procesos y Mantenimiento Industrial</div>
+  <div class="portada-titulo">${tituloPortada}</div>
+  <div class="portada-divider"></div>
+  <div class="portada-periodo">${periodo}</div>
+  <div class="portada-kpis">
+    <div><div class="portada-kpi-val">${regsUsados.length}</div><div class="portada-kpi-lbl">Registros</div></div>
+    <div><div class="portada-kpi-val">${nH(horasUsadas)}</div><div class="portada-kpi-lbl">Horas</div></div>
+    <div><div class="portada-kpi-val">${trabActivosUsados}</div><div class="portada-kpi-lbl">Trabajadores</div></div>
+  </div>
+  <div class="portada-footer">DAIG SpA · daigchile.cl</div>
+</div>
+
+<div class="inner-page">
+  <div class="inner-header">
+    <div class="ih-brand"><img src="${logoUrl}" alt="DAIG"><span>DAIG SpA</span></div>
+    <div class="ih-right">${workerFiltrado ? `Informe ${workerFiltrado.nombre}<br>` : `Informe General ${tituloTipoCap}<br>`}${periodo}</div>
+  </div>
+  <div class="seccion">
+    <div class="sec-titulo"><span class="sec-num">1.</span> RESUMEN POR TRABAJADOR</div>
+    <table class="tabla-res">
+      <thead><tr><th>Trabajador</th><th>Registros</th><th>Horas</th><th>Tipos de trabajo</th></tr></thead>
+      <tbody>
+        ${trabUsados.map(w => `<tr><td>${w.nombre}</td><td style="text-align:center">${w.registros.length}</td><td style="text-align:center">${nH(w.horas)}</td><td>${[...w.tipos].join(', ') || '—'}</td></tr>`).join('')}
+        <tr class="total-row"><td>TOTAL</td><td style="text-align:center">${regsUsados.length}</td><td style="text-align:center">${nH(horasUsadas)}</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="seccion">
+    <div class="sec-titulo"><span class="sec-num">2.</span> POR TIPO DE TRABAJO</div>
+    <div class="chips">${Object.entries(porTipoUsado).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`<span class="chip">${t} · <strong>${n}</strong></span>`).join('')}</div>
+  </div>
+  <div class="seccion">
+    <div class="sec-titulo"><span class="sec-num">3.</span> POR ESTADO</div>
+    <div class="chips">${Object.entries(porEstadoUsado).sort((a,b)=>b[1]-a[1]).map(([e,n])=>`<span class="chip">${e} · <strong>${n}</strong></span>`).join('')}</div>
+  </div>
+</div>
+
+<div class="inner-page">
+  <div class="inner-header">
+    <div class="ih-brand"><img src="${logoUrl}" alt="DAIG"><span>DAIG SpA</span></div>
+    <div class="ih-right">Detalle de Actividades<br>${periodo}</div>
+  </div>
+  <div class="seccion">
+    <div class="sec-titulo"><span class="sec-num">4.</span> DETALLE POR FECHA</div>
+    ${Object.entries(porFechaUsado).map(([fecha, regs]) => `
+      <div class="fecha-grupo">
+        <div class="fecha-lbl">${fmtFecha(fecha)}</div>
+        <table class="tabla-act">
+          <thead><tr><th>Trabajador</th><th>Tipo</th><th>Tarea / Equipo</th><th>Estado</th><th>Hrs</th></tr></thead>
+          <tbody>${regs.map(r => `<tr><td>${r.trabajador_nombre||'—'}</td><td>${r.tipo_trabajo||'—'}</td><td><strong>${r.tarea||''}</strong>${r.equipo_intervenido?` · <small>${r.equipo_intervenido}</small>`:''}</td><td>${r.estado||'—'}</td><td style="text-align:center">${r.horas_trabajadas??''}</td></tr>`).join('')}</tbody>
+        </table>
+      </div>`).join('')}
+  </div>
+  <div class="firma">
+    ${firma ? `<img src="${firma}" alt="Firma" style="height:70px;object-fit:contain;display:block;margin:0 auto 2px">` : ''}
+    <div class="firma-linea"></div>
+    <div class="firma-nombre">Daniel Mena Vega</div>
+    <div class="firma-cargo">Representante Legal · DAIG SpA</div>
+    <div class="firma-contacto">daniel.mena@serviciosdaig.com | +56 9 8868 9400</div>
+  </div>
+</div>
+</body></html>`
+
+      const win = window.open('', '_blank')
+      if (!win) { alert('Permite ventanas emergentes para generar el PDF'); return }
+      win.document.write(fullHtml)
+      win.document.close()
+    } catch (e) {
+      alert('Error al generar PDF: ' + e.message)
+    }
+    setGenerandoGeneral(false)
+  }
+
   // ── render ────────────────────────────────────────────────────────────────
 
   return (
@@ -642,43 +832,138 @@ export default function InformeManager() {
 
       {/* ── cabecera de periodo ── */}
       <div className="inf-week-bar">
-        <div className="inf-modo-toggle">
-          <button className={!esMes ? 'active' : ''} onClick={() => setModo('semana')}>Semana</button>
-          <button className={esMes ? 'active' : ''} onClick={() => setModo('mes')}>Mes</button>
+
+        {/* Fila 1: navegación de periodo */}
+        <div className="inf-period-row">
+          <div className="inf-modo-toggle">
+            <button className={esDia ? 'active' : ''} onClick={() => { setModo('dia'); setShowCalendar(false) }}>Día</button>
+            <button className={!esDia && !esMes && !esCustom ? 'active' : ''} onClick={() => { setModo('semana'); setShowCalendar(false) }}>Semana</button>
+            <button className={esMes ? 'active' : ''} onClick={() => { setModo('mes'); setShowCalendar(false) }}>Mes</button>
+            <button className={esCustom ? 'active' : ''} onClick={() => {
+              if (esCustom) { setShowCalendar(v => !v) }
+              else { setModo('custom'); setShowCalendar(true) }
+            }}>
+              <svg viewBox="0 0 24 24" style={{ width: 13, height: 13, fill: 'currentColor', marginRight: 4 }}><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+              Rango
+            </button>
+          </div>
+
+          {!esCustom && (
+            <button className="inf-week-nav" onClick={irAnterior} title={esMes ? 'Mes anterior' : 'Semana anterior'}>
+              <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </button>
+          )}
+
+          <div className="inf-week-label" onClick={esCustom ? () => setShowCalendar(v => !v) : undefined}
+            style={esCustom ? { cursor: 'pointer' } : undefined}>
+            <span className="inf-week-range">
+              {esCustom
+                ? (calDesde && calHasta ? `${fmtFecha(calDesde)} – ${fmtFecha(calHasta)}` : 'Elegir rango')
+                : esDia
+                  ? capitalizar(diaAncla.toLocaleDateString('es-CL', { weekday: 'long', day: '2-digit', month: 'long' }))
+                  : esMes
+                    ? capitalizar(mesAncla.toLocaleDateString('es-CL', { month: 'long' }))
+                    : `${fmtShort(lunes)} – ${fmtShort(domingo)}`}
+            </span>
+            {!esCustom && <span className="inf-week-year">{(esDia ? diaAncla : esMes ? mesAncla : lunes).getFullYear()}</span>}
+            {esPeriodoActual && <span className="inf-week-badge">{esDia ? 'Hoy' : esMes ? 'Mes actual' : 'Semana actual'}</span>}
+          </div>
+
+          {!esCustom && (
+            <button className="inf-week-nav" onClick={irSiguiente} title={esMes ? 'Mes siguiente' : 'Semana siguiente'}>
+              <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+            </button>
+          )}
+
+          {!esPeriodoActual && !esCustom && (
+            <button className="inf-today-btn" onClick={irActual}>Hoy</button>
+          )}
         </div>
 
-        <button className="inf-week-nav" onClick={irAnterior} title={esMes ? 'Mes anterior' : 'Semana anterior'}>
-          <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-        </button>
-
-        <div className="inf-week-label">
-          <span className="inf-week-range">
-            {esMes
-              ? capitalizar(mesAncla.toLocaleDateString('es-CL', { month: 'long' }))
-              : `${fmtShort(lunes)} – ${fmtShort(domingo)}`}
-          </span>
-          <span className="inf-week-year">{(esMes ? mesAncla : lunes).getFullYear()}</span>
-          {esPeriodoActual && <span className="inf-week-badge">{esMes ? 'Mes actual' : 'Semana actual'}</span>}
+        {/* Fila 2: acciones */}
+        <div className="inf-actions-row">
+          <button className="inf-export-btn" onClick={() => setShowFirma(true)}
+            style={firma ? { background: 'rgba(34,197,94,0.15)', borderColor: 'rgba(34,197,94,0.4)', color: '#4ade80' } : undefined}
+            title="Configurar la firma que aparece en los informes PDF">
+            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            {firma ? 'Firma ✓' : 'Firma'}
+          </button>
+          <select
+            className="inf-worker-select"
+            value={filtroWorkerPDF}
+            onChange={e => setFiltroWorkerPDF(e.target.value)}
+            title="Filtrar PDF por trabajador"
+          >
+            <option value="">Todos los trabajadores</option>
+            {porTrabajador.map(w => (
+              <option key={w.id} value={w.id}>{w.nombre}</option>
+            ))}
+          </select>
+          <button className="inf-export-btn" onClick={generarPDFGeneral} disabled={generandoGeneral || !registros.length}
+            title={filtroWorkerPDF ? `Generar PDF de ${porTrabajador.find(w=>w.id===filtroWorkerPDF)?.nombre || ''}` : 'PDF general'}>
+            <svg viewBox="0 0 24 24"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>
+            {generandoGeneral ? 'Generando...' : filtroWorkerPDF ? 'PDF Trabajador' : 'PDF General'}
+          </button>
+          <button className="inf-export-btn" onClick={handleExport} disabled={exporting || !registros.length}>
+            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            {exporting ? 'Exportando...' : 'Excel'}
+          </button>
         </div>
 
-        <button className="inf-week-nav" onClick={irSiguiente} title={esMes ? 'Mes siguiente' : 'Semana siguiente'}>
-          <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-        </button>
-
-        {!esPeriodoActual && (
-          <button className="inf-today-btn" onClick={irActual}>Hoy</button>
+        {/* Popup calendario de rango */}
+        {showCalendar && esCustom && (
+          <>
+            <div className="inf-cal-backdrop" onClick={() => setShowCalendar(false)} />
+            <div className="inf-cal-popup">
+              <div className="inf-cal-header">
+                <span className="inf-cal-title">Rango de fechas</span>
+                <button className="inf-cal-close" onClick={() => setShowCalendar(false)}>
+                  <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+              </div>
+              <div className="inf-cal-quick">
+                {[
+                  { label: 'Esta semana', fn: () => {
+                    const l = lunesDe(new Date()); const d = domingoDE(l)
+                    setCalDesde(toISO(l)); setCalHasta(toISO(d))
+                  }},
+                  { label: 'Este mes', fn: () => {
+                    const hoy = new Date()
+                    setCalDesde(toISO(primerDiaMes(hoy))); setCalHasta(toISO(ultimoDiaMes(hoy)))
+                  }},
+                  { label: 'Últimos 7 días', fn: () => {
+                    const h = new Date(); const d = new Date(); d.setDate(d.getDate() - 6)
+                    setCalDesde(toISO(d)); setCalHasta(toISO(h))
+                  }},
+                  { label: 'Últimos 30 días', fn: () => {
+                    const h = new Date(); const d = new Date(); d.setDate(d.getDate() - 29)
+                    setCalDesde(toISO(d)); setCalHasta(toISO(h))
+                  }},
+                ].map(({ label, fn }) => (
+                  <button key={label} className="inf-cal-quick-btn" onClick={fn}>{label}</button>
+                ))}
+              </div>
+              <div className="inf-cal-row">
+                <div className="inf-cal-field">
+                  <label>Desde</label>
+                  <input type="date" value={calDesde} onChange={e => setCalDesde(e.target.value)} />
+                </div>
+                <div className="inf-cal-field">
+                  <label>Hasta</label>
+                  <input type="date" value={calHasta} min={calDesde} onChange={e => setCalHasta(e.target.value)} />
+                </div>
+              </div>
+              <div className="inf-cal-footer">
+                {calDesde && calHasta && (
+                  <span className="inf-cal-preview">{fmtFecha(calDesde)} → {fmtFecha(calHasta)}</span>
+                )}
+                <button className="inf-cal-apply" disabled={!calDesde || !calHasta} onClick={() => setShowCalendar(false)}>
+                  Aplicar
+                </button>
+              </div>
+            </div>
+          </>
         )}
-
-        <button className="inf-export-btn" onClick={() => setShowFirma(true)}
-          style={firma ? { background: 'rgba(34,197,94,0.15)', borderColor: 'rgba(34,197,94,0.4)', color: '#4ade80' } : undefined}
-          title="Configurar la firma que aparece en los informes PDF">
-          <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-          {firma ? 'Firma ✓' : 'Firma'}
-        </button>
-        <button className="inf-export-btn" onClick={handleExport} disabled={exporting || !registros.length}>
-          <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-          {exporting ? 'Exportando...' : 'Excel'}
-        </button>
       </div>
 
       {loading && (
@@ -690,7 +975,7 @@ export default function InformeManager() {
       {!loading && registros.length === 0 && (
         <div className="inf-empty">
           <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
-          <p>Sin registros para {esMes ? 'este mes' : 'esta semana'}</p>
+          <p>Sin registros para {esCustom ? 'este rango' : esMes ? 'este mes' : 'esta semana'}</p>
           <span>{fmtFecha(desdeISO)} al {fmtFecha(hastaISO)}</span>
         </div>
       )}

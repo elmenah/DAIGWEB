@@ -70,12 +70,10 @@ function CncServices() {
                     </li>
                   ))}
                 </ul>
-                <a href="#contacto" className="btn-primary">
-                  Cotizar
-                </a>
-                <a href="/servicios/cnc-router-y-laser" className="btn-secondary" style={{ marginLeft: '0.75rem' }}>
-                  Ver servicio
-                </a>
+                <div className="design-card-actions">
+                  <a href="#contacto" className="btn-primary">Cotizar</a>
+                  <a href="/servicios/cnc-router-y-laser" className="btn-secondary">Ver servicio</a>
+                </div>
               </div>
             </div>
           ))}

@@ -40,11 +40,20 @@ const ESTADOS = ['Terminado', 'En Proceso', 'Pendiente repuesto']
 const COLUMNS = [
   { key: 'trabajador_nombre', label: 'Trabajador' },
   { key: 'fecha',             label: 'Fecha' },
+  { key: 'ot',                label: 'OT' },
   { key: 'tipo_trabajo',      label: 'Tipo' },
   { key: 'tarea',             label: 'Tarea / Equipo' },
+  { key: 'ubicacion_texto',   label: 'Localidad', noSort: true },
   { key: 'estado',            label: 'Estado' },
   { key: 'horas_trabajadas',  label: 'Hrs' },
 ]
+
+const shortLoc = (txt) => {
+  if (!txt) return null
+  if (/^-?\d+\.?\d*\s*,\s*-?\d+/.test(txt.trim())) return null
+  const first = txt.split(',')[0].trim()
+  return first.length > 22 ? first.slice(0, 20) + '…' : first
+}
 
 function estadoClass(e) {
   if (['Terminado','Completado'].includes(e)) return 'ok'
@@ -96,14 +105,154 @@ function PhotoModal({ url, onClose }) {
   )
 }
 
+const IND_COLOR = { 'Bueno': '#22c55e', 'Regular': '#f59e0b', 'Requiere atención': '#f97316', 'Crítico': '#ef4444' }
+
+function RegistroDetailModal({ r, comentario, onComentarioChange, savingComment, onSaveComment, markingReviewed, onMarkReviewed, onPrint, onPhotoClick, onClose }) {
+  useEffect(() => {
+    const h = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', h)
+    return () => window.removeEventListener('keydown', h)
+  }, [onClose])
+
+  const indColor = IND_COLOR[r.indicador_mantenimiento]
+
+  return (
+    <div className="reg-detail-overlay" onClick={onClose}>
+      <div className="reg-detail-panel" onClick={e => e.stopPropagation()}>
+        <div className="reg-detail-header">
+          <div>
+            <div className="reg-detail-title">{r.trabajador_nombre || '—'}</div>
+            <div className="reg-detail-meta">
+              {r.fecha} {r.hora?.slice(0,5) ? `· ${r.hora.slice(0,5)}` : ''}
+              {r.tipo_trabajo ? ` · ${r.tipo_trabajo}` : ''}
+            </div>
+          </div>
+          <button className="reg-detail-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="reg-detail-body">
+          {/* Estado + indicador */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: '1rem', flexWrap: 'wrap' }}>
+            {r.estado && (
+              <span className={`reg-estado-badge reg-estado-badge--${estadoClass(r.estado)}`}>{r.estado}</span>
+            )}
+            {r.indicador_mantenimiento && (
+              <span className="ind-badge" style={{ background: `${indColor}22`, color: indColor, border: `1px solid ${indColor}55` }}>
+                <span className="ind-dot" style={{ background: indColor }} />
+                {r.indicador_mantenimiento}
+              </span>
+            )}
+          </div>
+
+          {/* Campos */}
+          {r.tarea && <div className="reg-field"><span className="reg-label">Tarea realizada</span><p>{r.tarea}</p></div>}
+          {r.descripcion && <div className="reg-field"><span className="reg-label">Descripción</span><p>{r.descripcion}</p></div>}
+          {r.equipo_intervenido && <div className="reg-field"><span className="reg-label">Equipo / Activo</span><p>{r.equipo_intervenido}</p></div>}
+          {r.ot && <div className="reg-field"><span className="reg-label">OT</span><p>{r.ot}</p></div>}
+          {r.planta && <div className="reg-field"><span className="reg-label">Planta / lugar</span><p>{r.planta}</p></div>}
+          {r.aviso_sap && <div className="reg-field"><span className="reg-label">Aviso SAP</span><p>{r.aviso_sap}</p></div>}
+          {r.material_utilizado && <div className="reg-field"><span className="reg-label">Material utilizado</span><p>{r.material_utilizado}</p></div>}
+          {r.horas_trabajadas && <div className="reg-field"><span className="reg-label">Horas trabajadas</span><p>{r.horas_trabajadas}h</p></div>}
+          {r.ubicacion_texto && (
+            <div className="reg-field">
+              <span className="reg-label">Ubicación</span>
+              <p>{r.ubicacion_texto}</p>
+              {r.ubicacion_lat && (
+                <a href={`https://maps.google.com/?q=${r.ubicacion_lat},${r.ubicacion_lng}`}
+                  target="_blank" rel="noopener noreferrer" className="reg-maps-link">Ver en Google Maps →</a>
+              )}
+            </div>
+          )}
+
+          {r.factura_path && (
+            <div className="reg-field">
+              <span className="reg-label">Factura</span>
+              <InvoiceImage path={r.factura_path} />
+            </div>
+          )}
+          {/* Fotos */}
+          {r.fotos?.length > 0 && (
+            <div className="reg-field">
+              <span className="reg-label">Fotos ({r.fotos.length})</span>
+              <div className="reg-foto-grid">
+                {r.fotos.map((url,i) => (
+                  <HeicImage key={i} src={url} className="reg-foto" alt="" onClick={() => onPhotoClick(url)} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Firma */}
+          {r.firma_admin && (
+            <div className="reg-field">
+              <span className="reg-label">Firma del supervisor</span>
+              <img src={r.firma_admin} style={{ height: 48, filter: 'invert(1)', marginTop: 4 }} alt="Firma" />
+            </div>
+          )}
+
+          {/* Revisado */}
+          {r.revisado_por && (
+            <div className="reg-field">
+              <span style={{ fontSize: '0.8rem', color: '#22c55e', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <svg viewBox="0 0 24 24" style={{ width: 14, height: 14, fill: '#22c55e' }}><path d={RICON.check} /></svg>
+                Revisado por {r.revisado_por} — {new Date(r.revisado_at).toLocaleDateString('es-CL')}
+              </span>
+            </div>
+          )}
+
+          {/* Comentario */}
+          <div className="reg-field">
+            <span className="reg-label">Comentario supervisor</span>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start', marginTop: 4 }}>
+              <textarea
+                value={comentario}
+                onChange={e => onComentarioChange(e.target.value)}
+                placeholder="Agregar comentario o nota interna..."
+                rows={2}
+                style={{
+                  flex: 1, background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6,
+                  color: '#fff', padding: '6px 8px', fontSize: '0.85rem', resize: 'vertical',
+                }}
+              />
+              <button className="admin-btn-outline"
+                style={{ fontSize: '0.78rem', padding: '6px 12px', whiteSpace: 'nowrap' }}
+                onClick={onSaveComment} disabled={savingComment}>
+                {savingComment ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="reg-detail-footer">
+          {!r.revisado_por && (
+            <button className="admin-btn-outline reg-icon-btn"
+              style={{ fontSize: '0.78rem', padding: '5px 12px' }}
+              onClick={onMarkReviewed} disabled={markingReviewed}>
+              <svg viewBox="0 0 24 24"><path d={RICON.check} /></svg>
+              {markingReviewed ? 'Marcando...' : 'Marcar como revisado'}
+            </button>
+          )}
+          <button className="admin-btn-outline reg-icon-btn"
+            style={{ fontSize: '0.78rem', padding: '5px 12px' }}
+            onClick={onPrint}>
+            <svg viewBox="0 0 24 24"><path d={RICON.printer} /></svg>
+            Exportar PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function RegistrosManager() {
   const { user } = useAuth()
   const [adminNombre, setAdminNombre] = useState('')
 
-  const [registros, setRegistros]   = useState([])
-  const [loading, setLoading]       = useState(true)
-  const [expandedId, setExpandedId] = useState(null)
-  const [modalUrl, setModalUrl]     = useState(null)
+  const [registros, setRegistros]       = useState([])
+  const [loading, setLoading]           = useState(true)
+  const [modalRegistro, setModalRegistro] = useState(null)
+  const [modalUrl, setModalUrl]         = useState(null)
 
   const [filtroTrabajador, setFiltroTrabajador] = useState('')
   const [filtroEstado, setFiltroEstado]         = useState('')
@@ -384,27 +533,90 @@ function RegistrosManager() {
   const markReviewed = async (id) => {
     setMarkingReviewed(id)
     const now = new Date().toISOString()
-    await supabase.from('registros_trabajo').update({ revisado_por: adminNombre, revisado_at: now }).eq('id', id)
+    let firmaAdmin = null
+    try { firmaAdmin = localStorage.getItem('daig_firma_informe') || null } catch { /* sin acceso */ }
+    await supabase.from('registros_trabajo').update({ revisado_por: adminNombre, revisado_at: now, firma_admin: firmaAdmin }).eq('id', id)
     setMarkingReviewed(null)
-    setRegistros(prev => prev.map(r => r.id === id ? { ...r, revisado_por: adminNombre, revisado_at: now } : r))
+    setRegistros(prev => prev.map(r => r.id === id ? { ...r, revisado_por: adminNombre, revisado_at: now, firma_admin: firmaAdmin } : r))
     loadStats()
   }
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
   const hayFiltros = filtroTrabajador || filtroEstado || filtroTipo || filtroTexto || filtroFechaDesde || filtroFechaHasta
 
+  const COORD_RE = /^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$/
+  const [geocodingProgress, setGeocodingProgress] = useState(null) // null | { done, total }
+
+  const geocodificarExistentes = async () => {
+    const { data } = await supabase
+      .from('registros_trabajo')
+      .select('id, ubicacion_lat, ubicacion_lng, ubicacion_texto')
+      .not('ubicacion_lat', 'is', null)
+    const pendientes = (data || []).filter(r => !r.ubicacion_texto || COORD_RE.test(r.ubicacion_texto.trim()))
+    if (!pendientes.length) { alert('No hay registros con coordenadas crudas.'); return }
+    if (!window.confirm(`Se van a geocodificar ${pendientes.length} registros. Puede tardar ~${Math.ceil(pendientes.length * 1.2)} segundos. ¿Continuar?`)) return
+    setGeocodingProgress({ done: 0, total: pendientes.length })
+    for (let i = 0; i < pendientes.length; i++) {
+      const r = pendientes[i]
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${r.ubicacion_lat}&lon=${r.ubicacion_lng}&accept-language=es`,
+          { headers: { 'User-Agent': 'DAIG-Admin/1.0 (daigchile.cl)' } }
+        )
+        const d = await res.json()
+        const a = d.address || {}
+        const localidad = a.suburb || a.quarter || a.neighbourhood || a.village || a.town || a.city || ''
+        const comuna = a.city_district || a.city || a.county || ''
+        const region = a.state || ''
+        const texto = [localidad, comuna, region].filter(Boolean).join(', ') || `${r.ubicacion_lat}, ${r.ubicacion_lng}`
+        await supabase.from('registros_trabajo').update({ ubicacion_texto: texto }).eq('id', r.id)
+      } catch { /* fallo silencioso, se queda como estaba */ }
+      setGeocodingProgress({ done: i + 1, total: pendientes.length })
+      if (i < pendientes.length - 1) await new Promise(res => setTimeout(res, 1200))
+    }
+    setGeocodingProgress(null)
+    loadRegistros()
+    alert('Geocodificación completada.')
+  }
+
   return (
     <div className="admin-section">
       {modalUrl && <PhotoModal url={modalUrl} onClose={() => setModalUrl(null)} />}
+      {modalRegistro && (
+        <RegistroDetailModal
+          r={modalRegistro}
+          comentario={comentarios[modalRegistro.id] ?? ''}
+          onComentarioChange={val => setComentarios(prev => ({ ...prev, [modalRegistro.id]: val }))}
+          savingComment={savingComment === modalRegistro.id}
+          onSaveComment={() => saveComment(modalRegistro.id)}
+          markingReviewed={markingReviewed === modalRegistro.id}
+          onMarkReviewed={() => markReviewed(modalRegistro.id)}
+          onPrint={() => printRecord(modalRegistro)}
+          onPhotoClick={setModalUrl}
+          onClose={() => setModalRegistro(null)}
+        />
+      )}
 
       <div className="admin-section-header">
         <h3>Registros de Trabajadores</h3>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <span className="admin-badge">{total} registros</span>
-          <button className="admin-btn-outline reg-icon-btn" style={{ fontSize: '0.8rem', padding: '5px 12px' }} onClick={exportCSV}>
-            <svg viewBox="0 0 24 24"><path d={RICON.download} /></svg>
-            Exportar CSV
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {geocodingProgress ? (
+            <span style={{ fontSize: '0.8rem', color: '#f5a623' }}>
+              Geocodificando {geocodingProgress.done}/{geocodingProgress.total}…
+            </span>
+          ) : (
+            <button
+              onClick={geocodificarExistentes}
+              style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'rgba(245,166,35,0.12)',
+                border: '1px solid rgba(245,166,35,0.3)', borderRadius: 7, color: '#f5a623',
+                cursor: 'pointer', whiteSpace: 'nowrap' }}
+              title="Convierte coordenadas GPS crudas a nombres de localidad">
+              📍 Corregir localidades
+            </button>
+          )}
+          <span className="admin-badge">
+            {hayFiltros ? `${total} filtrados` : `${total} registros`}
+          </span>
         </div>
       </div>
 
@@ -447,14 +659,14 @@ function RegistrosManager() {
           </select>
         </div>
         <div className="reg-filter-group">
-          <label>Desde</label>
-          <input type="date" value={filtroFechaDesde}
-            onChange={e => { setFiltroFechaDesde(e.target.value); setQuickActive(null); setPage(0) }} />
-        </div>
-        <div className="reg-filter-group">
-          <label>Hasta</label>
-          <input type="date" value={filtroFechaHasta}
-            onChange={e => { setFiltroFechaHasta(e.target.value); setQuickActive(null); setPage(0) }} />
+          <label>Fechas</label>
+          <div className="reg-daterange">
+            <input type="date" value={filtroFechaDesde} title="Desde"
+              onChange={e => { setFiltroFechaDesde(e.target.value); setQuickActive(null); setPage(0) }} />
+            <span className="reg-daterange-sep">→</span>
+            <input type="date" value={filtroFechaHasta} title="Hasta"
+              onChange={e => { setFiltroFechaHasta(e.target.value); setQuickActive(null); setPage(0) }} />
+          </div>
         </div>
         <div className="reg-quick-filters">
           {QUICK_FILTERS.map((qf, i) => (
@@ -466,29 +678,47 @@ function RegistrosManager() {
         {hayFiltros && <button className="reg-clear-btn" onClick={clearAll}>Limpiar</button>}
       </div>
 
-      {loading && <div className="reg-loading"><div className="admin-spinner"></div></div>}
       {!loading && registros.length === 0 && <p className="reg-empty">No hay registros con los filtros seleccionados.</p>}
 
-      {!loading && registros.length > 0 && (
+      {(loading || registros.length > 0) && (
         <div className="reg-table-wrap">
           <table className="reg-table">
             <thead>
               <tr>
                 {COLUMNS.map(col => (
-                  <th key={col.key} onClick={() => handleSort(col.key)}
-                    style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>
-                    {col.label}<SortIcon active={sortCol === col.key} asc={sortAsc} />
+                  <th key={col.key}
+                    onClick={() => !col.noSort && !loading && handleSort(col.key)}
+                    style={{ cursor: col.noSort || loading ? 'default' : 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>
+                    {col.label}{!col.noSort && !loading && <SortIcon active={sortCol === col.key} asc={sortAsc} />}
                   </th>
                 ))}
                 <th>Fotos</th>
                 <th></th>
               </tr>
             </thead>
+            {loading && (
+              <tbody>
+                {[...Array(8)].map((_, i) => (
+                  <tr key={i} className="reg-row skel-row" style={{ animationDelay: `${i * 0.07}s` }}>
+                    <td><span className="skel" style={{ width: '75%', height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: 70, height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: 50, height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: 80, height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: '90%', height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: 90, height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: 60, height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: 30, height: 13 }} /></td>
+                    <td><span className="skel" style={{ width: 20, height: 13 }} /></td>
+                    <td />
+                  </tr>
+                ))}
+              </tbody>
+            )}
             <tbody>
               {registros.map(r => (
                 <React.Fragment key={r.id}>
-                  <tr className={`reg-row ${expandedId === r.id ? 'reg-row--open' : ''}`}
-                    onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}>
+                  <tr className="reg-row" style={{ cursor: 'pointer' }}
+                    onClick={() => setModalRegistro(r)}>
                     <td className="reg-td-worker">
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         {r.revisado_por && (
@@ -501,10 +731,14 @@ function RegistrosManager() {
                       </div>
                     </td>
                     <td className="reg-td-fecha">{r.fecha}</td>
+                    <td className="reg-td-ot">{r.ot || <span className="reg-empty-cell">—</span>}</td>
                     <td className="reg-td-tipo">{r.tipo_trabajo || <span className="reg-empty-cell">—</span>}</td>
                     <td className="reg-td-tarea">
                       <div>{r.tarea}</div>
                       {r.equipo_intervenido && <div className="reg-equipo-sub">{r.equipo_intervenido}</div>}
+                    </td>
+                    <td className="reg-td-loc" title={r.ubicacion_texto || ''}>
+                      {shortLoc(r.ubicacion_texto) || <span className="reg-empty-cell">—</span>}
                     </td>
                     <td>
                       {r.estado
@@ -524,135 +758,11 @@ function RegistrosManager() {
                         : <span className="reg-empty-cell">—</span>}
                     </td>
                     <td>
-                      <svg className="reg-chevron" viewBox="0 0 24 24"
-                        style={{ transform: expandedId === r.id ? 'rotate(180deg)' : 'none' }}>
-                        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                      <svg className="reg-chevron" viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
                       </svg>
                     </td>
                   </tr>
-
-                  {expandedId === r.id && (
-                    <tr className="reg-expanded-row">
-                      <td colSpan={8}>
-                        <div className="reg-expanded-body">
-                          {r.equipo_intervenido && (
-                            <div className="reg-field">
-                              <span className="reg-label">Equipo / Activo intervenido</span>
-                              <p>{r.equipo_intervenido}</p>
-                            </div>
-                          )}
-                          {r.ot && (
-                            <div className="reg-field">
-                              <span className="reg-label">OT (Orden de Trabajo)</span>
-                              <p>{r.ot}</p>
-                            </div>
-                          )}
-                          {r.planta && (
-                            <div className="reg-field">
-                              <span className="reg-label">Planta / lugar de trabajo</span>
-                              <p>{r.planta}</p>
-                            </div>
-                          )}
-                          {r.aviso_sap && (
-                            <div className="reg-field">
-                              <span className="reg-label">Aviso SAP</span>
-                              <p>{r.aviso_sap}</p>
-                            </div>
-                          )}
-                          {r.descripcion && (
-                            <div className="reg-field">
-                              <span className="reg-label">Descripción</span>
-                              <p>{r.descripcion}</p>
-                            </div>
-                          )}
-                          {r.material_utilizado && (
-                            <div className="reg-field">
-                              <span className="reg-label">Material utilizado</span>
-                              <p>{r.material_utilizado}</p>
-                            </div>
-                          )}
-                          {r.ubicacion_texto && (
-                            <div className="reg-field">
-                              <span className="reg-label">Ubicación</span>
-                              <p>{r.ubicacion_texto}</p>
-                              {r.ubicacion_lat && (
-                                <a href={`https://maps.google.com/?q=${r.ubicacion_lat},${r.ubicacion_lng}`}
-                                  target="_blank" rel="noopener noreferrer" className="reg-maps-link">
-                                  Ver en Google Maps →
-                                </a>
-                              )}
-                            </div>
-                          )}
-                          {r.factura_path && <div className="reg-detail-field"><span className="reg-label">Factura</span><InvoiceImage path={r.factura_path} /></div>}
-                          {r.fotos?.length > 0 && (
-                            <div className="reg-field">
-                              <span className="reg-label">Todas las fotos ({r.fotos.length})</span>
-                              <div className="reg-foto-grid">
-                                {r.fotos.map((url,i) => (
-                                  <HeicImage key={i} src={url} className="reg-foto" alt="" onClick={() => setModalUrl(url)} />
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Comentario del supervisor */}
-                          <div className="reg-field">
-                            <span className="reg-label">Comentario supervisor</span>
-                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start', marginTop: 4 }}>
-                              <textarea
-                                value={comentarios[r.id] ?? ''}
-                                onChange={e => setComentarios(prev => ({ ...prev, [r.id]: e.target.value }))}
-                                onClick={e => e.stopPropagation()}
-                                placeholder="Agregar comentario o nota interna..."
-                                rows={2}
-                                style={{
-                                  flex: 1, background: 'rgba(255,255,255,0.05)',
-                                  border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6,
-                                  color: '#fff', padding: '6px 8px', fontSize: '0.85rem', resize: 'vertical',
-                                }}
-                              />
-                              <button
-                                className="admin-btn-outline"
-                                style={{ fontSize: '0.78rem', padding: '6px 12px', whiteSpace: 'nowrap' }}
-                                onClick={e => { e.stopPropagation(); saveComment(r.id) }}
-                                disabled={savingComment === r.id}
-                              >
-                                {savingComment === r.id ? 'Guardando...' : 'Guardar'}
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Acciones */}
-                          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
-                            {r.revisado_por ? (
-                              <span style={{ fontSize: '0.8rem', color: '#22c55e', display: 'flex', alignItems: 'center', gap: 5 }}>
-                                <svg viewBox="0 0 24 24" style={{ width: 15, height: 15, fill: '#22c55e' }}><path d={RICON.check} /></svg>
-                                Revisado por {r.revisado_por} — {new Date(r.revisado_at).toLocaleDateString('es-CL')}
-                              </span>
-                            ) : (
-                              <button
-                                className="admin-btn-outline reg-icon-btn"
-                                style={{ fontSize: '0.78rem', padding: '5px 12px' }}
-                                onClick={e => { e.stopPropagation(); markReviewed(r.id) }}
-                                disabled={markingReviewed === r.id}
-                              >
-                                <svg viewBox="0 0 24 24"><path d={RICON.check} /></svg>
-                                {markingReviewed === r.id ? 'Marcando...' : 'Marcar como revisado'}
-                              </button>
-                            )}
-                            <button
-                              className="admin-btn-outline reg-icon-btn"
-                              style={{ fontSize: '0.78rem', padding: '5px 12px' }}
-                              onClick={e => { e.stopPropagation(); printRecord(r) }}
-                            >
-                              <svg viewBox="0 0 24 24"><path d={RICON.printer} /></svg>
-                              Exportar PDF
-                            </button>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
                 </React.Fragment>
               ))}
             </tbody>
