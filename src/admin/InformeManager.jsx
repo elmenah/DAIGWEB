@@ -439,7 +439,7 @@ export default function InformeManager() {
             ${r.equipo_intervenido ? `<br><span style="color:#6b6b8a;font-size:0.82em">${r.equipo_intervenido}</span>` : ''}
           </td>
           <td>${r.estado || '—'}</td>
-          <td style="text-align:right">${r.horas_trabajadas != null ? r.horas_trabajadas + ' h' : '—'}</td>
+          ${esMes ? '' : `<td style="text-align:right">${r.horas_trabajadas != null ? r.horas_trabajadas + ' h' : '—'}</td>`}
         </tr>`).join('')
 
       const tarjetasTrabajo = regsGeo.map((r, i) => {
@@ -575,7 +575,7 @@ export default function InformeManager() {
           <th style="width:130px">Tipo</th>
           <th>Tarea / Equipo</th>
           <th style="width:110px">Estado</th>
-          <th style="width:50px;text-align:right">Hrs</th>
+          ${esMes ? '' : '<th style="width:50px;text-align:right">Hrs</th>'}
         </tr></thead>
         <tbody>${filaActividades}</tbody>
       </table>
@@ -754,7 +754,7 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
   <div class="portada-periodo">${periodo}</div>
   <div class="portada-kpis">
     <div><div class="portada-kpi-val">${regsUsados.length}</div><div class="portada-kpi-lbl">Registros</div></div>
-    <div><div class="portada-kpi-val">${nH(horasUsadas)}</div><div class="portada-kpi-lbl">Horas</div></div>
+    ${esMes ? '' : `<div><div class="portada-kpi-val">${nH(horasUsadas)}</div><div class="portada-kpi-lbl">Horas</div></div>`}
     <div><div class="portada-kpi-val">${trabActivosUsados}</div><div class="portada-kpi-lbl">Trabajadores</div></div>
   </div>
   <div class="portada-footer">DAIG SpA · daigchile.cl</div>
@@ -768,10 +768,10 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
   <div class="seccion">
     <div class="sec-titulo"><span class="sec-num">1.</span> RESUMEN POR TRABAJADOR</div>
     <table class="tabla-res">
-      <thead><tr><th>Trabajador</th><th>Registros</th><th>Horas</th><th>Tipos de trabajo</th></tr></thead>
+      <thead><tr><th>Trabajador</th><th>Registros</th>${esMes ? '' : '<th>Horas</th>'}<th>Tipos de trabajo</th></tr></thead>
       <tbody>
-        ${trabUsados.map(w => `<tr><td>${w.nombre}</td><td style="text-align:center">${w.registros.length}</td><td style="text-align:center">${nH(w.horas)}</td><td>${[...w.tipos].join(', ') || '—'}</td></tr>`).join('')}
-        <tr class="total-row"><td>TOTAL</td><td style="text-align:center">${regsUsados.length}</td><td style="text-align:center">${nH(horasUsadas)}</td><td></td></tr>
+        ${trabUsados.map(w => `<tr><td>${w.nombre}</td><td style="text-align:center">${w.registros.length}</td>${esMes ? '' : `<td style="text-align:center">${nH(w.horas)}</td>`}<td>${[...w.tipos].join(', ') || '—'}</td></tr>`).join('')}
+        <tr class="total-row"><td>TOTAL</td><td style="text-align:center">${regsUsados.length}</td>${esMes ? '' : `<td style="text-align:center">${nH(horasUsadas)}</td>`}<td></td></tr>
       </tbody>
     </table>
   </div>
@@ -796,8 +796,8 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
       <div class="fecha-grupo">
         <div class="fecha-lbl">${fmtFecha(fecha)}</div>
         <table class="tabla-act">
-          <thead><tr><th>Trabajador</th><th>Tipo</th><th>Tarea / Equipo</th><th>Estado</th><th>Hrs</th></tr></thead>
-          <tbody>${regs.map(r => `<tr><td>${r.trabajador_nombre||'—'}</td><td>${r.tipo_trabajo||'—'}</td><td><strong>${r.tarea||''}</strong>${r.equipo_intervenido?` · <small>${r.equipo_intervenido}</small>`:''}</td><td>${r.estado||'—'}</td><td style="text-align:center">${r.horas_trabajadas??''}</td></tr>`).join('')}</tbody>
+          <thead><tr><th>Trabajador</th><th>Tipo</th><th>Tarea / Equipo</th><th>Estado</th>${esMes ? '' : '<th>Hrs</th>'}</tr></thead>
+          <tbody>${regs.map(r => `<tr><td>${r.trabajador_nombre||'—'}</td><td>${r.tipo_trabajo||'—'}</td><td><strong>${r.tarea||''}</strong>${r.equipo_intervenido?` · <small>${r.equipo_intervenido}</small>`:''}</td><td>${r.estado||'—'}</td>${esMes ? '' : `<td style="text-align:center">${r.horas_trabajadas??''}</td>`}</tr>`).join('')}</tbody>
         </table>
       </div>`).join('')}
   </div>
@@ -848,8 +848,9 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
             </button>
           </div>
 
+          <div className="inf-period-navigation" role="group" aria-label="Navegación del período">
           {!esCustom && (
-            <button className="inf-week-nav" onClick={irAnterior} title={esMes ? 'Mes anterior' : 'Semana anterior'}>
+            <button type="button" className="inf-week-nav" onClick={irAnterior} aria-label={esDia ? 'Día anterior' : esMes ? 'Mes anterior' : 'Semana anterior'} title={esDia ? 'Día anterior' : esMes ? 'Mes anterior' : 'Semana anterior'}>
               <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
             </button>
           )}
@@ -870,7 +871,7 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
           </div>
 
           {!esCustom && (
-            <button className="inf-week-nav" onClick={irSiguiente} title={esMes ? 'Mes siguiente' : 'Semana siguiente'}>
+            <button type="button" className="inf-week-nav" onClick={irSiguiente} aria-label={esDia ? 'Día siguiente' : esMes ? 'Mes siguiente' : 'Semana siguiente'} title={esDia ? 'Día siguiente' : esMes ? 'Mes siguiente' : 'Semana siguiente'}>
               <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
             </button>
           )}
@@ -878,6 +879,7 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
           {!esPeriodoActual && !esCustom && (
             <button className="inf-today-btn" onClick={irActual}>Hoy</button>
           )}
+          </div>
         </div>
 
         {/* Fila 2: acciones */}

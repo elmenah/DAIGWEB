@@ -26,6 +26,11 @@ Las pruebas sustituyen las peticiones externas y no envían correos reales.
    Es una migración aditiva y repetible: crea `factura_path` y el bucket privado
    `registros-facturas`, con lectura para el propietario, admin y directiva.
 2. Publicar frontend y funciones Netlify juntos, después de aplicar el SQL.
+   Para adjuntar varias facturas, ejecutar también
+   `supabase/agregar_facturas_multiples.sql` antes de publicar. Conserva las
+   facturas anteriores en `factura_paths`; el formulario permite añadir varias
+   imágenes y quitar cada una por separado, también al editar. El límite de
+   15 MB se aplica por imagen. Las colas offline antiguas siguen siendo compatibles.
 3. Verificar con un trabajador: crear un registro con factura, abrirla desde
    el historial, reemplazarla y quitarla al editar. Comprobar también la vista
    expandida de registros en administración.

@@ -6690,6 +6690,22 @@ header.scrolled .navbar {
   gap: 0.5rem;
   flex-wrap: wrap;
 }
+.inf-period-navigation {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  min-width: 0;
+}
+.inf-period-navigation .inf-week-label {
+  flex: 0 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.inf-period-navigation .inf-week-nav,
+.inf-period-navigation .inf-today-btn {
+  flex-shrink: 0;
+}
 .inf-actions-row {
   display: flex;
   align-items: center;

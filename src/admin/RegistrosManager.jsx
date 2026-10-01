@@ -5,6 +5,8 @@ import HeicImage from '../components/HeicImage'
 import { isHeic, heicBlobToJpeg } from '../lib/heic'
 
 import InvoiceImage from '../components/InvoiceImage'
+import RecordHoursEditor from './RecordHoursEditor'
+import { getInvoicePaths } from '../lib/invoicePaths'
 
 const FOTOS_BUCKET = 'registros-fotos'
 
@@ -107,7 +109,7 @@ function PhotoModal({ url, onClose }) {
 
 const IND_COLOR = { 'Bueno': '#22c55e', 'Regular': '#f59e0b', 'Requiere atención': '#f97316', 'Crítico': '#ef4444' }
 
-function RegistroDetailModal({ r, comentario, onComentarioChange, savingComment, onSaveComment, markingReviewed, onMarkReviewed, onPrint, onPhotoClick, onClose }) {
+function RegistroDetailModal({ r, canEditHours, onHoursSaved, comentario, onComentarioChange, savingComment, onSaveComment, markingReviewed, onMarkReviewed, onPrint, onPhotoClick, onClose }) {
   useEffect(() => {
     const h = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', h)
@@ -152,7 +154,9 @@ function RegistroDetailModal({ r, comentario, onComentarioChange, savingComment,
           {r.planta && <div className="reg-field"><span className="reg-label">Planta / lugar</span><p>{r.planta}</p></div>}
           {r.aviso_sap && <div className="reg-field"><span className="reg-label">Aviso SAP</span><p>{r.aviso_sap}</p></div>}
           {r.material_utilizado && <div className="reg-field"><span className="reg-label">Material utilizado</span><p>{r.material_utilizado}</p></div>}
-          {r.horas_trabajadas && <div className="reg-field"><span className="reg-label">Horas trabajadas</span><p>{r.horas_trabajadas}h</p></div>}
+          {canEditHours
+            ? <RecordHoursEditor key={r.id} record={r} onSaved={onHoursSaved} />
+            : <div className="reg-field"><span className="reg-label">Horas trabajadas</span><p>{r.horas_trabajadas != null ? `${r.horas_trabajadas}h` : 'Sin registrar'}</p></div>}
           {r.ubicacion_texto && (
             <div className="reg-field">
               <span className="reg-label">Ubicación</span>
@@ -164,10 +168,10 @@ function RegistroDetailModal({ r, comentario, onComentarioChange, savingComment,
             </div>
           )}
 
-          {r.factura_path && (
+          {getInvoicePaths(r).length > 0 && (
             <div className="reg-field">
-              <span className="reg-label">Factura</span>
-              <InvoiceImage path={r.factura_path} />
+              <span className="reg-label">Facturas ({getInvoicePaths(r).length})</span>
+              {getInvoicePaths(r).map(path => <InvoiceImage key={path} path={path} />)}
             </div>
           )}
           {/* Fotos */}
@@ -246,7 +250,7 @@ function RegistroDetailModal({ r, comentario, onComentarioChange, savingComment,
 }
 
 function RegistrosManager() {
-  const { user } = useAuth()
+  const { user, role } = useAuth()
   const [adminNombre, setAdminNombre] = useState('')
 
   const [registros, setRegistros]       = useState([])
@@ -585,6 +589,12 @@ function RegistrosManager() {
       {modalRegistro && (
         <RegistroDetailModal
           r={modalRegistro}
+          canEditHours={role === 'admin'}
+          onHoursSaved={updated => {
+            setRegistros(prev => prev.map(r => r.id === updated.id ? { ...r, ...updated } : r))
+            setModalRegistro(prev => prev?.id === updated.id ? { ...prev, ...updated } : prev)
+            loadStats()
+          }}
           comentario={comentarios[modalRegistro.id] ?? ''}
           onComentarioChange={val => setComentarios(prev => ({ ...prev, [modalRegistro.id]: val }))}
           savingComment={savingComment === modalRegistro.id}

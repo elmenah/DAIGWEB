@@ -8,6 +8,7 @@ import logoImg from '../assets/logo.jpeg'
 import InvoiceImage from '../components/InvoiceImage'
 import { uploadInvoice, validateInvoice } from '../lib/invoice'
 import { saveWorkRecord } from '../lib/saveWorkRecord'
+import { getInvoicePaths, collectInvoicePaths } from '../lib/invoicePaths'
 
 const today = () => new Date().toISOString().split('T')[0]
 const nowTime = () => new Date().toTimeString().slice(0, 5)
@@ -45,9 +46,9 @@ function TrabajadoresPanel() {
   const [fotos, setFotos] = useState([])
   const [fotosPreviews, setFotosPreviews] = useState([])
   const [fotosExistentes, setFotosExistentes] = useState([])
-  const [factura, setFactura] = useState(null)
-  const [facturaPath, setFacturaPath] = useState(null)
-  const [facturaPreview, setFacturaPreview] = useState(null)
+  const [facturas, setFacturas] = useState([])
+  const [facturaPaths, setFacturaPaths] = useState([])
+  const [facturaPreviews, setFacturaPreviews] = useState([])
   const [facturaError, setFacturaError] = useState('')
   const [sendError, setSendError] = useState('')
   const facturaInputRef = useRef(null)
@@ -55,19 +56,18 @@ function TrabajadoresPanel() {
   const draftIdRef = useRef(crypto.randomUUID())
 
   useEffect(() => {
-    if (!factura) { setFacturaPreview(null); return }
-    const url = URL.createObjectURL(factura)
-    setFacturaPreview(url)
-    return () => URL.revokeObjectURL(url)
-  }, [factura])
+    const urls = facturas.map(file => URL.createObjectURL(file))
+    setFacturaPreviews(urls)
+    return () => urls.forEach(url => URL.revokeObjectURL(url))
+  }, [facturas])
 
   const handleFactura = (event) => {
-    const file = event.target.files?.[0]
+    const files = Array.from(event.target.files || [])
     event.target.value = ''
-    if (!file) return
+    if (!files.length) return
     try {
-      validateInvoice(file)
-      setFactura(file)
+      files.forEach(validateInvoice)
+      setFacturas(prev => [...prev, ...files])
       setFacturaError('')
     } catch (error) {
       setFacturaError(error.message)
@@ -115,7 +115,7 @@ function TrabajadoresPanel() {
     setHorasTrabajadas(''); setEstado('Terminado'); setIndicadorMantenimiento('')
     setUbicacionLat(null); setUbicacionLng(null); setUbicacionTexto(''); setGpsError('')
     setFotos([]); setFotosPreviews([]); setFotosExistentes([])
-    setFactura(null); setFacturaPath(null); setFacturaError('')
+    setFacturas([]); setFacturaPaths([]); setFacturaError('')
     draftIdRef.current = crypto.randomUUID()
     setFecha(today()); setHora(nowTime())
     setEditingId(null)
@@ -145,7 +145,7 @@ function TrabajadoresPanel() {
     setFotos([])
     setFotosPreviews([])
     setFotosExistentes(r.fotos || [])
-    setFactura(null); setFacturaPath(r.factura_path || null); setFacturaError('')
+    setFacturas([]); setFacturaPaths(getInvoicePaths(r)); setFacturaError('')
     setEditingId(r.id)
     setSendStatus(null)
     setView('form')
@@ -307,6 +307,8 @@ function TrabajadoresPanel() {
             fotosNuevas: item.fotosNuevas || [],
             facturaNueva: item.facturaNueva || null,
             facturaExistente: item.facturaExistente || null,
+            facturasNuevas: item.facturasNuevas,
+            facturasExistentes: item.facturasExistentes,
           })
           await deletePending(item.id)
         } catch {
@@ -367,7 +369,7 @@ function TrabajadoresPanel() {
       fecha, hora, ot: ot.trim(), tarea: tarea.trim(), tipo: tipoFinal,
       estado, planta: planta.trim(), equipo: equipoIntervenido.trim(),
       fotos: fotosExistentes.length + fotos.length, editingId,
-      factura: !!(factura || facturaPath),
+      facturas: facturas.length + facturaPaths.length,
     }
 
     try {
@@ -376,10 +378,10 @@ function TrabajadoresPanel() {
         // Edición: requiere conexión (sube fotos y actualiza)
         const nuevasUrls = fotos.length > 0 ? await uploadFotos() : []
         const fotosFinales = [...fotosExistentes, ...nuevasUrls]
-        const invoicePath = factura ? await uploadInvoice(factura, user.id) : facturaPath
+        const invoicePaths = await collectInvoicePaths(facturaPaths, facturas, user.id, uploadInvoice)
         const { data: updated, error } = await supabase
           .from('registros_trabajo')
-          .update({ ...base, trabajador_nombre: workerName, fotos: fotosFinales, factura_path: invoicePath })
+          .update({ ...base, trabajador_nombre: workerName, fotos: fotosFinales, factura_paths: invoicePaths, factura_path: invoicePaths[0] || null })
           .eq('id', editingId)
           .select('id').single()
         if (error) throw error
@@ -392,7 +394,7 @@ function TrabajadoresPanel() {
           id: draftIdRef.current,
           base, trabajadorId: user.id, trabajadorNombre: workerName,
           fotosExistentes, fotosNuevas: fotos,
-          facturaNueva: factura, facturaExistente: facturaPath,
+          facturasNuevas: facturas, facturasExistentes: facturaPaths,
         })
         setSubmittedData({ ...resumen, fotos: n })
         setSendStatus('ok')
@@ -411,8 +413,8 @@ function TrabajadoresPanel() {
             payloadBase: base,
             fotosExistentes,
             fotosNuevas: fotos,
-            facturaNueva: factura,
-            facturaExistente: facturaPath,
+            facturasNuevas: facturas,
+            facturasExistentes: facturaPaths,
             createdAt: Date.now(),
           })
           setSubmittedData({ ...resumen, offline: true })
@@ -545,7 +547,7 @@ function TrabajadoresPanel() {
                   <span>{submittedData.fotos} {submittedData.fotos === 1 ? 'foto' : 'fotos'} adjuntadas</span>
                 </div>
               )}
-              {submittedData.factura && <div className="trab-success-row"><span className="trab-success-label">Factura</span><span>{submittedData.offline ? 'Guardada para enviar' : 'Adjuntada'}</span></div>}
+              {submittedData.facturas > 0 && <div className="trab-success-row"><span className="trab-success-label">Facturas</span><span>{submittedData.facturas} {submittedData.offline ? 'por enviar' : 'adjuntas'}</span></div>}
             </div>
 
             <div className="trab-success-actions">
@@ -761,21 +763,26 @@ function TrabajadoresPanel() {
               </div>
 
               <fieldset className="trab-field trab-invoice" disabled={sending}>
-                <legend>Foto de la factura <span>(opcional)</span></legend>
-                <p id="factura-help">Adjunta una imagen legible de la factura. JPG, PNG, WebP o HEIC, máximo 15 MB.</p>
+                <legend>Fotos de facturas <span>(opcional)</span></legend>
+                <p id="factura-help">Puedes adjuntar varias facturas, desde la cámara o la galería. JPG, PNG, WebP o HEIC, máximo 15 MB por imagen.</p>
                 <div className="trab-foto-btns">
                   <button type="button" className="trab-foto-btn trab-foto-btn--camera" onClick={() => facturaCameraRef.current?.click()}>Tomar foto de factura</button>
-                  <button type="button" className="trab-foto-btn trab-foto-btn--gallery" onClick={() => facturaInputRef.current?.click()}>{factura || facturaPath ? 'Reemplazar factura' : 'Elegir factura'}</button>
+                  <button type="button" className="trab-foto-btn trab-foto-btn--gallery" onClick={() => facturaInputRef.current?.click()}>Añadir facturas</button>
                 </div>
                 <input ref={facturaCameraRef} type="file" accept="image/*" capture="environment" aria-label="Tomar foto de factura" onChange={handleFactura} hidden />
-                <input ref={facturaInputRef} type="file" accept="image/jpeg,image/png,image/webp,.heic,.heif" aria-label="Elegir foto de factura" aria-describedby="factura-help" onChange={handleFactura} hidden />
+                <input ref={facturaInputRef} type="file" multiple accept="image/jpeg,image/png,image/webp,.heic,.heif" aria-label="Elegir fotos de facturas" aria-describedby="factura-help" onChange={handleFactura} hidden />
                 {facturaError && <p role="alert" className="trab-gps-error">{facturaError}</p>}
-                {factura ? <div className="trab-invoice-preview">
-                  {facturaPreview && !isHeicFile(factura) && <img src={facturaPreview} alt="Vista previa de la factura seleccionada" />}
-                  <p>{factura.name}</p>
-                  {isHeicFile(factura) && <small>La imagen HEIC se convertirá al enviar.</small>}
-                </div> : facturaPath ? <InvoiceImage path={facturaPath} /> : null}
-                {(factura || facturaPath) && <button type="button" className="trab-edit-btn" onClick={() => { setFactura(null); setFacturaPath(null); setFacturaError('') }}>Quitar factura</button>}
+                <p aria-live="polite">{facturaPaths.length + facturas.length} facturas adjuntas</p>
+                {facturaPaths.map((path, index) => <div key={path} className="trab-invoice-preview">
+                  <InvoiceImage path={path} />
+                  <button type="button" className="trab-edit-btn" aria-label={`Quitar factura guardada ${index + 1}`} onClick={() => setFacturaPaths(prev => prev.filter((_, i) => i !== index))}>Quitar factura</button>
+                </div>)}
+                {facturas.map((file, index) => <div key={index} className="trab-invoice-preview">
+                  {facturaPreviews[index] && !isHeicFile(file) && <img src={facturaPreviews[index]} alt={`Vista previa de factura ${index + 1}`} />}
+                  <p>{file.name}</p>
+                  {isHeicFile(file) && <small>La imagen HEIC se convertirá al enviar.</small>}
+                  <button type="button" className="trab-edit-btn" aria-label={`Quitar ${file.name}`} onClick={() => setFacturas(prev => prev.filter((_, i) => i !== index))}>Quitar factura</button>
+                </div>)}
               </fieldset>
 
               <button type="submit" className="trab-submit-btn" disabled={sending}>
@@ -888,7 +895,7 @@ function TrabajadoresPanel() {
                           </div>
                         </div>
                       )}
-                      {r.factura_path && <div className="trab-hist-field"><span className="trab-hist-label">Factura</span><InvoiceImage path={r.factura_path} /></div>}
+                      {getInvoicePaths(r).length > 0 && <div className="trab-hist-field"><span className="trab-hist-label">Facturas ({getInvoicePaths(r).length})</span>{getInvoicePaths(r).map(path => <InvoiceImage key={path} path={path} />)}</div>}
                       {r.comentario_admin && (
                         <div className="trab-hist-field" style={{ background: 'rgba(232,150,46,0.08)', borderRadius: 6, padding: '8px 10px' }}>
                           <span className="trab-hist-label" style={{ color: 'var(--color-accent)' }}>Comentario del supervisor</span>
