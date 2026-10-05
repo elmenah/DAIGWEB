@@ -5375,6 +5375,17 @@ header.scrolled .navbar {
   padding: 7px 10px;
   font-size: 0.85rem;
 }
+.cam-month-nav select option {
+  background: var(--dark-bg, #15152b);
+  color: #fff;
+}
+/* Los botones de la barra de filtros no deben estirarse a todo el ancho
+   (admin-btn-primary trae width:100% pensado para formularios). */
+.cam-filters .admin-btn-primary,
+.cam-filters .admin-btn-outline {
+  width: auto;
+  margin-top: 0;
+}
 .cam-nav-btn {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.12);
@@ -5408,7 +5419,7 @@ header.scrolled .navbar {
   .cam-range { display: flex; gap: 0.6rem; }
   .cam-range .admin-field { flex: 1; }
   .cam-month-nav select:first-of-type { flex: 1; }
-  .cam-export-btn { margin-left: 0; width: 100%; justify-content: center; }
+  .cam-filters .cam-export-btn { margin-left: 0; width: 100%; justify-content: center; }
 }
 
 .reg-table {
