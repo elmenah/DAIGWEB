@@ -126,7 +126,7 @@ export const handler = async (event) => {
 
     if (profileError) {
       await supabaseAdmin.auth.admin.deleteUser(newUser.user.id)
-      return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: 'Error al crear perfil' }) }
+      return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: `Error al crear perfil: ${profileError.message}` }) }
     }
 
     return {
