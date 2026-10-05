@@ -16,6 +16,7 @@ const ServicePage = lazy(() => import('./pages/ServicePage'))
 const CotizarPage = lazy(() => import('./pages/CotizarPage'))
 const TrabajadoresLogin = lazy(() => import('./pages/TrabajadoresLogin'))
 const TrabajadoresPanel = lazy(() => import('./pages/TrabajadoresPanel'))
+const CamionesLogin      = lazy(() => import('./pages/CamionesLogin'))
 const CamionesPanel      = lazy(() => import('./pages/CamionesPanel'))
 const PermisosLogin      = lazy(() => import('./pages/PermisosLogin'))
 const PermisosPanel      = lazy(() => import('./pages/PermisosPanel'))
@@ -130,7 +131,7 @@ root.render(
           path="/camiones"
           element={
             <Suspense fallback={<AdminLoader />}>
-              <TrabajadoresLogin />
+              <CamionesLogin />
             </Suspense>
           }
         />

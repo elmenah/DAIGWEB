@@ -1,8 +1,34 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { loadXLSX, buildStyledSheet } from '../lib/styledExcel'
 
 const fmtHora = (iso) => iso ? new Date(iso).toLocaleString('es-CL', { dateStyle: 'short', timeStyle: 'short' }) : '—'
 const tareaText = (t) => (typeof t === 'string' ? t : t?.actividad || '')
+
+const iso = (d) => d.toISOString().split('T')[0]
+const fmtFecha = (f) => {
+  if (!f) return ''
+  const [y, m, d] = f.split('-')
+  return `${d}-${m}-${y}`
+}
+// Rangos de calendario para los filtros rápidos
+const rangos = {
+  dia: () => { const d = new Date(); return { desde: iso(d), hasta: iso(d) } },
+  semana: () => {
+    const d = new Date(); const day = d.getDay() || 7
+    const lunes = new Date(d); lunes.setDate(d.getDate() - day + 1)
+    const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6)
+    return { desde: iso(lunes), hasta: iso(domingo) }
+  },
+  mes: () => {
+    const d = new Date()
+    return { desde: iso(new Date(d.getFullYear(), d.getMonth(), 1)), hasta: iso(new Date(d.getFullYear(), d.getMonth() + 1, 0)) }
+  },
+  anio: () => {
+    const d = new Date()
+    return { desde: iso(new Date(d.getFullYear(), 0, 1)), hasta: iso(new Date(d.getFullYear(), 11, 31)) }
+  },
+}
 
 function Modal({ title, onClose, children }) {
   return (
@@ -26,6 +52,26 @@ function CamionesManager() {
   const [error, setError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
   const [deleting, setDeleting] = useState(null)
+
+  // Filtros de informe
+  const [desde, setDesde] = useState('')
+  const [hasta, setHasta] = useState('')
+  const [periodo, setPeriodo] = useState('')   // 'dia' | 'semana' | 'mes' | 'anio' | '' (personalizado)
+  const [exporting, setExporting] = useState(false)
+
+  const aplicarRango = (key) => {
+    const r = rangos[key]()
+    setDesde(r.desde); setHasta(r.hasta); setPeriodo(key)
+  }
+  const limpiarFiltro = () => { setDesde(''); setHasta(''); setPeriodo('') }
+
+  const registrosFiltrados = registros.filter(r => {
+    const f = r.mantencion_desde
+    if (!f) return !desde && !hasta
+    if (desde && f < desde) return false
+    if (hasta && f > hasta) return false
+    return true
+  })
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -100,6 +146,49 @@ function CamionesManager() {
     }
   }
 
+  const handleExport = async () => {
+    if (!registrosFiltrados.length) return
+    setExporting(true)
+    try {
+      const XLSX = await loadXLSX()
+      const periodoTxt = desde || hasta
+        ? `${desde ? fmtFecha(desde) : '—'} al ${hasta ? fmtFecha(hasta) : '—'}`
+        : 'Todos los registros'
+      const nombrePeriodo = { dia: 'diario', semana: 'semanal', mes: 'mensual', anio: 'anual' }[periodo] || 'general'
+
+      const headers = ['N° OT', 'Patente', 'Equipo', 'Taller', 'Mantenedor', 'Desde', 'Hasta', 'Horómetro (h)', 'Tareas realizadas', 'N° Fotos', 'Hora término']
+      const colWidths = [12, 12, 26, 18, 20, 11, 11, 13, 46, 8, 18]
+      const centerCols = [7, 9]
+      const rows = registrosFiltrados.map(r => [
+        r.ot_numero || '',
+        r.patente || '',
+        r.equipo || '',
+        r.taller || '',
+        r.mantenedor_nombre || '',
+        fmtFecha(r.mantencion_desde),
+        fmtFecha(r.mantencion_hasta),
+        r.horometro ?? '',
+        (Array.isArray(r.tareas) ? r.tareas.map(tareaText).filter(Boolean) : []).map((t, i) => `${i + 1}. ${t}`).join('\n'),
+        r.fotos?.length || 0,
+        fmtHora(r.hora_termino),
+      ])
+
+      const ws = buildStyledSheet(XLSX, {
+        title: `Informe ${nombrePeriodo} de mantención de camiones`,
+        subtitle: `DAIG SpA · ${periodoTxt}`,
+        headers, colWidths, centerCols, rows,
+        totals: ['TOTAL', `${rows.length} OT`, '', '', '', '', '', '', '', '', ''],
+      })
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'Mantención camiones')
+      const sufijo = desde || hasta ? `${desde || 'inicio'}_al_${hasta || 'hoy'}` : 'todos'
+      XLSX.writeFile(wb, `mantencion_camiones_${sufijo}.xlsx`)
+    } catch (e) {
+      alert('Error al exportar: ' + e.message)
+    }
+    setExporting(false)
+  }
+
   return (
     <div className="admin-section">
       {edit && (
@@ -171,14 +260,47 @@ function CamionesManager() {
 
       <div className="admin-section-header">
         <h3>Mantención de Camiones</h3>
-        <span className="admin-badge">{registros.length} registros</span>
+        <span className="admin-badge">{registrosFiltrados.length} de {registros.length}</span>
+      </div>
+
+      {/* Filtros + informe */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'flex-end', marginBottom: '1.1rem' }}>
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+          {[['dia', 'Hoy'], ['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']].map(([k, label]) => (
+            <button key={k} type="button"
+              className={periodo === k ? 'admin-btn-primary' : 'admin-btn-outline'}
+              style={{ fontSize: '0.78rem', padding: '6px 12px' }}
+              onClick={() => aplicarRango(k)}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="admin-field" style={{ margin: 0 }}>
+          <label style={{ fontSize: '0.72rem' }}>Desde</label>
+          <input type="date" value={desde} onChange={e => { setDesde(e.target.value); setPeriodo('') }} />
+        </div>
+        <div className="admin-field" style={{ margin: 0 }}>
+          <label style={{ fontSize: '0.72rem' }}>Hasta</label>
+          <input type="date" value={hasta} onChange={e => { setHasta(e.target.value); setPeriodo('') }} />
+        </div>
+        {(desde || hasta) && (
+          <button type="button" className="admin-btn-outline" style={{ fontSize: '0.78rem', padding: '6px 12px' }} onClick={limpiarFiltro}>
+            Limpiar
+          </button>
+        )}
+        <button type="button" className="admin-btn-primary"
+          style={{ fontSize: '0.82rem', marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          onClick={handleExport} disabled={exporting || registrosFiltrados.length === 0}>
+          <svg viewBox="0 0 24 24" style={{ width: 16, height: 16, fill: 'currentColor' }}><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          {exporting ? 'Generando...' : 'Descargar informe (Excel)'}
+        </button>
       </div>
 
       {loading ? (
         <div className="admin-loading" style={{ minHeight: '80px' }}><div className="admin-spinner"></div></div>
-      ) : registros.length === 0 ? (
+      ) : registrosFiltrados.length === 0 ? (
         <p style={{ color: '#9a9ab0', fontSize: '0.875rem', textAlign: 'center', padding: '2rem' }}>
-          Aún no hay registros de mantención de camiones.
+          {registros.length === 0 ? 'Aún no hay registros de mantención de camiones.' : 'No hay registros en el período seleccionado.'}
         </p>
       ) : (
         <div className="reg-table-wrap">
@@ -196,7 +318,7 @@ function CamionesManager() {
               </tr>
             </thead>
             <tbody>
-              {registros.map(r => (
+              {registrosFiltrados.map(r => (
                 <tr key={r.id} className="reg-row">
                   <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{r.ot_numero || '—'}</td>
                   <td style={{ fontWeight: 600 }}>{r.patente || '—'}</td>
