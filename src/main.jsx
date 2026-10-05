@@ -16,6 +16,7 @@ const ServicePage = lazy(() => import('./pages/ServicePage'))
 const CotizarPage = lazy(() => import('./pages/CotizarPage'))
 const TrabajadoresLogin = lazy(() => import('./pages/TrabajadoresLogin'))
 const TrabajadoresPanel = lazy(() => import('./pages/TrabajadoresPanel'))
+const CamionesPanel      = lazy(() => import('./pages/CamionesPanel'))
 const PermisosLogin      = lazy(() => import('./pages/PermisosLogin'))
 const PermisosPanel      = lazy(() => import('./pages/PermisosPanel'))
 const PermisoDetallePage = lazy(() => import('./pages/PermisoDetallePage'))
@@ -124,6 +125,26 @@ root.render(
             </Suspense>
           }
         />
+        {/* Módulo de Mantención de Camiones */}
+        <Route
+          path="/camiones"
+          element={
+            <Suspense fallback={<AdminLoader />}>
+              <TrabajadoresLogin />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/camiones/panel"
+          element={
+            <Suspense fallback={<AdminLoader />}>
+              <AuthGuard allowedRoles={['admin', 'mantenedor_camiones']}>
+                <CamionesPanel />
+              </AuthGuard>
+            </Suspense>
+          }
+        />
+
         {/* Módulo de Permisos de Trabajo */}
         <Route
           path="/permisos"

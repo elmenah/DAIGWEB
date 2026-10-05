@@ -28,6 +28,7 @@ function TrabajadoresLogin() {
   useEffect(() => {
     if (!authLoading && hasHydratedSession && isAuthenticated) {
       if (role === 'trabajador') navigate('/trabajadores/panel', { replace: true })
+      else if (role === 'mantenedor_camiones') navigate('/camiones/panel', { replace: true })
       else if (role === 'admin' || role === 'directiva') navigate('/admin/dashboard', { replace: true })
       else if (role === 'tecnico') navigate('/tecnico', { replace: true })
       else if (role === 'supervisor' || role === 'seguridad') navigate('/permisos/panel', { replace: true })

@@ -11,7 +11,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:4173',
 ]
 
-const ALLOWED_ROLES = ['directiva', 'tecnico', 'trabajador']
+const ALLOWED_ROLES = ['directiva', 'tecnico', 'trabajador', 'mantenedor_camiones']
 
 export const handler = async (event) => {
   const origin = event.headers.origin || ''
@@ -203,6 +203,12 @@ export const handler = async (event) => {
       .from('registros_trabajo').delete().eq('trabajador_id', userId)
     if (regError) {
       return { statusCode: 502, headers: corsHeaders, body: JSON.stringify({ error: `No se pudieron eliminar los registros: ${regError.message}` }) }
+    }
+
+    const { error: camError } = await supabaseAdmin
+      .from('mantencion_camiones').delete().eq('mantenedor_id', userId)
+    if (camError) {
+      return { statusCode: 502, headers: corsHeaders, body: JSON.stringify({ error: `No se pudieron eliminar los registros de camiones: ${camError.message}` }) }
     }
 
     const { error: profileError } = await supabaseAdmin

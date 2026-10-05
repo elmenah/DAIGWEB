@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 
 // Modal simple para dibujar una firma con mouse o dedo. Devuelve un data URL PNG.
-export default function SignaturePad({ initial, onSave, onClose }) {
+export default function SignaturePad({ initial, onSave, onClose, title = 'Firma del supervisor' }) {
   const canvasRef = useRef(null)
   const drawing = useRef(false)
   const [empty, setEmpty] = useState(!initial)
@@ -60,7 +60,7 @@ export default function SignaturePad({ initial, onSave, onClose }) {
         style={{ background: '#1e1e2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: 20, width: 'min(460px, 92vw)' }}
         onClick={e => e.stopPropagation()}
       >
-        <h4 style={{ color: '#fff', margin: '0 0 12px', fontSize: '1rem' }}>Firma del supervisor</h4>
+        <h4 style={{ color: '#fff', margin: '0 0 12px', fontSize: '1rem' }}>{title}</h4>
         <canvas
           ref={canvasRef}
           width={440}

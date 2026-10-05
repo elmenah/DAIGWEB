@@ -6,9 +6,12 @@ const ROLE_LABELS = {
   directiva: { label: 'Directiva', color: '#8b5cf6' },
   tecnico: { label: 'Técnico', color: '#3b82f6' },
   trabajador: { label: 'Trabajador', color: '#22c55e' },
+  mantenedor_camiones: { label: 'Mantenedor camiones', color: '#14b8a6' },
 }
 
-const CREATABLE_ROLES = ['directiva', 'tecnico', 'trabajador']
+const CREATABLE_ROLES = ['directiva', 'tecnico', 'trabajador', 'mantenedor_camiones']
+// Roles que inician sesión con RUT (en vez de un usuario de login)
+const RUT_LOGIN_ROLES = ['trabajador', 'mantenedor_camiones']
 
 function RoleBadge({ role }) {
   const cfg = ROLE_LABELS[role] || { label: role, color: '#9a9ab0' }
@@ -230,17 +233,17 @@ function UserManager() {
             </div>
 
             <div className="admin-field">
-              <label>{cRole === 'trabajador' ? 'RUT (sin puntos ni guión)' : 'Usuario (login)'}</label>
+              <label>{RUT_LOGIN_ROLES.includes(cRole) ? 'RUT (sin puntos ni guión)' : 'Usuario (login)'}</label>
               <input type="text" value={cUsername} onChange={e => setCUsername(e.target.value)}
-                placeholder={cRole === 'trabajador' ? 'Ej: 202705545 o 20.270.554-5' : 'Ej: jperez'}
+                placeholder={RUT_LOGIN_ROLES.includes(cRole) ? 'Ej: 202705545 o 20.270.554-5' : 'Ej: jperez'}
                 required autoComplete="off" />
               <small style={{ color: '#9a9ab0', fontSize: '0.75rem' }}>
-                {cRole === 'trabajador' ? 'El RUT se usa para iniciar sesión en el portal' : 'Nombre de usuario para iniciar sesión'}
+                {RUT_LOGIN_ROLES.includes(cRole) ? 'El RUT se usa para iniciar sesión en el portal' : 'Nombre de usuario para iniciar sesión'}
               </small>
             </div>
 
             <div className="admin-field">
-              <label>Email {cRole === 'trabajador' ? '(opcional)' : '(recomendado)'}</label>
+              <label>Email {RUT_LOGIN_ROLES.includes(cRole) ? '(opcional)' : '(recomendado)'}</label>
               <input type="email" value={cEmail} onChange={e => setCEmail(e.target.value)}
                 placeholder="usuario@empresa.cl" autoComplete="off" />
             </div>
