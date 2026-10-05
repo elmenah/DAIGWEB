@@ -5386,6 +5386,23 @@ header.scrolled .navbar {
   width: auto;
   margin-top: 0;
 }
+/* Inputs de fecha al tema oscuro de la barra (evita el texto azul sobre
+   la caja clara heredado de .admin-field). */
+.cam-filters .admin-field label { color: rgba(255,255,255,0.5); }
+.cam-filters .admin-field input {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+}
+.cam-filters .admin-field input:focus {
+  background: rgba(255,255,255,0.08);
+  border-color: #f5a623;
+}
+.cam-filters .admin-field input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.6;
+  cursor: pointer;
+}
 .cam-nav-btn {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.12);
