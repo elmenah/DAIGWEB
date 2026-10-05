@@ -5350,6 +5350,67 @@ header.scrolled .navbar {
   border: 1px solid rgba(255,255,255,0.08);
 }
 
+/* ── Filtros de informe (Mantención Camiones) ───────────────────────────── */
+.cam-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: flex-end;
+  margin-bottom: 1.1rem;
+}
+.cam-filters .admin-field { margin: 0; }
+.cam-filters .admin-field input[type="date"] { min-width: 140px; }
+.cam-group { display: flex; flex-direction: column; gap: 0.3rem; }
+.cam-group-label {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.45);
+  font-weight: 600;
+}
+.cam-month-nav { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.cam-month-nav select {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 0.85rem;
+}
+.cam-nav-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.cam-nav-btn:hover { background: rgba(255,255,255,0.09); }
+.cam-nav-btn svg { width: 18px; height: 18px; fill: currentColor; }
+.cam-quick { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.cam-range { display: flex; gap: 0.6rem; align-items: flex-end; }
+.cam-export-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+}
+.cam-export-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+@media (max-width: 760px) {
+  .cam-filters { flex-direction: column; align-items: stretch; }
+  .cam-filters .cam-group,
+  .cam-filters .cam-range { width: 100%; }
+  .cam-range { display: flex; gap: 0.6rem; }
+  .cam-range .admin-field { flex: 1; }
+  .cam-month-nav select:first-of-type { flex: 1; }
+  .cam-export-btn { margin-left: 0; width: 100%; justify-content: center; }
+}
+
 .reg-table {
   width: 100%;
   border-collapse: collapse;

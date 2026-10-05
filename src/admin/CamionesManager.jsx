@@ -30,6 +30,10 @@ const rangos = {
   },
 }
 
+const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+const rangoMes = (mes, anio) => ({ desde: iso(new Date(anio, mes, 1)), hasta: iso(new Date(anio, mes + 1, 0)) })
+const rangoAnio = (anio) => ({ desde: iso(new Date(anio, 0, 1)), hasta: iso(new Date(anio, 11, 31)) })
+
 function Modal({ title, onClose, children }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={onClose}>
@@ -58,12 +62,31 @@ function CamionesManager() {
   const [hasta, setHasta] = useState('')
   const [periodo, setPeriodo] = useState('')   // 'dia' | 'semana' | 'mes' | 'anio' | '' (personalizado)
   const [exporting, setExporting] = useState(false)
+  // Navegador de meses
+  const hoy = new Date()
+  const [mesSel, setMesSel] = useState('todos')   // 0-11 | 'todos'
+  const [anioSel, setAnioSel] = useState(hoy.getFullYear())
 
   const aplicarRango = (key) => {
     const r = rangos[key]()
     setDesde(r.desde); setHasta(r.hasta); setPeriodo(key)
   }
   const limpiarFiltro = () => { setDesde(''); setHasta(''); setPeriodo('') }
+
+  // Aplica el mes/año elegido al filtro de fechas
+  const aplicarMesAnio = (mes, anio) => {
+    setMesSel(mes); setAnioSel(anio)
+    if (mes === 'todos') { const r = rangoAnio(anio); setDesde(r.desde); setHasta(r.hasta); setPeriodo('anio') }
+    else { const r = rangoMes(mes, anio); setDesde(r.desde); setHasta(r.hasta); setPeriodo('mes') }
+  }
+  // Flechas: avanza/retrocede mes (envuelve año); en "todos" mueve el año
+  const navegarMes = (delta) => {
+    if (mesSel === 'todos') { aplicarMesAnio('todos', anioSel + delta); return }
+    let m = mesSel + delta, a = anioSel
+    if (m < 0) { m = 11; a -= 1 }
+    else if (m > 11) { m = 0; a += 1 }
+    aplicarMesAnio(m, a)
+  }
 
   const registrosFiltrados = registros.filter(r => {
     const f = r.mantencion_desde
@@ -264,34 +287,57 @@ function CamionesManager() {
       </div>
 
       {/* Filtros + informe */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'flex-end', marginBottom: '1.1rem' }}>
-        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-          {[['dia', 'Hoy'], ['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']].map(([k, label]) => (
-            <button key={k} type="button"
-              className={periodo === k ? 'admin-btn-primary' : 'admin-btn-outline'}
-              style={{ fontSize: '0.78rem', padding: '6px 12px' }}
-              onClick={() => aplicarRango(k)}>
-              {label}
+      <div className="cam-filters">
+        {/* Navegador por mes */}
+        <div className="cam-group">
+          <span className="cam-group-label">Por mes</span>
+          <div className="cam-month-nav">
+            <button type="button" className="cam-nav-btn" onClick={() => navegarMes(-1)} aria-label="Anterior">
+              <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
             </button>
-          ))}
+            <select value={mesSel} onChange={e => aplicarMesAnio(e.target.value === 'todos' ? 'todos' : Number(e.target.value), anioSel)}>
+              <option value="todos">Todos los meses</option>
+              {MESES.map((m, i) => <option key={i} value={i}>{m}</option>)}
+            </select>
+            <select value={anioSel} onChange={e => aplicarMesAnio(mesSel, Number(e.target.value))}>
+              {Array.from({ length: 6 }, (_, i) => hoy.getFullYear() - i).map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <button type="button" className="cam-nav-btn" onClick={() => navegarMes(1)} aria-label="Siguiente">
+              <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+            </button>
+          </div>
         </div>
-        <div className="admin-field" style={{ margin: 0 }}>
-          <label style={{ fontSize: '0.72rem' }}>Desde</label>
-          <input type="date" value={desde} onChange={e => { setDesde(e.target.value); setPeriodo('') }} />
+
+        {/* Accesos rápidos */}
+        <div className="cam-group">
+          <span className="cam-group-label">Rápido</span>
+          <div className="cam-quick">
+            <button type="button" className={periodo === 'dia' ? 'admin-btn-primary' : 'admin-btn-outline'} style={{ fontSize: '0.78rem', padding: '6px 12px' }} onClick={() => aplicarRango('dia')}>Hoy</button>
+            <button type="button" className={periodo === 'semana' ? 'admin-btn-primary' : 'admin-btn-outline'} style={{ fontSize: '0.78rem', padding: '6px 12px' }} onClick={() => aplicarRango('semana')}>Semana</button>
+          </div>
         </div>
-        <div className="admin-field" style={{ margin: 0 }}>
-          <label style={{ fontSize: '0.72rem' }}>Hasta</label>
-          <input type="date" value={hasta} onChange={e => { setHasta(e.target.value); setPeriodo('') }} />
+
+        {/* Rango personalizado */}
+        <div className="cam-range">
+          <div className="admin-field">
+            <label style={{ fontSize: '0.72rem' }}>Desde</label>
+            <input type="date" value={desde} onChange={e => { setDesde(e.target.value); setPeriodo('') }} />
+          </div>
+          <div className="admin-field">
+            <label style={{ fontSize: '0.72rem' }}>Hasta</label>
+            <input type="date" value={hasta} onChange={e => { setHasta(e.target.value); setPeriodo('') }} />
+          </div>
         </div>
+
         {(desde || hasta) && (
-          <button type="button" className="admin-btn-outline" style={{ fontSize: '0.78rem', padding: '6px 12px' }} onClick={limpiarFiltro}>
+          <button type="button" className="admin-btn-outline" style={{ fontSize: '0.78rem', padding: '6px 12px', alignSelf: 'flex-end' }} onClick={limpiarFiltro}>
             Limpiar
           </button>
         )}
-        <button type="button" className="admin-btn-primary"
-          style={{ fontSize: '0.82rem', marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+
+        <button type="button" className="admin-btn-primary cam-export-btn"
           onClick={handleExport} disabled={exporting || registrosFiltrados.length === 0}>
-          <svg viewBox="0 0 24 24" style={{ width: 16, height: 16, fill: 'currentColor' }}><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
           {exporting ? 'Generando...' : 'Descargar informe (Excel)'}
         </button>
       </div>
