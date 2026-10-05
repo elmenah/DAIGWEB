@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { saveWorkRecord } from '../src/lib/saveWorkRecord.js'
-import { getInvoicePaths, collectInvoicePaths } from '../src/lib/invoicePaths.js'
+import { getInvoicePaths, collectInvoicePaths, invoiceUpdateFields } from '../src/lib/invoicePaths.js'
 
 function fixture({ existing = null, photoError = null, invoiceError = null, insertError = null } = {}) {
   const inserted = []
@@ -16,6 +16,13 @@ function fixture({ existing = null, photoError = null, invoiceError = null, inse
   return { deps, inserted, uploads }
 }
 const payload = { id: 'stable-id', base: { tarea: 'Mantención' }, trabajadorId: 'worker', trabajadorNombre: 'Nombre', fotosNuevas: ['foto-blob'], facturaNueva: 'factura-blob' }
+
+test('editar sin cambiar facturas omite columnas nuevas aunque aún no exista la migración', () => {
+  assert.deepEqual(invoiceUpdateFields([], []), {})
+  assert.deepEqual(invoiceUpdateFields(['anterior.jpg'], ['anterior.jpg']), {})
+  assert.deepEqual(invoiceUpdateFields(['anterior.jpg'], []), { factura_paths: [], factura_path: null })
+  assert.deepEqual(invoiceUpdateFields([], ['nueva.jpg']), { factura_paths: ['nueva.jpg'], factura_path: 'nueva.jpg' })
+})
 
 test('guarda la ruta privada de factura con el registro y fotos', async () => {
   const { deps, inserted } = fixture()

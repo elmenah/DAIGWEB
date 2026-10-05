@@ -10,3 +10,8 @@ export async function collectInvoicePaths(existing, files, owner, upload) {
   for (const file of files) paths.push(await upload(file, owner))
   return paths
 }
+
+export function invoiceUpdateFields(original, current) {
+  if (original.length === current.length && original.every((path, i) => path === current[i])) return {}
+  return { factura_paths: current, factura_path: current[0] || null }
+}

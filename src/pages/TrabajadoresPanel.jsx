@@ -8,7 +8,7 @@ import logoImg from '../assets/logo.jpeg'
 import InvoiceImage from '../components/InvoiceImage'
 import { uploadInvoice, validateInvoice } from '../lib/invoice'
 import { saveWorkRecord } from '../lib/saveWorkRecord'
-import { getInvoicePaths, collectInvoicePaths } from '../lib/invoicePaths'
+import { getInvoicePaths, collectInvoicePaths, invoiceUpdateFields } from '../lib/invoicePaths'
 
 const today = () => new Date().toISOString().split('T')[0]
 const nowTime = () => new Date().toTimeString().slice(0, 5)
@@ -53,6 +53,7 @@ function TrabajadoresPanel() {
   const [sendError, setSendError] = useState('')
   const facturaInputRef = useRef(null)
   const facturaCameraRef = useRef(null)
+  const originalFacturaPaths = useRef([])
   const draftIdRef = useRef(crypto.randomUUID())
 
   useEffect(() => {
@@ -109,6 +110,7 @@ function TrabajadoresPanel() {
   }
 
   const resetForm = () => {
+    originalFacturaPaths.current = []
     setTarea(''); setTipoTrabajo(''); setTipoTrabajoOtro('')
     setEquipoIntervenido(''); setOt(''); setAvisoSap(''); setPlanta('')
     setDescripcion(''); setMaterialUtilizado('')
@@ -122,6 +124,7 @@ function TrabajadoresPanel() {
   }
 
   const loadForEdit = (r) => {
+    originalFacturaPaths.current = getInvoicePaths(r)
     const tiposStandard = ['Mantención preventiva','Mantención correctiva','Instalación','Inspección','Soldadura','Piping','Otro']
     const esOtro = r.tipo_trabajo && !tiposStandard.includes(r.tipo_trabajo)
     setTipoTrabajo(esOtro ? 'Otro' : (r.tipo_trabajo || ''))
@@ -381,7 +384,7 @@ function TrabajadoresPanel() {
         const invoicePaths = await collectInvoicePaths(facturaPaths, facturas, user.id, uploadInvoice)
         const { data: updated, error } = await supabase
           .from('registros_trabajo')
-          .update({ ...base, trabajador_nombre: workerName, fotos: fotosFinales, factura_paths: invoicePaths, factura_path: invoicePaths[0] || null })
+          .update({ ...base, trabajador_nombre: workerName, fotos: fotosFinales, ...invoiceUpdateFields(originalFacturaPaths.current, invoicePaths) })
           .eq('id', editingId)
           .select('id').single()
         if (error) throw error
@@ -428,7 +431,10 @@ function TrabajadoresPanel() {
         }
       }
       setSendStatus('error')
-      setSendError(err?.message || 'No se pudo guardar el registro. Tus adjuntos siguen en el formulario.')
+      const missingInvoiceColumn = /factura_paths|factura_path/i.test(err?.message || '') && /column|schema cache/i.test(err?.message || '')
+      setSendError(missingInvoiceColumn
+        ? 'Falta activar las facturas en el sistema. Avisa al administrador. Tus datos y adjuntos siguen en este formulario; no cierres esta página.'
+        : err?.message || 'No se pudo guardar el registro. Tus adjuntos siguen en el formulario.')
     }
     setSending(false)
   }
