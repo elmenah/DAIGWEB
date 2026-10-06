@@ -50,7 +50,7 @@ const CSS = `
 /* Overlay uniforme sobre el patrón */
 .adva-vignette {
   position: fixed; inset: 0; z-index: 1; pointer-events: none;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0,0,0,0.35);
 }
 /* Amber accent glow on top-right */
 .adva-glow {
@@ -401,10 +401,10 @@ export default function SolicitudesAdvaPage() {
   const [sent,     setSent]     = useState(false)
   const [error,    setError]    = useState('')
 
-  // Cargar trabajadores
+  // Cargar trabajadores ADVA
   useEffect(() => {
-    supabase.from('profiles').select('full_name').order('full_name')
-      .then(({ data }) => setWorkers((data || []).map(p => p.full_name).filter(Boolean)))
+    supabase.from('trabajadores_adva').select('nombre').order('nombre')
+      .then(({ data }) => setWorkers((data || []).map(p => p.nombre).filter(Boolean)))
   }, [])
 
   // Detectar borrador guardado
@@ -484,7 +484,7 @@ export default function SolicitudesAdvaPage() {
             <img src={LOGO_URL} alt="DAIG" className="adva-nav-logo-img" />
             <span className="adva-nav-brand">DA<span>IG</span></span>
             <div className="adva-nav-divider" />
-            <span className="adva-nav-tag">Solicitudes OT</span>
+            <span className="adva-nav-tag">Solicitudes ADVA</span>
           </a>
 
           <div className="adva-nav-links">
@@ -524,11 +524,11 @@ export default function SolicitudesAdvaPage() {
               <div className="adva-eyebrow">
                 <div className="adva-eyebrow-pill">
                   <div className="adva-eyebrow-dot" />
-                  <span className="adva-eyebrow-text">Aguas del Valle</span>
+                  <span className="adva-eyebrow-text">ADVA · Aguas del Valle</span>
                 </div>
               </div>
 
-              <h1 className="adva-title">Solicitudes Adva</h1>
+              <h1 className="adva-title">Solicitudes ADVA</h1>
               <p className="adva-subtitle">Completa el formulario para registrar tu solicitud.</p>
 
               {hasDraft && (
