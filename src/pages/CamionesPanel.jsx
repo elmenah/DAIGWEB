@@ -23,6 +23,7 @@ function CamionesPanel() {
   const [mantencionDesde, setMantencionDesde] = useState(today())
   const [mantencionHasta, setMantencionHasta] = useState(today())
   const [horometro, setHorometro] = useState('')
+  const [insumos, setInsumos] = useState('')
   const [tareas, setTareas] = useState([''])
   const [fotos, setFotos] = useState([])
   const [fotosPreviews, setFotosPreviews] = useState([])
@@ -78,6 +79,7 @@ function CamionesPanel() {
   const resetForm = () => {
     setOtNumero(''); setPatente(''); setTaller('DAIG SpA'); setEquipo('')
     setMantencionDesde(today()); setMantencionHasta(today()); setHorometro('')
+    setInsumos('')
     setTareas(['']); setFotos([]); setFotosPreviews([]); setFotosExistentes([])
     setFirma(null); setHoraTermino(null)
     draftIdRef.current = crypto.randomUUID()
@@ -92,6 +94,7 @@ function CamionesPanel() {
     setMantencionDesde(r.mantencion_desde || today())
     setMantencionHasta(r.mantencion_hasta || today())
     setHorometro(r.horometro?.toString() || '')
+    setInsumos(r.insumos || '')
     setTareas(Array.isArray(r.tareas) && r.tareas.length ? r.tareas.map(t => (typeof t === 'string' ? t : t?.actividad || '')) : [''])
     setFotos([]); setFotosPreviews([])
     setFotosExistentes(r.fotos || [])
@@ -187,6 +190,7 @@ function CamionesPanel() {
         mantencion_desde: mantencionDesde || null,
         mantencion_hasta: mantencionHasta || null,
         horometro: horometro ? parseFloat(horometro) : null,
+        insumos: insumos.trim() || null,
         tareas: tareasLimpias,
         fotos: fotosFinales,
         firma,
@@ -373,6 +377,13 @@ function CamionesPanel() {
               </div>
 
               <div className="trab-field">
+                <label htmlFor="c-insumos">Insumos</label>
+                <textarea id="c-insumos" rows={3}
+                  value={insumos} onChange={e => setInsumos(e.target.value)}
+                  placeholder="Ej: Aceite motor 15W-40 (4L), filtro de aceite, correa distribución…" />
+              </div>
+
+              <div className="trab-field">
                 <label>Tareas realizadas</label>
                 {tareas.map((t, i) => (
                   <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
@@ -496,6 +507,7 @@ function CamionesPanel() {
                           <p>{r.mantencion_desde} {r.mantencion_hasta && r.mantencion_hasta !== r.mantencion_desde ? `al ${r.mantencion_hasta}` : ''}</p></div>
                       )}
                       {r.horometro != null && <div className="trab-hist-field"><span className="trab-hist-label">Horómetro</span><p>{r.horometro} h</p></div>}
+                      {r.insumos && <div className="trab-hist-field"><span className="trab-hist-label">Insumos</span><p style={{ whiteSpace: 'pre-wrap' }}>{r.insumos}</p></div>}
                       {Array.isArray(r.tareas) && r.tareas.length > 0 && (
                         <div className="trab-hist-field"><span className="trab-hist-label">Tareas realizadas</span>
                           <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
