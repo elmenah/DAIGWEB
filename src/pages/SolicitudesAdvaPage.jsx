@@ -50,7 +50,7 @@ const CSS = `
 /* Overlay uniforme sobre el patrón */
 .adva-vignette {
   position: fixed; inset: 0; z-index: 1; pointer-events: none;
-  background: rgba(0,0,0,0.78);
+  background: rgba(0,0,0,0.55);
 }
 /* Amber accent glow on top-right */
 .adva-glow {
