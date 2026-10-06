@@ -40,6 +40,9 @@ function CamionesPanel() {
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
 
+  // Camiones
+  const [camiones, setCamiones] = useState([])
+
   // Historial
   const [registros, setRegistros] = useState([])
   const [histLoading, setHistLoading] = useState(false)
@@ -50,6 +53,11 @@ function CamionesPanel() {
     supabase.from('profiles').select('username, nombre').eq('id', user.id).single()
       .then(({ data }) => { if (data) setWorkerName(data.nombre || data.username) })
   }, [user])
+
+  useEffect(() => {
+    supabase.from('camiones').select('patente, descripcion').order('patente')
+      .then(({ data }) => setCamiones(data || []))
+  }, [])
 
   useEffect(() => {
     if (view === 'historial') loadHistorial()
@@ -323,9 +331,14 @@ function CamionesPanel() {
                 </div>
                 <div className="trab-field">
                   <label htmlFor="c-patente">Patente del camión *</label>
-                  <input id="c-patente" type="text" value={patente}
-                    onChange={e => setPatente(e.target.value.toUpperCase())}
-                    placeholder="Ej: SR-XF-37" autoComplete="off" required />
+                  <select id="c-patente" value={patente} onChange={e => setPatente(e.target.value)} required>
+                    <option value="">Selecciona una patente</option>
+                    {camiones.map(c => (
+                      <option key={c.patente} value={c.patente}>
+                        {c.patente}{c.descripcion ? ` — ${c.descripcion}` : ''}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
