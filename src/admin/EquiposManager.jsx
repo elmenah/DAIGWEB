@@ -26,6 +26,198 @@ function fmtFecha(iso) {
   return `${d}/${m}/${y}`
 }
 
+// ── Generador de OT PDF ───────────────────────────────────────────────────────
+function generarOT(r, allRegistros, equipoNombre) {
+  const otNum = r.ot || String(r.id).padStart(4, '0')
+
+  // Agrupar por OT si hay número; sino solo este registro
+  const otGrupo = r.ot
+    ? allRegistros.filter(x => x.ot === r.ot).sort((a, b) => a.id - b.id)
+    : [r]
+
+  // KPIs últimos 12 meses
+  const hace12 = new Date(); hace12.setFullYear(hace12.getFullYear() - 1)
+  const recientes = allRegistros.filter(x => x.fecha && x.fecha >= hace12.toISOString().split('T')[0])
+  const base = recientes.length ? recientes : allRegistros
+  const preventivos = base.filter(x => (x.tipo_trabajo || '').toLowerCase().includes('prevent'))
+  const correctivos = base.filter(x => (x.tipo_trabajo || '').toLowerCase().includes('correct'))
+  const totalInter  = base.length
+  const totalHoras  = base.reduce((s, x) => s + (x.horas_trabajadas || 0), 0)
+  const pctPrev     = totalInter ? Math.round(preventivos.length / totalInter * 100) : 0
+  const pctCorr     = totalInter ? Math.round(correctivos.length / totalInter * 100) : 0
+  const disponib    = correctivos.length === 0 ? '100,0%' : `${(100 - correctivos.length / totalInter * 100).toFixed(1).replace('.', ',')}%`
+  const confiab     = correctivos.length === 0 ? '100,0%' : `${(preventivos.length / totalInter * 100).toFixed(1).replace('.', ',')}%`
+
+  // Clase y prioridad
+  const tipoLower = (r.tipo_trabajo || '').toLowerCase()
+  const clase     = tipoLower.includes('prevent') ? 'Preventivo' : tipoLower.includes('correct') ? 'Correctivo' : r.tipo_trabajo || 'Mantención'
+  const prioridad = r.indicador_mantenimiento === 'Crítico' ? 'Alta' :
+                    r.indicador_mantenimiento === 'Requiere atención' ? 'Media' : 'Normal'
+
+  // Rango de fechas del OT
+  const fechas     = otGrupo.map(x => x.fecha).filter(Boolean).sort()
+  const fechaRange = fechas.length > 1
+    ? `${fmtFecha(fechas[0])} al ${fmtFecha(fechas[fechas.length - 1])}`
+    : fmtFecha(r.fecha)
+
+  // Horas del OT
+  const horasOT = otGrupo.reduce((s, x) => s + (x.horas_trabajadas || 0), 0)
+
+  // Materiales (únicos, de todos los registros del OT)
+  const materiales = [...new Set(
+    otGrupo.flatMap(x => (x.material_utilizado || '').split(/[,;\n]/).map(m => m.trim()).filter(Boolean))
+  )]
+
+  // Notas
+  const notas = otGrupo.map(x => x.descripcion).filter(Boolean).join(' ')
+
+  // Mes/año del registro
+  const mesAnio = r.fecha
+    ? new Date(r.fecha + 'T12:00:00').toLocaleString('es-CL', { month: 'long', year: 'numeric' })
+    : ''
+
+  const hoy = new Date().toLocaleDateString('es-CL')
+
+  const tareasHTML = otGrupo.map((x, i) => `
+    <tr>
+      <td style="text-align:center;font-size:14px;color:#1a4480;">☑</td>
+      <td style="text-align:center;">${i + 1}</td>
+      <td>
+        <strong>${x.tarea || x.tipo_trabajo || 'Intervención'}</strong>
+        ${x.descripcion ? `<br/><span style="font-size:9.5px;color:#555;">${x.descripcion}</span>` : ''}
+        ${x.trabajador_nombre && otGrupo.length > 1 ? `<span style="font-size:9px;color:#999;"> — ${x.trabajador_nombre}</span>` : ''}
+      </td>
+    </tr>`).join('')
+
+  const materialesHTML = materiales.length
+    ? materiales.map(m => `<tr><td>${m}</td></tr>`).join('')
+    : `<tr><td style="color:#999;">—</td></tr>`
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>OT-${otNum} · ${equipoNombre}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1a1a1a;background:#fff;}
+  .page{max-width:800px;margin:0 auto;padding:24px;}
+  .ot-header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:14px;border-bottom:2.5px solid #1a4480;margin-bottom:16px;}
+  .logo-wrap{display:flex;align-items:center;gap:12px;}
+  .logo-circle{width:54px;height:54px;border-radius:50%;border:2.5px solid #1a4480;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .logo-text{font-weight:900;font-size:15px;color:#1a4480;letter-spacing:-0.5px;}
+  .title-area h1{font-size:22px;color:#1a4480;font-weight:800;line-height:1.1;}
+  .title-area p{font-size:11px;color:#666;margin-top:3px;}
+  .ot-badge{text-align:right;border:1.5px solid #1a4480;padding:8px 14px;min-width:145px;}
+  .ot-badge-num{font-size:20px;font-weight:800;color:#1a4480;}
+  .ot-badge-row{font-size:10px;color:#444;margin-top:2px;}
+  .info-grid{width:100%;border-collapse:collapse;border:1px solid #ccc;margin-bottom:4px;}
+  .info-grid td{padding:5px 10px;font-size:10.5px;border-bottom:1px solid #e0e0e0;border-right:1px solid #e0e0e0;}
+  .info-grid td:last-child{border-right:none;}
+  .info-grid tr:last-child td{border-bottom:none;}
+  .lbl{color:#1a4480;font-weight:bold;}
+  .sec-title{background:#1a4480;color:#fff;padding:5px 10px;font-weight:bold;font-size:10.5px;margin-top:14px;}
+  .data-table{width:100%;border-collapse:collapse;font-size:10.5px;}
+  .data-table th{background:#1a4480;color:#fff;padding:5px 8px;text-align:left;font-weight:bold;font-size:10px;}
+  .data-table td{padding:5px 8px;border-bottom:1px solid #e8e8e8;vertical-align:top;}
+  .data-table tr:nth-child(even) td{background:#f8f9ff;}
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;}
+  .kpi-card{border:1px solid #c5d3e8;padding:9px 11px;background:#f4f7fc;}
+  .kpi-lbl{font-size:8.5px;font-weight:bold;color:#1a4480;text-transform:uppercase;letter-spacing:.05em;}
+  .kpi-val{font-size:21px;font-weight:800;color:#1a4480;margin:3px 0 2px;line-height:1;}
+  .kpi-sub{font-size:8.5px;color:#777;}
+  .period-note{font-size:9px;color:#777;margin-top:8px;padding-top:6px;border-top:1px solid #e0e0e0;}
+  .notes-box{border-left:3px solid #1a4480;padding:7px 12px;margin-top:12px;background:#f4f7fc;font-size:10.5px;}
+  .notes-box strong{color:#1a4480;}
+  .signatures{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:32px;}
+  .sig-lbl{font-size:9px;color:#888;margin-bottom:28px;}
+  .sig-line{border-top:1px solid #666;padding-top:5px;font-size:10px;color:#444;}
+  .ot-footer{margin-top:16px;font-size:8.5px;color:#aaa;text-align:center;padding-top:8px;border-top:1px solid #e0e0e0;}
+  @media print{@page{margin:15mm;}.no-print{display:none!important;}body{font-size:10px;}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="ot-header">
+  <div class="logo-wrap">
+    <div class="logo-circle"><div class="logo-text">DAIG</div></div>
+    <div class="title-area">
+      <h1>Orden de Trabajo OT-${otNum}</h1>
+      <p>Mantención ${equipoNombre}${mesAnio ? ' — ' + mesAnio : ''}</p>
+    </div>
+  </div>
+  <div class="ot-badge">
+    <div class="ot-badge-num">OT-${otNum}</div>
+    <div class="ot-badge-row">Estado: ${r.estado || '—'}</div>
+    <div class="ot-badge-row">Clase: ${clase}</div>
+  </div>
+</div>
+
+<table class="info-grid">
+  <tr>
+    <td width="50%"><span class="lbl">Cliente / Mandante:</span> ${r.planta || '—'}</td>
+    <td><span class="lbl">Equipo:</span> ${equipoNombre}</td>
+  </tr>
+  <tr>
+    <td><span class="lbl">OT:</span> ${otNum}</td>
+    <td><span class="lbl">Prioridad:</span> ${prioridad}</td>
+  </tr>
+  <tr>
+    <td><span class="lbl">Taller / Responsable:</span> DAIG SpA</td>
+    <td><span class="lbl">Realizó:</span> ${r.trabajador_nombre || '—'}</td>
+  </tr>
+  <tr>
+    <td><span class="lbl">Mantención realizada:</span> ${fechaRange}</td>
+    <td><span class="lbl">Horas trabajadas:</span> ${horasOT % 1 === 0 ? horasOT : horasOT.toFixed(1)} h</td>
+  </tr>
+</table>
+
+<div class="sec-title">TAREAS REALIZADAS</div>
+<table class="data-table">
+  <thead><tr><th style="width:28px;">✓</th><th style="width:32px;">N°</th><th>Actividad y alcance</th></tr></thead>
+  <tbody>${tareasHTML}</tbody>
+</table>
+
+<div class="sec-title">REPUESTOS Y MATERIALES UTILIZADOS</div>
+<table class="data-table">
+  <thead><tr><th>Ítem</th></tr></thead>
+  <tbody>${materialesHTML}</tbody>
+</table>
+
+<div class="sec-title">INDICADORES DEL EQUIPO</div>
+<div class="kpi-row">
+  <div class="kpi-card"><div class="kpi-lbl">DISPONIBILIDAD</div><div class="kpi-val">${disponib}</div><div class="kpi-sub">últimos 12 meses</div></div>
+  <div class="kpi-card"><div class="kpi-lbl">CONFIABILIDAD</div><div class="kpi-val">${confiab}</div><div class="kpi-sub">objetivo 500 h</div></div>
+  <div class="kpi-card"><div class="kpi-lbl">INTERVENCIONES</div><div class="kpi-val">${preventivos.length || totalInter}</div><div class="kpi-sub">preventivas</div></div>
+  <div class="kpi-card"><div class="kpi-lbl">N° FALLAS (CORRECTIVOS)</div><div class="kpi-val">${correctivos.length}</div><div class="kpi-sub">${correctivos.length === 0 ? 'sin fallas' : 'correctivas'}</div></div>
+</div>
+<div class="kpi-row" style="margin-top:8px;">
+  <div class="kpi-card"><div class="kpi-lbl">% PREVENTIVO</div><div class="kpi-val">${pctPrev}%</div><div class="kpi-sub">mezcla del período</div></div>
+  <div class="kpi-card"><div class="kpi-lbl">% CORRECTIVO</div><div class="kpi-val">${pctCorr}%</div><div class="kpi-sub"></div></div>
+  <div class="kpi-card"><div class="kpi-lbl">TIEMPO OPERATIVO</div><div class="kpi-val">${totalHoras % 1 === 0 ? totalHoras : totalHoras.toFixed(1)} h</div><div class="kpi-sub">estimado</div></div>
+  <div class="kpi-card"><div class="kpi-lbl">MTBF / MTTR</div><div class="kpi-val">—</div><div class="kpi-sub">${correctivos.length === 0 ? 'sin fallas' : ''}</div></div>
+</div>
+<div class="period-note">Período: últimos 12 meses · Confiabilidad–Mantenibilidad–Disponibilidad (CMD) calculada por el software de gestión Mantención de Flota — DAIG.</div>
+
+${notas ? `<div class="notes-box"><strong>Notas:</strong> ${notas}</div>` : ''}
+
+<div class="signatures">
+  <div><div class="sig-lbl">Realizó</div><div class="sig-line">${r.trabajador_nombre || ''} · DAIG SpA</div></div>
+  <div><div class="sig-lbl">Revisó / Supervisor</div><div class="sig-line">${r.revisado_por || ''}</div></div>
+  <div><div class="sig-lbl">Recibió conforme</div><div class="sig-line">${r.planta || ''}</div></div>
+</div>
+
+<div class="ot-footer">Generado por el software de gestión Mantención de Flota — DAIG SpA · Ingeniería y Servicios Industriales · ${hoy}.</div>
+</div>
+<script>window.onload=function(){window.print();};</script>
+</body>
+</html>`
+
+  const win = window.open('', '_blank', 'width=900,height=750')
+  if (win) { win.document.write(html); win.document.close() }
+}
+
 // ── Vista detalle de un equipo ────────────────────────────────────────────────
 function EquipoDetalle({ nombre, onBack }) {
   const [registros, setRegistros] = useState([])
@@ -125,6 +317,21 @@ function EquipoDetalle({ nombre, onBack }) {
                       {r.revisado_por && (
                         <span style={{ fontSize: '0.72rem', color: '#22c55e' }}>✓ Revisado</span>
                       )}
+                      <button
+                        onClick={() => generarOT(r, registros, nombre)}
+                        title="Generar Orden de Trabajo (PDF)"
+                        style={{
+                          background: 'rgba(26,68,128,0.15)', border: '1px solid rgba(26,68,128,0.4)',
+                          borderRadius: 6, color: '#7aadff', padding: '2px 8px', cursor: 'pointer',
+                          fontSize: '0.7rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <svg viewBox="0 0 24 24" style={{ width: 11, height: 11, fill: 'currentColor' }}>
+                          <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
+                        </svg>
+                        OT
+                      </button>
                     </div>
                   </div>
                   <div className="equipo-tl-body">
