@@ -47,15 +47,10 @@ const CSS = `
     url('/pattern-industrial.webp') center/700px auto repeat;
   opacity: 0.08;
 }
-/* Vignette: oscurece el centro para que el card sea legible */
+/* Overlay uniforme sobre el patrón */
 .adva-vignette {
   position: fixed; inset: 0; z-index: 1; pointer-events: none;
-  background: radial-gradient(
-    ellipse 70% 75% at 50% 52%,
-    rgba(0,0,0,0.88) 0%,
-    rgba(0,0,0,0.70) 55%,
-    rgba(0,0,0,0.10) 100%
-  );
+  background: rgba(0,0,0,0.78);
 }
 /* Amber accent glow on top-right */
 .adva-glow {
@@ -119,15 +114,14 @@ const CSS = `
   background: rgba(255,255,255,0.06);
 }
 .adva-nav-cta {
-  font-size: 12.5px; font-weight: 700;
-  color: #E8962E;
-  text-decoration: none; padding: 7px 16px; border-radius: 8px;
-  border: 1px solid rgba(232,150,46,0.35);
-  transition: background .15s, border-color .15s;
+  font-size: 13px; font-weight: 500;
+  color: rgba(255,255,255,0.55);
+  text-decoration: none; padding: 6px 12px; border-radius: 8px;
+  transition: color .15s, background .15s;
 }
 .adva-nav-cta:hover {
-  background: rgba(232,150,46,0.1);
-  border-color: rgba(232,150,46,0.6);
+  color: #fff;
+  background: rgba(255,255,255,0.06);
 }
 
 /* ─ CONTENT ─ */
