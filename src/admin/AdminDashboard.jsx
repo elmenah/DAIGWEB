@@ -9,6 +9,7 @@ import InformeManager from './InformeManager'
 import MapaManager from './MapaManager'
 import EquiposManager from './EquiposManager'
 import CamionesManager from './CamionesManager'
+import SolicitudesAdvaManager from './SolicitudesAdvaManager'
 import logoImg from '../assets/logo.jpeg'
 import { isHeic, heicBlobToJpeg } from '../lib/heic'
 
@@ -33,6 +34,7 @@ const ICON = {
   mant:      'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z',
   equipos:   'M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z',
   camiones:  'M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zM18 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z',
+  adva:      'M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z',
 }
 
 const NAV = [
@@ -43,6 +45,7 @@ const NAV = [
   { key: 'equipos',   label: 'Equipos',       roles: ['admin', 'directiva'] },
   { key: 'mant',      label: 'Mantenimiento', roles: ['admin', 'directiva'] },
   { key: 'camiones',  label: 'Mantención Camiones', roles: ['admin', 'directiva'] },
+  { key: 'adva',      label: 'Solicitudes Adva',   roles: ['admin', 'directiva'] },
   { key: 'usuarios',  label: 'Usuarios',      roles: ['admin'] },
   { key: 'galeria',   label: 'Galería',       roles: ['admin'] },
 ]
@@ -723,6 +726,7 @@ function AdminDashboard() {
           {active === 'equipos' && <EquiposManager />}
           {active === 'mant' && <MantenimientoManager />}
           {active === 'camiones' && <CamionesManager />}
+          {active === 'adva' && <SolicitudesAdvaManager />}
           {active === 'usuarios' && isAdmin && <UserManager />}
           {active === 'galeria' && isAdmin && <GalleryManager />}
         </main>

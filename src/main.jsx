@@ -20,7 +20,8 @@ const CamionesLogin      = lazy(() => import('./pages/CamionesLogin'))
 const CamionesPanel      = lazy(() => import('./pages/CamionesPanel'))
 const PermisosLogin      = lazy(() => import('./pages/PermisosLogin'))
 const PermisosPanel      = lazy(() => import('./pages/PermisosPanel'))
-const PermisoDetallePage = lazy(() => import('./pages/PermisoDetallePage'))
+const PermisoDetallePage      = lazy(() => import('./pages/PermisoDetallePage'))
+const SolicitudesAdvaPage     = lazy(() => import('./pages/SolicitudesAdvaPage'))
 
 const AdminLoader = () => (
   <div className="admin-loading"><div className="admin-spinner"></div></div>
@@ -165,6 +166,16 @@ root.render(
             </Suspense>
           }
         />
+        {/* Módulo Solicitudes Adva */}
+        <Route
+          path="/adva"
+          element={
+            <Suspense fallback={<AdminLoader />}>
+              <SolicitudesAdvaPage />
+            </Suspense>
+          }
+        />
+
         <Route
           path="/permisos/panel/:id"
           element={
