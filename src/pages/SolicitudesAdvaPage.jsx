@@ -546,12 +546,12 @@ export default function SolicitudesAdvaPage() {
                 <div className="adva-field">
                   <div className="adva-label-row">
                     <span className="adva-label-num">1</span>
-                    <label htmlFor="trabajador" className="adva-label">Trabajador</label>
+                    <label htmlFor="trabajador" className="adva-label">Supervisor</label>
                   </div>
                   <div className="adva-select-wrap">
                     <select id="trabajador" className="adva-select"
                       value={form.trabajador} onChange={set('trabajador')} required>
-                      <option value="">Selecciona tu nombre</option>
+                      <option value="">Selecciona un supervisor</option>
                       {workers.map(w => <option key={w} value={w}>{w}</option>)}
                     </select>
                     <svg className="adva-select-chevron" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
