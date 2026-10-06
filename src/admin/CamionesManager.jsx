@@ -62,6 +62,8 @@ function CamionesManager() {
   const [hasta, setHasta] = useState('')
   const [periodo, setPeriodo] = useState('')   // 'dia' | 'semana' | 'mes' | 'anio' | '' (personalizado)
   const [exporting, setExporting] = useState(false)
+  const [zipping,   setZipping]   = useState(false)
+  const [zipProgress, setZipProgress] = useState('')
   // Navegador de meses
   const hoy = new Date()
   const [mesSel, setMesSel] = useState('todos')   // 0-11 | 'todos'
@@ -212,6 +214,62 @@ function CamionesManager() {
     setExporting(false)
   }
 
+  const handleDownloadFotos = async () => {
+    const fotos = registrosFiltrados.flatMap(r =>
+      (r.fotos || []).map((url, i) => ({
+        url,
+        nombre: `${r.ot_numero || r.id}_${r.patente || ''}_foto${i + 1}.jpg`.replace(/\s/g, '_'),
+      }))
+    )
+    if (!fotos.length) { alert('No hay fotos en los registros seleccionados.'); return }
+
+    setZipping(true)
+    setZipProgress(`Preparando ${fotos.length} foto(s)…`)
+
+    try {
+      // Cargar JSZip dinámicamente
+      if (!window.JSZip) {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script')
+          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'
+          s.onload = resolve; s.onerror = reject
+          document.head.appendChild(s)
+        })
+      }
+      const zip = new window.JSZip()
+      let ok = 0
+
+      for (const { url, nombre } of fotos) {
+        try {
+          setZipProgress(`Descargando ${ok + 1} / ${fotos.length}…`)
+          const res = await fetch(url)
+          if (!res.ok) throw new Error('HTTP ' + res.status)
+          const blob = await res.blob()
+          zip.file(nombre, blob)
+          ok++
+        } catch {
+          // foto no disponible, la omitimos
+        }
+      }
+
+      if (!ok) throw new Error('No se pudo descargar ninguna foto.')
+
+      setZipProgress('Comprimiendo…')
+      const content = await zip.generateAsync({ type: 'blob' })
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(content)
+      const sufijo = desde || hasta ? `${desde || 'inicio'}_al_${hasta || 'hoy'}` : 'todas'
+      a.download = `fotos_camiones_${sufijo}.zip`
+      a.click()
+      URL.revokeObjectURL(a.href)
+    } catch (err) {
+      alert('Error al generar ZIP: ' + err.message)
+    } finally {
+      setZipping(false)
+      setZipProgress('')
+    }
+  }
+
   return (
     <div className="admin-section">
       {edit && (
@@ -339,6 +397,14 @@ function CamionesManager() {
           onClick={handleExport} disabled={exporting || registrosFiltrados.length === 0}>
           <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
           {exporting ? 'Generando...' : 'Descargar informe (Excel)'}
+        </button>
+
+        <button type="button" className="admin-btn-outline cam-export-btn"
+          onClick={handleDownloadFotos}
+          disabled={zipping || registrosFiltrados.length === 0}
+          title="Descarga todas las fotos del período en un archivo ZIP">
+          <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+          {zipping ? zipProgress : 'Descargar fotos (ZIP)'}
         </button>
       </div>
 
