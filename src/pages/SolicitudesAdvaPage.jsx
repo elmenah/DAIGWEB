@@ -399,6 +399,7 @@ export default function SolicitudesAdvaPage() {
   const [hasDraft, setHasDraft] = useState(false)
   const [sending,  setSending]  = useState(false)
   const [sent,     setSent]     = useState(false)
+  const [codigo,   setCodigo]   = useState('')
   const [error,    setError]    = useState('')
 
   // Cargar trabajadores ADVA
@@ -437,10 +438,12 @@ export default function SolicitudesAdvaPage() {
     setSending(true); setError('')
 
     try {
-      const { error: dbErr } = await supabase
+      const { data: inserted, error: dbErr } = await supabase
         .from('solicitudes_adva')
         .insert({ trabajador_nombre: trabajador, planta, localidad, requisito })
+        .select('codigo').single()
       if (dbErr) throw dbErr
+      setCodigo(inserted?.codigo || '')
 
       const res = await fetch(ENDPOINT, {
         method: 'POST',
@@ -463,7 +466,7 @@ export default function SolicitudesAdvaPage() {
   }
 
   const reset = () => {
-    setSent(false); setHasDraft(false)
+    setSent(false); setHasDraft(false); setCodigo('')
     setForm(EMPTY)
     try { localStorage.removeItem(LS_KEY) } catch (_) {}
   }
@@ -511,6 +514,20 @@ export default function SolicitudesAdvaPage() {
                 </div>
               </div>
               <h2 className="adva-success-title">Solicitud enviada</h2>
+              {codigo && (
+                <div style={{
+                  background: 'rgba(232,150,46,0.08)', border: '1px solid rgba(232,150,46,0.25)',
+                  borderRadius: 12, padding: '10px 20px', marginBottom: 16,
+                  animation: 'fadeUp .4s ease .45s both',
+                }}>
+                  <div style={{ fontSize: 11, color: 'rgba(232,150,46,0.7)', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 3 }}>
+                    Código de solicitud
+                  </div>
+                  <div style={{ fontSize: 20, fontWeight: 900, color: '#E8962E', letterSpacing: '.04em' }}>
+                    {codigo}
+                  </div>
+                </div>
+              )}
               <p className="adva-success-text">
                 Registro guardado correctamente. Se envió una notificación al encargado.
               </p>

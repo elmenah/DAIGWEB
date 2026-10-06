@@ -68,11 +68,12 @@ export default function SolicitudesAdvaManager() {
         <p className="reg-empty">No hay solicitudes{busq ? ' con ese filtro' : ' registradas'}.</p>
       ) : (
         <div style={{ overflowX: 'auto' }}>
-          <table className="reg-table" style={{ minWidth: 700 }}>
+          <table className="reg-table" style={{ minWidth: 750 }}>
             <thead>
               <tr>
+                <th>Código</th>
                 <th>Fecha</th>
-                <th>Trabajador</th>
+                <th>Supervisor</th>
                 <th>Planta</th>
                 <th>Localidad</th>
                 <th>Requisito</th>
@@ -85,13 +86,16 @@ export default function SolicitudesAdvaManager() {
                   style={{ cursor: 'pointer' }}
                   onClick={() => setModal(r)}
                 >
+                  <td style={{ whiteSpace: 'nowrap', fontWeight: 700, color: '#E8962E', fontSize: '0.82rem', letterSpacing: '.03em' }}>
+                    {r.codigo || '—'}
+                  </td>
                   <td style={{ whiteSpace: 'nowrap', color: 'rgba(255,255,255,0.5)', fontSize: '0.82rem' }}>
                     {fmtDate(r.created_at)}
                   </td>
                   <td style={{ fontWeight: 600 }}>{r.trabajador_nombre || '—'}</td>
                   <td>{r.planta || '—'}</td>
                   <td>{r.localidad || '—'}</td>
-                  <td style={{ maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'rgba(255,255,255,0.65)' }}>
+                  <td style={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'rgba(255,255,255,0.65)' }}>
                     {r.requisito || '—'}
                   </td>
                 </tr>
@@ -113,7 +117,14 @@ export default function SolicitudesAdvaManager() {
                 <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>
                   Aguas del Valle
                 </div>
-                <div className="reg-detail-title">Solicitud Adva</div>
+                <div className="reg-detail-title">
+                  Solicitud ADVA
+                  {modal.codigo && (
+                    <span style={{ marginLeft: 10, fontSize: '0.78rem', fontWeight: 800, color: '#E8962E', letterSpacing: '.04em' }}>
+                      {modal.codigo}
+                    </span>
+                  )}
+                </div>
                 <div className="reg-detail-meta">{fmtDate(modal.created_at)}</div>
               </div>
               <button className="reg-detail-close" onClick={() => setModal(null)}>
