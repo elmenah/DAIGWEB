@@ -168,7 +168,7 @@ root.render(
         />
         {/* Módulo Solicitudes Adva */}
         <Route
-          path="/adva"
+          path="/ot_daig"
           element={
             <Suspense fallback={<AdminLoader />}>
               <SolicitudesAdvaPage />
