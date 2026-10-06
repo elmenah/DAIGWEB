@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
 
 const resend   = new Resend(process.env.RESEND_API_KEY)
-const DEST     = 'daniel.mena@serviciosdaig.com'
+const DEST     = ['daniel.mena@serviciosdaig.com', 'victor.orellana@serviciosdaig.com']
 
 const ALLOWED_ORIGINS = [
   'https://daigchile.cl',

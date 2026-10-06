@@ -220,7 +220,7 @@ function ActivityChart() {
                   fill="rgba(255,255,255,0.02)" rx="3" />
                 {/* barra */}
                 <rect x={x} y={y} width={bW} height={barH}
-                  fill={isNow ? '#f5a623' : '#3b82f6'} rx="3"
+                  fill={isNow ? '#e8962e' : '#1A4480'} rx="3"
                   opacity={isNow ? 1 : 0.65} />
                 {/* valor encima */}
                 {val > 0 && (
@@ -304,8 +304,8 @@ function DashboardHome({ nombre, onGo }) {
         <>
           <div className="admin-kpi-grid">
             <KpiCard label="Registros hoy"        value={stats.hoy}          color="#e8962e" icon={ICON.hoy}      onClick={() => onGo('registros')} />
-            <KpiCard label="Registros esta semana" value={stats.semana}       color="#3b82f6" icon={ICON.semana}   sub="lun–hoy" onClick={() => onGo('registros')} />
-            <KpiCard label="Horas esta semana"     value={stats.horas}        color="#8b5cf6" icon={ICON.horas}    sub="lun–hoy" />
+            <KpiCard label="Registros esta semana" value={stats.semana}       color="#f5a83a" icon={ICON.semana}   sub="lun–hoy" onClick={() => onGo('registros')} />
+            <KpiCard label="Horas esta semana"     value={stats.horas}        color="#7aadff" icon={ICON.horas}    sub="lun–hoy" />
             <KpiCard label="Trabajadores"          value={stats.trabajadores} color="#22c55e" icon={ICON.usuarios} onClick={() => onGo('usuarios')} />
             <KpiCard label="Sin revisar"           value={stats.sinRevisar}   color="#f59e0b" icon={ICON.alerta}   sub={stats.sinRevisar > 0 ? 'requieren revisión' : 'al día'} onClick={() => onGo('registros')} />
             <KpiCard label="Pendiente repuesto"    value={stats.pendientes}   color="#ef4444" icon={ICON.repuesto} sub={stats.pendientes > 0 ? 'requieren atención' : ''} onClick={() => onGo('registros')} />
