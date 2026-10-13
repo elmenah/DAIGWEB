@@ -26,9 +26,11 @@ function CamionesLogin() {
 
   useEffect(() => {
     if (!authLoading && hasHydratedSession && isAuthenticated) {
-      if (role === 'mantenedor_camiones') navigate('/camiones/panel', { replace: true })
+      // En el portal de camiones, el mantenedor y la directiva entran directo
+      // al formulario; el resto se redirige a su panel correspondiente.
+      if (role === 'mantenedor_camiones' || role === 'directiva') navigate('/camiones/panel', { replace: true })
       else if (role === 'trabajador') navigate('/trabajadores/panel', { replace: true })
-      else if (role === 'admin' || role === 'directiva') navigate('/admin/dashboard', { replace: true })
+      else if (role === 'admin') navigate('/admin/dashboard', { replace: true })
       else if (role === 'tecnico') navigate('/tecnico', { replace: true })
       else if (role === 'supervisor' || role === 'seguridad') navigate('/permisos/panel', { replace: true })
     }
