@@ -9,6 +9,7 @@ import InformeManager from './InformeManager'
 import MapaManager from './MapaManager'
 import EquiposManager from './EquiposManager'
 import CamionesManager from './CamionesManager'
+import ActivosManager from './ActivosManager'
 import SolicitudesAdvaManager from './SolicitudesAdvaManager'
 import logoImg from '../assets/logo.jpeg'
 import { isHeic, heicBlobToJpeg } from '../lib/heic'
@@ -35,6 +36,7 @@ const ICON = {
   equipos:   'M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z',
   camiones:  'M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zM18 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z',
   adva:      'M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z',
+  activos:   'M12 2l-8 4v6c0 4.42 3.4 8.44 8 9.8 4.6-1.36 8-5.38 8-9.8V6l-8-4zm0 2.18l6 3v4.82c0 3.28-2.5 6.38-6 7.72-3.5-1.34-6-4.44-6-7.72V7.18l6-3zM11 7v4H7v2h4v4h2v-4h4v-2h-4V7h-2z',
 }
 
 const NAV = [
@@ -43,6 +45,7 @@ const NAV = [
   { key: 'mapa',      label: 'Mapa',          roles: ['admin', 'directiva'] },
   { key: 'informes',  label: 'Informes',      roles: ['admin', 'directiva'] },
   { key: 'equipos',   label: 'Equipos',       roles: ['admin', 'directiva'] },
+  { key: 'activos',   label: 'Activos',       roles: ['admin', 'directiva'] },
   { key: 'mant',      label: 'Mantenimiento', roles: ['admin', 'directiva'] },
   { key: 'camiones',  label: 'Mantención Camiones', roles: ['admin', 'directiva'] },
   { key: 'adva',      label: 'Solicitudes Adva',   roles: ['admin', 'directiva'] },
@@ -724,6 +727,7 @@ function AdminDashboard() {
           {active === 'mapa' && <MapaManager />}
           {active === 'informes' && <InformeManager />}
           {active === 'equipos' && <EquiposManager />}
+          {active === 'activos' && <ActivosManager />}
           {active === 'mant' && <MantenimientoManager />}
           {active === 'camiones' && <CamionesManager />}
           {active === 'adva' && <SolicitudesAdvaManager />}

@@ -4345,6 +4345,13 @@ header.scrolled .navbar {
   text-transform: uppercase;
 }
 
+/* Dentro del panel (tema oscuro) los labels van claros para que se lean
+   sobre el fondo oscuro de los modales y secciones. El login (fondo claro)
+   no está dentro de .admin-shell, así que conserva el navy. */
+.admin-shell .admin-field label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
 .admin-field input,
 .admin-field select {
   background: #f7f7fb;
