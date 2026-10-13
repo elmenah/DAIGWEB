@@ -140,7 +140,7 @@ root.render(
           path="/camiones/panel"
           element={
             <Suspense fallback={<AdminLoader />}>
-              <AuthGuard allowedRoles={['admin', 'mantenedor_camiones']}>
+              <AuthGuard allowedRoles={['admin', 'directiva', 'mantenedor_camiones']}>
                 <CamionesPanel />
               </AuthGuard>
             </Suspense>
