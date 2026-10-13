@@ -38,9 +38,9 @@ function AdminLogin() {
     if (!authLoading && hasHydratedSession && isAuthenticated) {
       if (!role) return
 
-      if (role === 'admin') {
-        const nextPath = requestedPath === '/tecnico' ? '/tecnico' : '/admin/dashboard'
-        authDebugLog('navigate', { reason: 'admin-role', to: nextPath })
+      if (role === 'admin' || role === 'directiva') {
+        const nextPath = (role === 'admin' && requestedPath === '/tecnico') ? '/tecnico' : '/admin/dashboard'
+        authDebugLog('navigate', { reason: `${role}-role`, to: nextPath })
         navigate(nextPath, { replace: true })
       } else if (role === 'tecnico') {
         authDebugLog('navigate', { reason: 'tecnico-role', to: '/tecnico' })
