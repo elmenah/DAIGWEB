@@ -438,22 +438,17 @@ export default function SolicitudesAdvaPage() {
     setSending(true); setError('')
 
     try {
-      const { data: inserted, error: dbErr } = await supabase
-        .from('solicitudes_adva')
-        .insert({ trabajador_nombre: trabajador, planta, localidad, requisito })
-        .select('codigo').single()
-      if (dbErr) throw dbErr
-      setCodigo(inserted?.codigo || '')
-
+      // El guardado en la base de datos lo hace la función (service role),
+      // que además devuelve el código generado. Así la tabla queda cerrada
+      // y no se exponen las solicitudes al público.
       const res = await fetch(ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ trabajador, planta, localidad, requisito }),
       })
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}))
-        throw new Error(d.error || 'Error al enviar')
-      }
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(d.error || 'Error al enviar')
+      setCodigo(d.codigo || '')
 
       try { localStorage.removeItem(LS_KEY) } catch (_) {}
       playSuccess()

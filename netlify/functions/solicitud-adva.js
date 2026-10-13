@@ -1,7 +1,15 @@
 import { Resend } from 'resend'
+import { createClient } from '@supabase/supabase-js'
 
 const resend   = new Resend(process.env.RESEND_API_KEY)
 const DEST     = ['daniel.mena@serviciosdaig.com', 'victor.orellana@serviciosdaig.com']
+
+// Cliente admin (service role): guarda la solicitud sin depender de RLS.
+const SUPABASE_URL     = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+const supabaseAdmin = SUPABASE_URL && SERVICE_ROLE_KEY
+  ? createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
+  : null
 
 const ALLOWED_ORIGINS = [
   'https://daigchile.cl',
@@ -74,7 +82,7 @@ export const handler = async (event) => {
     <table style="width:100%;border-collapse:collapse;">
       <tr>
         <td style="padding:12px 0;border-bottom:1px solid #f1f5f9;width:130px;vertical-align:top;">
-          <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Trabajador</span>
+          <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Supervisor</span>
         </td>
         <td style="padding:12px 0;border-bottom:1px solid #f1f5f9;vertical-align:top;">
           <span style="font-size:15px;font-weight:700;color:#1e293b;">${escapeHtml(w)}</span>
@@ -117,6 +125,26 @@ export const handler = async (event) => {
   </div>
 </div>`
 
+  // 1) Guardar la solicitud en la base de datos (service role: evita RLS).
+  if (!supabaseAdmin) {
+    return { statusCode: 500, headers: cors, body: JSON.stringify({ error: 'Servidor no configurado' }) }
+  }
+
+  let codigo = ''
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('solicitudes_adva')
+      .insert({ trabajador_nombre: w, planta: p, localidad: l, requisito: r })
+      .select('codigo')
+      .single()
+    if (error) throw error
+    codigo = data?.codigo || ''
+  } catch (err) {
+    console.error('Supabase insert error:', err)
+    return { statusCode: 500, headers: cors, body: JSON.stringify({ error: `No se pudo guardar la solicitud: ${err.message}` }) }
+  }
+
+  // 2) Enviar la notificación por correo (no bloquea el éxito del guardado).
   try {
     const { error } = await resend.emails.send({
       from:    fromEmail,
@@ -125,9 +153,9 @@ export const handler = async (event) => {
       html,
     })
     if (error) throw new Error(error.message)
-    return { statusCode: 200, headers: cors, body: JSON.stringify({ ok: true }) }
   } catch (err) {
     console.error('Resend error:', err)
-    return { statusCode: 500, headers: cors, body: JSON.stringify({ error: 'Error al enviar notificación' }) }
   }
+
+  return { statusCode: 200, headers: cors, body: JSON.stringify({ ok: true, codigo }) }
 }
