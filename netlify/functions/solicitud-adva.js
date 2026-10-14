@@ -43,7 +43,19 @@ export const handler = async (event) => {
   try { body = JSON.parse(event.body) }
   catch { return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'JSON inválido' }) } }
 
-  const { trabajador, planta, localidad, requisito } = body
+  const { trabajador, planta, localidad, requisito, website, formStartedAt } = body
+
+  // Anti-spam: honeypot (un bot rellena el campo oculto "website").
+  // Se responde 200 para no darle pistas al bot, pero no se guarda nada.
+  if (website) {
+    return { statusCode: 200, headers: cors, body: JSON.stringify({ ok: true }) }
+  }
+
+  // Anti-spam: tiempo mínimo de llenado (un humano tarda más de 3 s).
+  const elapsed = formStartedAt ? Date.now() - Number(formStartedAt) : Infinity
+  if (Number.isFinite(elapsed) && elapsed < 3000) {
+    return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Formulario enviado demasiado rápido' }) }
+  }
 
   if (!trabajador || !planta || !localidad || !requisito) {
     return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Todos los campos son obligatorios' }) }

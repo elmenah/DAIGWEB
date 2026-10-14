@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { escapeHtml as esc } from '../lib/escapeHtml'
 
 const IND_COLOR = {
   'Bueno':             '#22c55e',
@@ -83,21 +84,21 @@ function generarOT(r, allRegistros, equipoNombre) {
       <td style="text-align:center;font-size:14px;color:#1a4480;">☑</td>
       <td style="text-align:center;">${i + 1}</td>
       <td>
-        <strong>${x.tarea || x.tipo_trabajo || 'Intervención'}</strong>
-        ${x.descripcion ? `<br/><span style="font-size:9.5px;color:#555;">${x.descripcion}</span>` : ''}
-        ${x.trabajador_nombre && otGrupo.length > 1 ? `<span style="font-size:9px;color:#999;"> — ${x.trabajador_nombre}</span>` : ''}
+        <strong>${esc(x.tarea || x.tipo_trabajo || 'Intervención')}</strong>
+        ${x.descripcion ? `<br/><span style="font-size:9.5px;color:#555;">${esc(x.descripcion)}</span>` : ''}
+        ${x.trabajador_nombre && otGrupo.length > 1 ? `<span style="font-size:9px;color:#999;"> — ${esc(x.trabajador_nombre)}</span>` : ''}
       </td>
     </tr>`).join('')
 
   const materialesHTML = materiales.length
-    ? materiales.map(m => `<tr><td>${m}</td></tr>`).join('')
+    ? materiales.map(m => `<tr><td>${esc(m)}</td></tr>`).join('')
     : `<tr><td style="color:#999;">—</td></tr>`
 
   const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>OT-${otNum} · ${equipoNombre}</title>
+<title>OT-${otNum} · ${esc(equipoNombre)}</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1a1a1a;background:#fff;}
@@ -144,20 +145,20 @@ function generarOT(r, allRegistros, equipoNombre) {
     <div class="logo-circle"><div class="logo-text">DAIG</div></div>
     <div class="title-area">
       <h1>Orden de Trabajo OT-${otNum}</h1>
-      <p>Mantención ${equipoNombre}${mesAnio ? ' — ' + mesAnio : ''}</p>
+      <p>Mantención ${esc(equipoNombre)}${mesAnio ? ' — ' + mesAnio : ''}</p>
     </div>
   </div>
   <div class="ot-badge">
     <div class="ot-badge-num">OT-${otNum}</div>
-    <div class="ot-badge-row">Estado: ${r.estado || '—'}</div>
+    <div class="ot-badge-row">Estado: ${esc(r.estado || '—')}</div>
     <div class="ot-badge-row">Clase: ${clase}</div>
   </div>
 </div>
 
 <table class="info-grid">
   <tr>
-    <td width="50%"><span class="lbl">Cliente / Mandante:</span> ${r.planta || '—'}</td>
-    <td><span class="lbl">Equipo:</span> ${equipoNombre}</td>
+    <td width="50%"><span class="lbl">Cliente / Mandante:</span> ${esc(r.planta || '—')}</td>
+    <td><span class="lbl">Equipo:</span> ${esc(equipoNombre)}</td>
   </tr>
   <tr>
     <td><span class="lbl">OT:</span> ${otNum}</td>
@@ -165,7 +166,7 @@ function generarOT(r, allRegistros, equipoNombre) {
   </tr>
   <tr>
     <td><span class="lbl">Taller / Responsable:</span> DAIG SpA</td>
-    <td><span class="lbl">Realizó:</span> ${r.trabajador_nombre || '—'}</td>
+    <td><span class="lbl">Realizó:</span> ${esc(r.trabajador_nombre || '—')}</td>
   </tr>
   <tr>
     <td><span class="lbl">Mantención realizada:</span> ${fechaRange}</td>
@@ -200,12 +201,12 @@ function generarOT(r, allRegistros, equipoNombre) {
 </div>
 <div class="period-note">Período: últimos 12 meses · Confiabilidad–Mantenibilidad–Disponibilidad (CMD) calculada por el software de gestión Mantención de Flota — DAIG.</div>
 
-${notas ? `<div class="notes-box"><strong>Notas:</strong> ${notas}</div>` : ''}
+${notas ? `<div class="notes-box"><strong>Notas:</strong> ${esc(notas)}</div>` : ''}
 
 <div class="signatures">
-  <div><div class="sig-lbl">Realizó</div><div class="sig-line">${r.trabajador_nombre || ''} · DAIG SpA</div></div>
-  <div><div class="sig-lbl">Revisó / Supervisor</div><div class="sig-line">${r.revisado_por || ''}</div></div>
-  <div><div class="sig-lbl">Recibió conforme</div><div class="sig-line">${r.planta || ''}</div></div>
+  <div><div class="sig-lbl">Realizó</div><div class="sig-line">${esc(r.trabajador_nombre || '')} · DAIG SpA</div></div>
+  <div><div class="sig-lbl">Revisó / Supervisor</div><div class="sig-line">${esc(r.revisado_por || '')}</div></div>
+  <div><div class="sig-lbl">Recibió conforme</div><div class="sig-line">${esc(r.planta || '')}</div></div>
 </div>
 
 <div class="ot-footer">Generado por el software de gestión Mantención de Flota — DAIG SpA · Ingeniería y Servicios Industriales · ${hoy}.</div>

@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import HeicImage from '../components/HeicImage'
 import SignaturePad from '../components/SignaturePad'
 import { isHeic, heicUrlToJpegUrl } from '../lib/heic'
+import { escapeHtml as esc } from '../lib/escapeHtml'
 import logoImg from '../assets/logo.jpeg'
 
 // ── helpers de fecha ──────────────────────────────────────────────────────────
@@ -352,7 +353,7 @@ export default function InformeManager() {
       const wb = XLSX.utils.book_new()
 
       const ws = buildStyledSheet(XLSX, {
-        title: `${worker.nombre} — Informe ${tipoTxt}`,
+        title: `${esc(worker.nombre)} — Informe ${tipoTxt}`,
         subtitle: `DAIG SpA · ${periodo} · ${worker.registros.length} ${worker.registros.length === 1 ? 'registro' : 'registros'} · ${nH(worker.horas)} h`,
         headers: XL_DET_HEADERS,
         colWidths: XL_DET_WIDTHS,
@@ -405,8 +406,8 @@ export default function InformeManager() {
       const periodo = esDia ? fmtFecha(desdeISO) : `${fmtFecha(desdeISO)} al ${fmtFecha(hastaISO)}`
       const tituloTipo = esDia ? 'DIARIAS' : esMes ? 'MENSUALES' : 'SEMANALES'
       const tituloTipoCap = esDia ? 'Diarias' : esMes ? 'Mensuales' : 'Semanales'
-      const equipos = [...worker.equipos].join(', ') || '—'
-      const estados = [...new Set(worker.registros.map(r => r.estado).filter(Boolean))].join(', ') || '—'
+      const equipos = [...worker.equipos].map(esc).join(', ') || '—'
+      const estados = [...new Set(worker.registros.map(r => r.estado).filter(Boolean))].map(esc).join(', ') || '—'
 
       // Resolver fotos HEIC a URLs mostrables
       const regsConFotos = await Promise.all(worker.registros.map(async (r) => {
@@ -427,35 +428,35 @@ export default function InformeManager() {
         }
       }
       const regsGeo = regsConFotos.map(r => ({ ...r, plantaNombre: geoMap.get(r.planta) || r.planta }))
-      const plantas = [...new Set(regsGeo.map(r => r.plantaNombre).filter(Boolean))].join(', ') || '—'
+      const plantas = [...new Set(regsGeo.map(r => r.plantaNombre).filter(Boolean))].map(esc).join(', ') || '—'
 
       const filaActividades = regsGeo.map((r, i) => `
         <tr>
           <td style="text-align:center;font-weight:700">${i + 1}</td>
-          <td>${fmtFecha(r.fecha)}</td>
-          <td>${r.tipo_trabajo || '—'}</td>
+          <td>${esc(fmtFecha(r.fecha))}</td>
+          <td>${esc(r.tipo_trabajo || '—')}</td>
           <td>
-            <strong>${r.tarea || ''}</strong>
-            ${r.equipo_intervenido ? `<br><span style="color:#6b6b8a;font-size:0.82em">${r.equipo_intervenido}</span>` : ''}
+            <strong>${esc(r.tarea || '')}</strong>
+            ${r.equipo_intervenido ? `<br><span style="color:#6b6b8a;font-size:0.82em">${esc(r.equipo_intervenido)}</span>` : ''}
           </td>
-          <td>${r.estado || '—'}</td>
-          ${esMes ? '' : `<td style="text-align:right">${r.horas_trabajadas != null ? r.horas_trabajadas + ' h' : '—'}</td>`}
+          <td>${esc(r.estado || '—')}</td>
+          ${esMes ? '' : `<td style="text-align:right">${r.horas_trabajadas != null ? esc(r.horas_trabajadas + ' h') : '—'}</td>`}
         </tr>`).join('')
 
       const tarjetasTrabajo = regsGeo.map((r, i) => {
         const campos = [
-          r.ot            && `<div class="trab-campo"><span class="lbl">OT:</span> ${r.ot}</div>`,
-          r.descripcion   && `<div class="trab-campo"><span class="lbl">Descripción:</span> ${r.descripcion}</div>`,
-          r.material_utilizado && `<div class="trab-campo"><span class="lbl">Material utilizado:</span> ${r.material_utilizado}</div>`,
-          r.plantaNombre  && `<div class="trab-campo"><span class="lbl">Planta / lugar:</span> ${r.plantaNombre}</div>`,
-          r.aviso_sap     && `<div class="trab-campo"><span class="lbl">Aviso SAP:</span> ${r.aviso_sap}</div>`,
+          r.ot            && `<div class="trab-campo"><span class="lbl">OT:</span> ${esc(r.ot)}</div>`,
+          r.descripcion   && `<div class="trab-campo"><span class="lbl">Descripción:</span> ${esc(r.descripcion)}</div>`,
+          r.material_utilizado && `<div class="trab-campo"><span class="lbl">Material utilizado:</span> ${esc(r.material_utilizado)}</div>`,
+          r.plantaNombre  && `<div class="trab-campo"><span class="lbl">Planta / lugar:</span> ${esc(r.plantaNombre)}</div>`,
+          r.aviso_sap     && `<div class="trab-campo"><span class="lbl">Aviso SAP:</span> ${esc(r.aviso_sap)}</div>`,
         ].filter(Boolean).join('')
 
         const fotoGrid = r.fotosResueltas.length > 0 ? `
           <div class="foto-grid">
             ${r.fotosResueltas.map((url, fi) => `
               <div class="foto-item">
-                <img src="${url}" alt="Foto ${fi + 1}" onerror="this.parentElement.style.display='none'">
+                <img src="${esc(url)}" alt="Foto ${fi + 1}" onerror="this.parentElement.style.display='none'">
               </div>`).join('')}
           </div>` : ''
 
@@ -463,8 +464,8 @@ export default function InformeManager() {
           <div class="trabajo-card">
             <div class="trabajo-header">
               <span class="trab-num">#${i + 1}</span>
-              <span class="trab-tarea">${r.tarea || 'Sin descripción'}</span>
-              <span class="trab-meta">${fmtFecha(r.fecha)}${r.hora ? ' · ' + r.hora.slice(0, 5) : ''} · ${r.tipo_trabajo || ''}</span>
+              <span class="trab-tarea">${esc(r.tarea || 'Sin descripción')}</span>
+              <span class="trab-meta">${esc(fmtFecha(r.fecha))}${r.hora ? ' · ' + esc(r.hora.slice(0, 5)) : ''} · ${esc(r.tipo_trabajo || '')}</span>
             </div>
             <div class="trabajo-body">
               ${campos}
@@ -552,13 +553,13 @@ export default function InformeManager() {
         <img src="${logoUrl}" alt="DAIG">
         <span>DAIG SpA</span>
       </div>
-      <div class="ih-right">Informe de Actividades ${tituloTipoCap}<br>${worker.nombre} · ${periodo}</div>
+      <div class="ih-right">Informe de Actividades ${tituloTipoCap}<br>${esc(worker.nombre)} · ${periodo}</div>
     </div>
     <div class="seccion">
       <div class="sec-titulo"><span class="sec-num">1.</span> DATOS DEL SERVICIO</div>
       <table class="tabla-datos">
         <tr><td>Empresa ejecutora</td><td>DAIG SpA | RUT: 77.702.886-3</td></tr>
-        <tr><td>Trabajador</td><td>${worker.nombre}</td></tr>
+        <tr><td>Trabajador</td><td>${esc(worker.nombre)}</td></tr>
         <tr><td>Período</td><td>${periodo}</td></tr>
         <tr><td>Total de registros</td><td>${worker.registros.length} ${worker.registros.length === 1 ? 'registro' : 'registros'}</td></tr>
         <tr><td>Estado de actividades</td><td>${estados}</td></tr>
@@ -589,7 +590,7 @@ export default function InformeManager() {
         <img src="${logoUrl}" alt="DAIG">
         <span>DAIG SpA</span>
       </div>
-      <div class="ih-right">Registro Fotográfico<br>${worker.nombre} · ${periodo}</div>
+      <div class="ih-right">Registro Fotográfico<br>${esc(worker.nombre)} · ${periodo}</div>
     </div>
     <div class="seccion">
       <div class="sec-titulo"><span class="sec-num">3.</span> DETALLE DE TRABAJOS Y REGISTRO FOTOGRÁFICO</div>
@@ -604,13 +605,13 @@ export default function InformeManager() {
         <img src="${logoUrl}" alt="DAIG">
         <span>DAIG SpA</span>
       </div>
-      <div class="ih-right">Conclusión<br>${worker.nombre} · ${periodo}</div>
+      <div class="ih-right">Conclusión<br>${esc(worker.nombre)} · ${periodo}</div>
     </div>
     <div class="seccion">
       <div class="sec-titulo"><span class="sec-num">4.</span> CONCLUSIÓN Y ESTADO FINAL</div>
       <div class="conclusion-box">
         Las actividades de mantención e intervención fueron ejecutadas durante el período
-        comprendido entre el ${periodo} por el técnico <strong>${worker.nombre}</strong>,
+        comprendido entre el ${periodo} por el técnico <strong>${esc(worker.nombre)}</strong>,
         completando un total de <strong>${worker.registros.length} ${worker.registros.length === 1 ? 'registro' : 'registros'}</strong>.
         ${[...worker.plantas].length > 0 ? `Los trabajos se realizaron en: <strong>${plantas}</strong>.` : ''}
         ${[...worker.equipos].length > 0 ? ` Los equipos intervenidos incluyeron: ${equipos}.` : ''}
@@ -763,25 +764,25 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
 <div class="inner-page">
   <div class="inner-header">
     <div class="ih-brand"><img src="${logoUrl}" alt="DAIG"><span>DAIG SpA</span></div>
-    <div class="ih-right">${workerFiltrado ? `Informe ${workerFiltrado.nombre}<br>` : `Informe General ${tituloTipoCap}<br>`}${periodo}</div>
+    <div class="ih-right">${workerFiltrado ? `Informe ${esc(workerFiltrado.nombre)}<br>` : `Informe General ${tituloTipoCap}<br>`}${periodo}</div>
   </div>
   <div class="seccion">
     <div class="sec-titulo"><span class="sec-num">1.</span> RESUMEN POR TRABAJADOR</div>
     <table class="tabla-res">
       <thead><tr><th>Trabajador</th><th>Registros</th>${esMes ? '' : '<th>Horas</th>'}<th>Tipos de trabajo</th></tr></thead>
       <tbody>
-        ${trabUsados.map(w => `<tr><td>${w.nombre}</td><td style="text-align:center">${w.registros.length}</td>${esMes ? '' : `<td style="text-align:center">${nH(w.horas)}</td>`}<td>${[...w.tipos].join(', ') || '—'}</td></tr>`).join('')}
+        ${trabUsados.map(w => `<tr><td>${esc(w.nombre)}</td><td style="text-align:center">${w.registros.length}</td>${esMes ? '' : `<td style="text-align:center">${nH(w.horas)}</td>`}<td>${esc([...w.tipos].join(', ')) || '—'}</td></tr>`).join('')}
         <tr class="total-row"><td>TOTAL</td><td style="text-align:center">${regsUsados.length}</td>${esMes ? '' : `<td style="text-align:center">${nH(horasUsadas)}</td>`}<td></td></tr>
       </tbody>
     </table>
   </div>
   <div class="seccion">
     <div class="sec-titulo"><span class="sec-num">2.</span> POR TIPO DE TRABAJO</div>
-    <div class="chips">${Object.entries(porTipoUsado).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`<span class="chip">${t} · <strong>${n}</strong></span>`).join('')}</div>
+    <div class="chips">${Object.entries(porTipoUsado).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`<span class="chip">${esc(t)} · <strong>${n}</strong></span>`).join('')}</div>
   </div>
   <div class="seccion">
     <div class="sec-titulo"><span class="sec-num">3.</span> POR ESTADO</div>
-    <div class="chips">${Object.entries(porEstadoUsado).sort((a,b)=>b[1]-a[1]).map(([e,n])=>`<span class="chip">${e} · <strong>${n}</strong></span>`).join('')}</div>
+    <div class="chips">${Object.entries(porEstadoUsado).sort((a,b)=>b[1]-a[1]).map(([e,n])=>`<span class="chip">${esc(e)} · <strong>${n}</strong></span>`).join('')}</div>
   </div>
 </div>
 
@@ -797,7 +798,7 @@ body{font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;font-size:11pt;backgro
         <div class="fecha-lbl">${fmtFecha(fecha)}</div>
         <table class="tabla-act">
           <thead><tr><th>Trabajador</th><th>Tipo</th><th>Tarea / Equipo</th><th>Estado</th>${esMes ? '' : '<th>Hrs</th>'}</tr></thead>
-          <tbody>${regs.map(r => `<tr><td>${r.trabajador_nombre||'—'}</td><td>${r.tipo_trabajo||'—'}</td><td><strong>${r.tarea||''}</strong>${r.equipo_intervenido?` · <small>${r.equipo_intervenido}</small>`:''}</td><td>${r.estado||'—'}</td>${esMes ? '' : `<td style="text-align:center">${r.horas_trabajadas??''}</td>`}</tr>`).join('')}</tbody>
+          <tbody>${regs.map(r => `<tr><td>${esc(r.trabajador_nombre||'—')}</td><td>${esc(r.tipo_trabajo||'—')}</td><td><strong>${esc(r.tarea||'')}</strong>${r.equipo_intervenido?` · <small>${esc(r.equipo_intervenido)}</small>`:''}</td><td>${esc(r.estado||'—')}</td>${esMes ? '' : `<td style="text-align:center">${esc(r.horas_trabajadas??'')}</td>`}</tr>`).join('')}</tbody>
         </table>
       </div>`).join('')}
   </div>

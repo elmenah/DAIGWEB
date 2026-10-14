@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from './AuthContext'
 import HeicImage from '../components/HeicImage'
 import { isHeic, heicBlobToJpeg } from '../lib/heic'
+import { escapeHtml as esc } from '../lib/escapeHtml'
 
 import InvoiceImage from '../components/InvoiceImage'
 import RecordHoursEditor from './RecordHoursEditor'
@@ -479,11 +480,11 @@ function RegistrosManager() {
 
   const printRecord = (r) => {
     const estadoBadge = () => {
-      if (['Terminado','Completado'].includes(r.estado)) return `<span style="background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:8px;font-size:12px">${r.estado}</span>`
-      if (['En Proceso','En progreso'].includes(r.estado)) return `<span style="background:#fef3c7;color:#d97706;padding:2px 8px;border-radius:8px;font-size:12px">${r.estado}</span>`
-      return `<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:8px;font-size:12px">${r.estado}</span>`
+      if (['Terminado','Completado'].includes(r.estado)) return `<span style="background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:8px;font-size:12px">${esc(r.estado)}</span>`
+      if (['En Proceso','En progreso'].includes(r.estado)) return `<span style="background:#fef3c7;color:#d97706;padding:2px 8px;border-radius:8px;font-size:12px">${esc(r.estado)}</span>`
+      return `<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:8px;font-size:12px">${esc(r.estado)}</span>`
     }
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Registro ${r.fecha}</title>
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Registro ${esc(r.fecha)}</title>
     <style>
       body{font-family:Arial,sans-serif;padding:2cm;color:#111;font-size:13px}
       h2{color:#12122a;margin:0}p{margin:2px 0;color:#888;font-size:12px}
@@ -500,24 +501,24 @@ function RegistrosManager() {
     <p>DAIG Chile — daigchile.cl</p><hr/>
     <table>
       <tr><th colspan="2">Detalle del registro</th></tr>
-      <tr><td><b>Trabajador</b></td><td>${r.trabajador_nombre||'—'}</td></tr>
-      <tr><td><b>Fecha</b></td><td>${r.fecha||'—'}</td></tr>
-      <tr><td><b>Hora</b></td><td>${r.hora?.slice(0,5)||'—'}</td></tr>
-      <tr><td><b>Tipo de trabajo</b></td><td>${r.tipo_trabajo||'—'}</td></tr>
+      <tr><td><b>Trabajador</b></td><td>${esc(r.trabajador_nombre||'—')}</td></tr>
+      <tr><td><b>Fecha</b></td><td>${esc(r.fecha||'—')}</td></tr>
+      <tr><td><b>Hora</b></td><td>${esc(r.hora?.slice(0,5)||'—')}</td></tr>
+      <tr><td><b>Tipo de trabajo</b></td><td>${esc(r.tipo_trabajo||'—')}</td></tr>
       <tr><td><b>Estado</b></td><td>${r.estado ? estadoBadge() : '—'}</td></tr>
-      <tr><td><b>Equipo / Activo</b></td><td>${r.equipo_intervenido||'—'}</td></tr>
-      <tr><td><b>OT</b></td><td>${r.ot||'—'}</td></tr>
-      <tr><td><b>Planta / lugar</b></td><td>${r.planta||'—'}</td></tr>
-      <tr><td><b>Aviso SAP</b></td><td>${r.aviso_sap||'—'}</td></tr>
-      <tr><td><b>Tarea realizada</b></td><td>${r.tarea||'—'}</td></tr>
-      <tr><td><b>Descripción</b></td><td>${r.descripcion||'—'}</td></tr>
-      <tr><td><b>Material utilizado</b></td><td>${r.material_utilizado||'—'}</td></tr>
-      <tr><td><b>Horas trabajadas</b></td><td>${r.horas_trabajadas ? r.horas_trabajadas+'h' : '—'}</td></tr>
-      <tr><td><b>Ubicación GPS</b></td><td>${r.ubicacion_texto||'—'}</td></tr>
-      ${r.revisado_por ? `<tr><td><b>Revisado por</b></td><td>${r.revisado_por} — ${new Date(r.revisado_at).toLocaleDateString('es-CL')}</td></tr>` : ''}
-      ${r.comentario_admin ? `<tr><td><b>Comentario supervisor</b></td><td>${r.comentario_admin}</td></tr>` : ''}
+      <tr><td><b>Equipo / Activo</b></td><td>${esc(r.equipo_intervenido||'—')}</td></tr>
+      <tr><td><b>OT</b></td><td>${esc(r.ot||'—')}</td></tr>
+      <tr><td><b>Planta / lugar</b></td><td>${esc(r.planta||'—')}</td></tr>
+      <tr><td><b>Aviso SAP</b></td><td>${esc(r.aviso_sap||'—')}</td></tr>
+      <tr><td><b>Tarea realizada</b></td><td>${esc(r.tarea||'—')}</td></tr>
+      <tr><td><b>Descripción</b></td><td>${esc(r.descripcion||'—')}</td></tr>
+      <tr><td><b>Material utilizado</b></td><td>${esc(r.material_utilizado||'—')}</td></tr>
+      <tr><td><b>Horas trabajadas</b></td><td>${r.horas_trabajadas ? esc(r.horas_trabajadas+'h') : '—'}</td></tr>
+      <tr><td><b>Ubicación GPS</b></td><td>${esc(r.ubicacion_texto||'—')}</td></tr>
+      ${r.revisado_por ? `<tr><td><b>Revisado por</b></td><td>${esc(r.revisado_por)} — ${esc(new Date(r.revisado_at).toLocaleDateString('es-CL'))}</td></tr>` : ''}
+      ${r.comentario_admin ? `<tr><td><b>Comentario supervisor</b></td><td>${esc(r.comentario_admin)}</td></tr>` : ''}
     </table>
-    ${r.fotos?.length ? `<h3 style="margin-top:20px">Fotografías (${r.fotos.length})</h3><div class="fotos">${r.fotos.map(u=>`<img src="${u}"/>`).join('')}</div>` : ''}
+    ${r.fotos?.length ? `<h3 style="margin-top:20px">Fotografías (${r.fotos.length})</h3><div class="fotos">${r.fotos.map(u=>`<img src="${esc(u)}"/>`).join('')}</div>` : ''}
     <div class="footer">Generado el ${new Date().toLocaleDateString('es-CL')} — DAIG Chile</div>
     </body></html>`
 

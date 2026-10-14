@@ -401,6 +401,8 @@ export default function SolicitudesAdvaPage() {
   const [sent,     setSent]     = useState(false)
   const [codigo,   setCodigo]   = useState('')
   const [error,    setError]    = useState('')
+  const [website,  setWebsite]  = useState('')          // honeypot anti-spam
+  const [formStartedAt] = useState(() => Date.now())     // tiempo de inicio anti-bot
 
   // Cargar trabajadores ADVA
   useEffect(() => {
@@ -444,7 +446,7 @@ export default function SolicitudesAdvaPage() {
       const res = await fetch(ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ trabajador, planta, localidad, requisito }),
+        body: JSON.stringify({ trabajador, planta, localidad, requisito, website, formStartedAt }),
       })
       const d = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(d.error || 'Error al enviar')
@@ -553,6 +555,15 @@ export default function SolicitudesAdvaPage() {
               )}
 
               <form onSubmit={handleSubmit} className="adva-form">
+
+                {/* Honeypot anti-spam: invisible para humanos, lo rellenan los bots */}
+                <input
+                  type="text" name="website" value={website}
+                  onChange={e => setWebsite(e.target.value)}
+                  tabIndex="-1" autoComplete="off" aria-hidden="true"
+                  style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+                />
+
 
                 {/* 1. Trabajador */}
                 <div className="adva-field">
