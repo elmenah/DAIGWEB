@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import LocationPicker from './LocationPicker'
 
 function Modal({ title, onClose, children }) {
   return (
@@ -18,7 +19,7 @@ function Modal({ title, onClose, children }) {
 const EMPTY_INST = { nombre: '', localidad: '', estado: 'activa' }
 const EMPTY_ACT = {
   codigo: '', instalacion_id: '', sistema: '', equipo: '', criticidad: '',
-  marca: '', modelo: '', potencia_kw: '', latitud: '', longitud: '', horas_operacion_dia: '', estado: 'activo',
+  marca: '', modelo: '', potencia_kw: '', direccion: '', latitud: '', longitud: '', horas_operacion_dia: '', estado: 'activo',
 }
 
 function ActivosManager() {
@@ -34,6 +35,7 @@ function ActivosManager() {
   const [editInst, setEditInst] = useState(null) // objeto instalación en edición (o EMPTY_INST)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [buscando, setBuscando] = useState(false)
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -89,6 +91,7 @@ function ActivosManager() {
         marca: editAct.marca.trim() || null,
         modelo: editAct.modelo.trim() || null,
         potencia_kw: num(editAct.potencia_kw),
+        direccion: editAct.direccion.trim() || null,
         latitud: num(editAct.latitud),
         longitud: num(editAct.longitud),
         horas_operacion_dia: num(editAct.horas_operacion_dia),
@@ -121,6 +124,30 @@ function ActivosManager() {
 
   const setA = (k, v) => setEditAct(prev => ({ ...prev, [k]: v }))
   const setI = (k, v) => setEditInst(prev => ({ ...prev, [k]: v }))
+
+  // El mapa marca el punto → guarda coordenadas y la dirección detectada
+  const onPickUbicacion = (lat, lng, dir) =>
+    setEditAct(prev => ({ ...prev, latitud: lat, longitud: lng, direccion: dir || prev.direccion }))
+
+  // Escribe la dirección y "Buscar en mapa" → geocodifica y mueve el pin
+  const buscarDireccion = async () => {
+    const q = (editAct.direccion || '').trim()
+    if (!q) return
+    setBuscando(true)
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1&accept-language=es&countrycodes=cl`)
+      const d = await res.json()
+      if (d && d[0]) {
+        setEditAct(prev => ({ ...prev, latitud: +(+d[0].lat).toFixed(7), longitud: +(+d[0].lon).toFixed(7) }))
+      } else {
+        alert('No se encontró la dirección. Haz clic en el mapa para marcar el punto manualmente.')
+      }
+    } catch {
+      alert('No se pudo buscar la dirección. Marca el punto en el mapa.')
+    } finally {
+      setBuscando(false)
+    }
+  }
 
   return (
     <div className="admin-section">
@@ -183,17 +210,33 @@ function ActivosManager() {
               <div className="admin-field" style={{ flex: 1 }}><label>Modelo</label>
                 <input type="text" value={editAct.modelo} onChange={e => setA('modelo', e.target.value)} /></div>
             </div>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <div className="admin-field" style={{ flex: 1 }}><label>Latitud</label>
-                <input type="number" step="0.0000001" value={editAct.latitud} onChange={e => setA('latitud', e.target.value)} placeholder="-29.90" /></div>
-              <div className="admin-field" style={{ flex: 1 }}><label>Longitud</label>
-                <input type="number" step="0.0000001" value={editAct.longitud} onChange={e => setA('longitud', e.target.value)} placeholder="-71.25" /></div>
-              <div className="admin-field" style={{ flex: 1 }}><label>Estado</label>
-                <select value={editAct.estado} onChange={e => setA('estado', e.target.value)}>
-                  <option value="activo">Activo</option>
-                  <option value="de baja">De baja</option>
-                </select></div>
+            <div className="admin-field">
+              <label>Dirección / ubicación</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input type="text" value={editAct.direccion} onChange={e => setA('direccion', e.target.value)}
+                  placeholder="Ej: Emisario La Serena, Av. del Mar" style={{ flex: 1 }} />
+                <button type="button" className="admin-btn-outline" style={{ whiteSpace: 'nowrap', width: 'auto', marginTop: 0 }} onClick={buscarDireccion} disabled={buscando}>
+                  {buscando ? 'Buscando...' : 'Buscar en mapa'}
+                </button>
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <LocationPicker
+                  lat={editAct.latitud === '' || editAct.latitud == null ? null : parseFloat(editAct.latitud)}
+                  lng={editAct.longitud === '' || editAct.longitud == null ? null : parseFloat(editAct.longitud)}
+                  onPick={onPickUbicacion}
+                />
+              </div>
+              <small style={{ color: '#9a9ab0', display: 'block', marginTop: 6 }}>
+                {editAct.latitud && editAct.longitud
+                  ? `Pin: ${(+editAct.latitud).toFixed(5)}, ${(+editAct.longitud).toFixed(5)}`
+                  : 'Escribe la dirección y pulsa "Buscar en mapa", o haz clic en el mapa para marcar el punto.'}
+              </small>
             </div>
+            <div className="admin-field"><label>Estado</label>
+              <select value={editAct.estado} onChange={e => setA('estado', e.target.value)}>
+                <option value="activo">Activo</option>
+                <option value="de baja">De baja</option>
+              </select></div>
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1.25rem' }}>
               <button type="button" className="admin-btn-outline" onClick={() => setEditAct(null)}>Cancelar</button>
               <button type="submit" className="admin-btn-primary" disabled={saving}>{saving ? 'Guardando...' : 'Guardar'}</button>

@@ -24,6 +24,7 @@ create table if not exists public.activos (
   marca               text,
   modelo              text,
   potencia_kw         numeric,
+  direccion           text,
   latitud             numeric(10, 7),
   longitud            numeric(10, 7),
   horas_operacion_dia numeric,
