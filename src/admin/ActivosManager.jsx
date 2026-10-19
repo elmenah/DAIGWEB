@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import QRCode from 'qrcode'
 import { supabase } from '../lib/supabase'
 import LocationPicker from './LocationPicker'
+import { escapeHtml } from '../lib/escapeHtml'
 
 function Modal({ title, onClose, children }) {
   return (
@@ -13,6 +15,64 @@ function Modal({ title, onClose, children }) {
         {children}
       </div>
     </div>
+  )
+}
+
+// Modal con el código QR del activo: muestra, descarga (PNG) e imprime.
+// El QR codifica el código del activo (ej. ADVA-EMILS-RJF-01), que es lo que
+// el técnico escaneará para seleccionarlo en el registro.
+function QrModal({ activo, instalacionNombre, onClose }) {
+  const canvasRef = useRef(null)
+  const [dataUrl, setDataUrl] = useState('')
+
+  useEffect(() => {
+    if (!activo?.codigo) return
+    if (canvasRef.current) {
+      QRCode.toCanvas(canvasRef.current, activo.codigo, {
+        width: 240, margin: 1, color: { dark: '#12123A', light: '#FFFFFF' },
+      }).catch(() => {})
+    }
+    QRCode.toDataURL(activo.codigo, { width: 600, margin: 2 }).then(setDataUrl).catch(() => {})
+  }, [activo])
+
+  const descargar = () => {
+    if (!dataUrl) return
+    const a = document.createElement('a')
+    a.href = dataUrl
+    a.download = `QR_${activo.codigo}.png`
+    a.click()
+  }
+
+  const imprimir = () => {
+    if (!dataUrl) return
+    const w = window.open('', '_blank')
+    if (!w) { alert('Permite las ventanas emergentes para imprimir.'); return }
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>QR ${escapeHtml(activo.codigo)}</title></head>
+      <body style="font-family:system-ui,sans-serif;text-align:center;padding:40px;margin:0">
+        <img src="${dataUrl}" style="width:320px;height:320px" alt="QR" />
+        <h2 style="margin:18px 0 4px;font-family:monospace;font-size:20px">${escapeHtml(activo.codigo)}</h2>
+        <p style="margin:0;color:#444;font-size:15px">${escapeHtml(activo.equipo || '')}</p>
+        <p style="margin:2px 0 0;color:#888;font-size:13px">${escapeHtml(instalacionNombre || '')}</p>
+      </body></html>`)
+    w.document.close(); w.focus()
+    setTimeout(() => { w.print() }, 200)
+  }
+
+  return (
+    <Modal title={`QR — ${activo.codigo}`} onClose={onClose}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ background: '#fff', display: 'inline-block', padding: 16, borderRadius: 12 }}>
+          <canvas ref={canvasRef} />
+        </div>
+        <p style={{ fontFamily: 'monospace', fontWeight: 700, margin: '14px 0 2px', fontSize: '1rem' }}>{activo.codigo}</p>
+        {activo.equipo && <p style={{ margin: 0, color: '#cfd2dc', fontSize: '0.85rem' }}>{activo.equipo}</p>}
+        {instalacionNombre && <p style={{ margin: '2px 0 0', color: '#9a9ab0', fontSize: '0.8rem' }}>{instalacionNombre}</p>}
+        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '1.25rem' }}>
+          <button type="button" className="admin-btn-outline" style={{ width: 'auto', marginTop: 0 }} onClick={descargar} disabled={!dataUrl}>Descargar PNG</button>
+          <button type="button" className="admin-btn-primary" style={{ width: 'auto', marginTop: 0 }} onClick={imprimir} disabled={!dataUrl}>Imprimir</button>
+        </div>
+      </div>
+    </Modal>
   )
 }
 
@@ -32,6 +92,7 @@ function ActivosManager() {
 
   // Modales
   const [editAct, setEditAct] = useState(null)   // objeto activo en edición (o EMPTY_ACT para nuevo)
+  const [qrAct, setQrAct] = useState(null)       // activo para mostrar su QR
   const [editInst, setEditInst] = useState(null) // objeto instalación en edición (o EMPTY_INST)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -151,6 +212,11 @@ function ActivosManager() {
 
   return (
     <div className="admin-section">
+      {/* ── Modal QR del activo ── */}
+      {qrAct && (
+        <QrModal activo={qrAct} instalacionNombre={instNombre(qrAct.instalacion_id)} onClose={() => setQrAct(null)} />
+      )}
+
       {/* ── Modal instalación ── */}
       {editInst && (
         <Modal title={editInst.id ? 'Editar instalación' : 'Nueva instalación'} onClose={() => setEditInst(null)}>
@@ -279,6 +345,7 @@ function ActivosManager() {
                       <td style={{ textAlign: 'center', color: a.estado === 'activo' ? '#22c55e' : '#9a9ab0' }}>{a.estado}</td>
                       <td style={{ textAlign: 'right' }}>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                          <button className="admin-btn-outline" style={{ fontSize: '0.78rem', padding: '4px 10px' }} onClick={() => setQrAct(a)}>QR</button>
                           <button className="admin-btn-outline" style={{ fontSize: '0.78rem', padding: '4px 10px' }} onClick={() => { setError(''); setEditAct({ ...EMPTY_ACT, ...a, potencia_kw: a.potencia_kw ?? '', latitud: a.latitud ?? '', longitud: a.longitud ?? '', horas_operacion_dia: a.horas_operacion_dia ?? '', instalacion_id: a.instalacion_id || '' }) }}>Editar</button>
                           <button className="admin-btn-danger" style={{ fontSize: '0.78rem', padding: '4px 10px' }} onClick={() => delRow('activos', a, a.codigo)} disabled={deleting === a.id}>{deleting === a.id ? '...' : 'Eliminar'}</button>
                         </div>

@@ -9,9 +9,52 @@ import InvoiceImage from '../components/InvoiceImage'
 import { uploadInvoice, validateInvoice } from '../lib/invoice'
 import { saveWorkRecord } from '../lib/saveWorkRecord'
 import { getInvoicePaths, collectInvoicePaths, invoiceUpdateFields } from '../lib/invoicePaths'
+import { BrowserQRCodeReader } from '@zxing/browser'
 
 const today = () => new Date().toISOString().split('T')[0]
 const nowTime = () => new Date().toTimeString().slice(0, 5)
+
+// Overlay con la cámara para escanear el QR pegado en el equipo.
+// Al leer un código llama onDetect(texto); el padre busca el activo y lo selecciona.
+function QrScanModal({ onDetect, onClose }) {
+  const videoRef = useRef(null)
+  const onDetectRef = useRef(onDetect)
+  onDetectRef.current = onDetect
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let controls
+    let done = false
+    const reader = new BrowserQRCodeReader()
+    reader.decodeFromConstraints(
+      { video: { facingMode: 'environment' } },
+      videoRef.current,
+      (result) => { if (result && !done) { done = true; onDetectRef.current(result.getText().trim()) } },
+    ).then((c) => { controls = c }).catch(() => setError('No se pudo acceder a la cámara. Revisa los permisos del navegador.'))
+    return () => { done = true; try { controls?.stop() } catch { /* noop */ } }
+  }, [])
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={onClose}>
+      <div style={{ background: '#12121c', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 14, padding: '1.1rem', width: '100%', maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <strong style={{ color: '#fff' }}>Escanear QR del activo</strong>
+          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', color: '#9a9ab0', fontSize: '1.4rem', cursor: 'pointer', lineHeight: 1 }}>×</button>
+        </div>
+        {error ? (
+          <p style={{ color: '#f87171', fontSize: '0.9rem', margin: 0 }}>{error}</p>
+        ) : (
+          <>
+            <video ref={videoRef} style={{ width: '100%', borderRadius: 10, background: '#000', aspectRatio: '1 / 1', objectFit: 'cover' }} muted playsInline />
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.8rem', marginTop: 10, textAlign: 'center' }}>
+              Apunta la cámara al código QR pegado en el equipo.
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
 
 function TrabajadoresPanel() {
   const { user, logout } = useAuth()
@@ -36,6 +79,8 @@ function TrabajadoresPanel() {
   const [planta, setPlanta] = useState('')
   const [activoId, setActivoId] = useState('')
   const [activos, setActivos] = useState([])
+  const [scanning, setScanning] = useState(false)
+  const [scanMsg, setScanMsg] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [materialUtilizado, setMaterialUtilizado] = useState('')
   const [horasTrabajadas, setHorasTrabajadas] = useState('')
@@ -116,6 +161,14 @@ function TrabajadoresPanel() {
     // campo quede oculto en pantalla porque el activo ya lo identifica.
     setEquipoIntervenido(a.equipo ? `${a.codigo} — ${a.equipo}` : a.codigo)
     if (a.instalacion?.nombre) setPlanta(a.instalacion.nombre)
+  }
+
+  // El QR codifica el código del activo; se busca en el maestro y se selecciona.
+  const onScanActivo = (texto) => {
+    setScanning(false)
+    const found = activos.find(a => (a.codigo || '').toUpperCase() === texto.toUpperCase())
+    if (found) { onSelectActivo(found.id); setScanMsg('') }
+    else setScanMsg(`El QR leído ("${texto}") no corresponde a un activo del maestro.`)
   }
 
   useEffect(() => {
@@ -703,8 +756,16 @@ function TrabajadoresPanel() {
                       </optgroup>
                     ))}
                   </select>
+                  <button type="button" className="trab-gps-btn trab-gps-btn--full" style={{ marginTop: 8 }}
+                    onClick={() => { setScanMsg(''); setScanning(true) }}>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm13-2h3v2h-3v-2zm0 4h3v4h-5v-2h2v-2zm-5 0h3v2h-3v-2z"/></svg>
+                    Escanear QR del equipo
+                  </button>
+                  {scanMsg && <p className="trab-gps-error" style={{ marginTop: 6 }}>{scanMsg}</p>}
                 </div>
               )}
+
+              {scanning && <QrScanModal onDetect={onScanActivo} onClose={() => setScanning(false)} />}
 
               {!activoId && (
                 <div className="trab-field">
