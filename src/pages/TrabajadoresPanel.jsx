@@ -34,6 +34,8 @@ function TrabajadoresPanel() {
   const [ot, setOt] = useState('')
   const [avisoSap, setAvisoSap] = useState('')
   const [planta, setPlanta] = useState('')
+  const [activoId, setActivoId] = useState('')
+  const [activos, setActivos] = useState([])
   const [descripcion, setDescripcion] = useState('')
   const [materialUtilizado, setMaterialUtilizado] = useState('')
   const [horasTrabajadas, setHorasTrabajadas] = useState('')
@@ -93,6 +95,29 @@ function TrabajadoresPanel() {
       .then(({ data }) => { if (data) setWorkerName(data.nombre || data.username) })
   }, [user])
 
+  // Maestro de activos (lista cerrada) para vincular el registro al equipo.
+  useEffect(() => {
+    if (!user) return
+    supabase.from('activos')
+      .select('id, codigo, equipo, sistema, estado, instalacion:instalaciones(nombre)')
+      .eq('estado', 'activo')
+      .order('codigo', { ascending: true })
+      .then(({ data }) => { if (data) setActivos(data) })
+  }, [user])
+
+  // Al elegir un activo del maestro, autollena planta/equipo (texto) para que
+  // el historial siga legible y compatible con registros anteriores.
+  const onSelectActivo = (id) => {
+    setActivoId(id)
+    const a = activos.find(x => x.id === id)
+    // "Escribir a mano": limpia para que el técnico ingrese libremente.
+    if (!a) { setEquipoIntervenido(''); setPlanta(''); return }
+    // Se guarda el texto por detrás (compatibilidad con informes), aunque el
+    // campo quede oculto en pantalla porque el activo ya lo identifica.
+    setEquipoIntervenido(a.equipo ? `${a.codigo} — ${a.equipo}` : a.codigo)
+    if (a.instalacion?.nombre) setPlanta(a.instalacion.nombre)
+  }
+
   useEffect(() => {
     if (view === 'historial') loadHistorial()
   }, [view])
@@ -112,7 +137,7 @@ function TrabajadoresPanel() {
   const resetForm = () => {
     originalFacturaPaths.current = []
     setTarea(''); setTipoTrabajo(''); setTipoTrabajoOtro('')
-    setEquipoIntervenido(''); setOt(''); setAvisoSap(''); setPlanta('')
+    setEquipoIntervenido(''); setOt(''); setAvisoSap(''); setPlanta(''); setActivoId('')
     setDescripcion(''); setMaterialUtilizado('')
     setHorasTrabajadas(''); setEstado('Terminado'); setIndicadorMantenimiento('')
     setUbicacionLat(null); setUbicacionLng(null); setUbicacionTexto(''); setGpsError('')
@@ -136,6 +161,7 @@ function TrabajadoresPanel() {
     setOt(r.ot || '')
     setAvisoSap(r.aviso_sap || '')
     setPlanta(r.planta || '')
+    setActivoId(r.activo_id || '')
     setDescripcion(r.descripcion || '')
     setMaterialUtilizado(r.material_utilizado || '')
     setHorasTrabajadas(r.horas_trabajadas?.toString() || '')
@@ -357,6 +383,7 @@ function TrabajadoresPanel() {
       ot: ot.trim() || null,
       aviso_sap: avisoSap.trim() || null,
       planta: planta.trim() || null,
+      activo_id: activoId || null,
       tarea: tarea.trim(),
       descripcion: descripcion.trim(),
       material_utilizado: materialUtilizado.trim(),
@@ -655,11 +682,37 @@ function TrabajadoresPanel() {
                 </div>
               </div>
 
-              <div className="trab-field">
-                <label htmlFor="t-equipo">Equipo / Activo intervenido</label>
-                <input id="t-equipo" type="text" value={equipoIntervenido} onChange={e => setEquipoIntervenido(e.target.value)}
-                  placeholder="Ej: Bomba centrífuga B-03, Compresor sector norte" />
-              </div>
+              {activos.length > 0 && (
+                <div className="trab-field">
+                  <label htmlFor="t-activo">Activo (del maestro)</label>
+                  <select id="t-activo" value={activoId} onChange={e => onSelectActivo(e.target.value)}>
+                    <option value="">— No está en la lista / escribir a mano —</option>
+                    {Object.entries(
+                      activos.reduce((acc, a) => {
+                        const inst = a.instalacion?.nombre || 'Sin instalación'
+                        ;(acc[inst] = acc[inst] || []).push(a)
+                        return acc
+                      }, {})
+                    ).map(([inst, items]) => (
+                      <optgroup key={inst} label={inst}>
+                        {items.map(a => (
+                          <option key={a.id} value={a.id}>
+                            {a.codigo}{a.equipo ? ` — ${a.equipo}` : ''}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {!activoId && (
+                <div className="trab-field">
+                  <label htmlFor="t-equipo">Equipo / Activo intervenido</label>
+                  <input id="t-equipo" type="text" value={equipoIntervenido} onChange={e => setEquipoIntervenido(e.target.value)}
+                    placeholder="Ej: Bomba centrífuga B-03, Compresor sector norte" />
+                </div>
+              )}
 
               <div className="trab-row">
                 <div className="trab-field">
