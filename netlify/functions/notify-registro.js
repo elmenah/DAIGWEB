@@ -55,23 +55,36 @@ export const handler = async (event) => {
   if (authError || !user) return json(401, { error: 'Sesión inválida' }, corsHeaders)
   // La notificación se construye con datos persistidos y del propio trabajador.
   const { data: record, error: recordError } = await client.from('registros_trabajo')
-    .select('*').eq('id', body.registro_id).eq('trabajador_id', user.id).single()
+    .select('*, activo:activos(codigo, equipo, sistema, criticidad)')
+    .eq('id', body.registro_id).eq('trabajador_id', user.id).single()
   if (recordError || !record) return json(404, { error: 'Registro no disponible' }, corsHeaders)
   const r = { ...record, fotos_count: record.fotos?.length || 0 }
   const nombre = String(r.trabajador_nombre || 'Trabajador').trim()
   const fecha = String(r.fecha || '').trim()
   const hora = String(r.hora || '').trim()
 
+  const activo = r.activo || null
+  const activoLabel = activo
+    ? [activo.codigo, activo.equipo].filter(Boolean).join(' — ')
+    : ''
+
   const filas = [
+    ['Activo (maestro)', activoLabel],
+    ['Criticidad', activo?.criticidad],
+    ['Sistema', activo?.sistema],
     ['OT', r.ot],
+    ['Aviso SAP', r.aviso_sap],
     ['Fecha / hora', [fecha, hora].filter(Boolean).join(' · ')],
     ['Tipo de trabajo', r.tipo_trabajo],
     ['Planta / lugar', r.planta],
-    ['Aviso SAP', r.aviso_sap],
     ['Equipo / activo', r.equipo_intervenido],
     ['Tarea', r.tarea],
+    ['Descripción', r.descripcion],
+    ['Material utilizado', r.material_utilizado],
+    ['Indicador del equipo', r.indicador_mantenimiento],
     ['Estado', r.estado],
     ['Horas', r.horas_trabajadas != null && r.horas_trabajadas !== '' ? `${r.horas_trabajadas} h` : ''],
+    ['Ubicación', r.ubicacion_texto],
     ['Fotos', r.fotos_count != null ? String(r.fotos_count) : ''],
   ].filter(([, v]) => v != null && String(v).trim() !== '')
 
@@ -116,7 +129,7 @@ export const handler = async (event) => {
     const { error: sendError } = await resend.emails.send({
       from: fromEmail,
       to: DEST_EMAILS,
-      subject: `[DAIG] Nuevo registro de ${nombre}${r.ot ? ` · OT ${r.ot}` : ''}`,
+      subject: `[DAIG] Nuevo registro de ${nombre}${r.ot ? ` · OT ${r.ot}` : ''}${activo?.codigo ? ` · ${activo.codigo}` : ''}`,
       html,
       text,
     }, { idempotencyKey: `registro/${record.id}` })

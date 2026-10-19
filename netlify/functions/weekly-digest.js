@@ -100,7 +100,7 @@ export const handler = async () => {
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } })
   const { data, error } = await supabase
     .from('registros_trabajo')
-    .select('trabajador_nombre, estado, horas_trabajadas, fecha, hora, ot, tipo_trabajo, tarea, equipo_intervenido, planta, aviso_sap, descripcion, material_utilizado, ubicacion_texto, revisado_por, fotos')
+    .select('trabajador_nombre, estado, horas_trabajadas, fecha, hora, ot, tipo_trabajo, tarea, equipo_intervenido, planta, aviso_sap, descripcion, material_utilizado, indicador_mantenimiento, ubicacion_texto, revisado_por, fotos, activo:activos(codigo, criticidad)')
     .gte('fecha', desdeISO)
     .lte('fecha', hastaISO)
     .order('fecha', { ascending: true })
@@ -148,26 +148,29 @@ export const handler = async () => {
     const MAX_FOTOS = 5
     const maxFotos = Math.min(MAX_FOTOS, Math.max(0, ...regs.map((r) => r.fotos?.length || 0)))
     const fotoHeaders = Array.from({ length: maxFotos }, (_, i) => `Foto ${i + 1}`)
+    const FOTO_COL0 = 18   // primera columna de fotos (tras las 18 columnas base)
     const xlHyperlinks = []
     regs.forEach((r, ri) => {
       ;(r.fotos || []).slice(0, MAX_FOTOS).forEach((url, fi) => {
-        if (url) xlHyperlinks.push({ row: ri, col: 15 + fi, url, label: `Ver foto ${fi + 1}` })
+        if (url) xlHyperlinks.push({ row: ri, col: FOTO_COL0 + fi, url, label: `Ver foto ${fi + 1}` })
       })
     })
     const wsDet = buildSheet({
       title: 'Detalle semanal de registros',
       subtitle: `DAIG SpA · ${periodo}`,
-      headers: ['Fecha', 'Hora', 'OT', 'Trabajador', 'Tipo', 'Tarea', 'Equipo', 'Planta', 'Aviso SAP', 'Descripción', 'Material', 'Horas', 'Estado', 'GPS', 'Revisado por', ...fotoHeaders],
+      headers: ['Fecha', 'Hora', 'OT', 'Activo', 'Criticidad', 'Trabajador', 'Tipo', 'Tarea', 'Equipo', 'Planta', 'Aviso SAP', 'Descripción', 'Material', 'Indicador', 'Horas', 'Estado', 'GPS', 'Revisado por', ...fotoHeaders],
       rows: regs.map((r) => [
-        fmt(r.fecha), r.hora?.slice(0, 5) || '', r.ot || '', r.trabajador_nombre || '',
-        r.tipo_trabajo || '', r.tarea || '', r.equipo_intervenido || '', r.planta || '',
-        r.aviso_sap || '', r.descripcion || '', r.material_utilizado || '',
+        fmt(r.fecha), r.hora?.slice(0, 5) || '', r.ot || '',
+        r.activo?.codigo || '', r.activo?.criticidad || '',
+        r.trabajador_nombre || '', r.tipo_trabajo || '', r.tarea || '',
+        r.equipo_intervenido || '', r.planta || '', r.aviso_sap || '',
+        r.descripcion || '', r.material_utilizado || '', r.indicador_mantenimiento || '',
         r.horas_trabajadas || '', r.estado || '', r.ubicacion_texto || '',
         r.revisado_por || '',
         ...Array.from({ length: maxFotos }, (_, fi) => (r.fotos?.[fi] ? `Ver foto ${fi + 1}` : '')),
       ]),
-      colWidths: [11, 7, 12, 20, 18, 34, 24, 20, 12, 34, 26, 8, 16, 22, 18, ...Array(maxFotos).fill(28)],
-      centerCols: [1, 11],
+      colWidths: [11, 7, 12, 18, 10, 20, 18, 34, 24, 20, 12, 34, 26, 14, 8, 16, 22, 18, ...Array(maxFotos).fill(28)],
+      centerCols: [1, 4, 14],
       hyperlinks: xlHyperlinks,
     })
     XLSX.utils.book_append_sheet(wb, wsDet, 'Detalle')
