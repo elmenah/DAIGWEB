@@ -5,6 +5,10 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    host: true,          // escucha en la red local (necesario para túneles)
+    allowedHosts: true,  // permite dominios de túnel (ngrok/cloudflared/localtunnel)
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
