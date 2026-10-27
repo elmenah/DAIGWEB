@@ -79,6 +79,8 @@ function TrabajadoresPanel() {
   const [planta, setPlanta] = useState('')
   const [activoId, setActivoId] = useState('')
   const [activos, setActivos] = useState([])
+  const [otId, setOtId] = useState('')
+  const [otList, setOtList] = useState([])
   const [scanning, setScanning] = useState(false)
   const [scanMsg, setScanMsg] = useState('')
   const [descripcion, setDescripcion] = useState('')
@@ -171,6 +173,27 @@ function TrabajadoresPanel() {
     else setScanMsg(`El QR leído ("${texto}") no corresponde a un activo del maestro.`)
   }
 
+  // Órdenes de trabajo abiertas: el técnico asocia su registro a una OT existente.
+  useEffect(() => {
+    if (!user) return
+    supabase.from('ot')
+      .select('id, numero, tipo, estado, aviso_sap, activo_id, activo:activos(codigo, equipo)')
+      .in('estado', ['abierta', 'en_proceso'])
+      .order('numero', { ascending: false })
+      .then(({ data }) => { if (data) setOtList(data) })
+  }, [user])
+
+  // Al elegir una OT, se vinculan N° de OT y aviso SAP (texto, para informes/correo)
+  // y se selecciona automáticamente el activo asociado.
+  const onSelectOt = (id) => {
+    setOtId(id)
+    const o = otList.find(x => x.id === id)
+    if (!o) return
+    if (o.numero) setOt(o.numero)
+    if (o.aviso_sap) setAvisoSap(String(o.aviso_sap).replace(/\D/g, ''))
+    if (o.activo_id) onSelectActivo(o.activo_id)
+  }
+
   useEffect(() => {
     if (view === 'historial') loadHistorial()
   }, [view])
@@ -190,7 +213,7 @@ function TrabajadoresPanel() {
   const resetForm = () => {
     originalFacturaPaths.current = []
     setTarea(''); setTipoTrabajo(''); setTipoTrabajoOtro('')
-    setEquipoIntervenido(''); setOt(''); setAvisoSap(''); setPlanta(''); setActivoId('')
+    setEquipoIntervenido(''); setOt(''); setAvisoSap(''); setPlanta(''); setActivoId(''); setOtId('')
     setDescripcion(''); setMaterialUtilizado('')
     setHorasTrabajadas(''); setEstado('Terminado'); setIndicadorMantenimiento('')
     setUbicacionLat(null); setUbicacionLng(null); setUbicacionTexto(''); setGpsError('')
@@ -215,6 +238,7 @@ function TrabajadoresPanel() {
     setAvisoSap(r.aviso_sap || '')
     setPlanta(r.planta || '')
     setActivoId(r.activo_id || '')
+    setOtId(r.ot_id || '')
     setDescripcion(r.descripcion || '')
     setMaterialUtilizado(r.material_utilizado || '')
     setHorasTrabajadas(r.horas_trabajadas?.toString() || '')
@@ -437,6 +461,7 @@ function TrabajadoresPanel() {
       aviso_sap: avisoSap.trim() || null,
       planta: planta.trim() || null,
       activo_id: activoId || null,
+      ot_id: otId || null,
       tarea: tarea.trim(),
       descripcion: descripcion.trim(),
       material_utilizado: materialUtilizado.trim(),
@@ -670,11 +695,27 @@ function TrabajadoresPanel() {
             )}
 
             <form onSubmit={handleSubmit} className="trab-form">
-              <div className="trab-field">
-                <label htmlFor="t-ot">OT (Orden de Trabajo)</label>
-                <input id="t-ot" type="text" value={ot} onChange={e => setOt(e.target.value)}
-                  placeholder="Ej: OT-1234" autoComplete="off" />
-              </div>
+              {otList.length > 0 && (
+                <div className="trab-field">
+                  <label htmlFor="t-ot-sel">Orden de trabajo</label>
+                  <select id="t-ot-sel" value={otId} onChange={e => onSelectOt(e.target.value)}>
+                    <option value="">— Sin OT / registro suelto —</option>
+                    {otList.map(o => (
+                      <option key={o.id} value={o.id}>
+                        {o.numero}{o.activo?.codigo ? ` · ${o.activo.codigo}` : ''} · {o.tipo}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {!otId && (
+                <div className="trab-field">
+                  <label htmlFor="t-ot">OT (Orden de Trabajo)</label>
+                  <input id="t-ot" type="text" value={ot} onChange={e => setOt(e.target.value)}
+                    placeholder="Ej: OT-1234" autoComplete="off" />
+                </div>
+              )}
 
               <div className="trab-row">
                 <div className="trab-field">
