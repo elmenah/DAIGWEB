@@ -70,6 +70,8 @@ function TrabajadoresPanel() {
   // Form state
   const [fecha, setFecha] = useState(today())
   const [hora, setHora] = useState(nowTime())
+  const [fechaInicioTrabajo, setFechaInicioTrabajo] = useState('')
+  const [fechaTerminoTrabajo, setFechaTerminoTrabajo] = useState('')
   const [tarea, setTarea] = useState('')
   const [tipoTrabajo, setTipoTrabajo] = useState('')
   const [tipoTrabajoOtro, setTipoTrabajoOtro] = useState('')
@@ -221,6 +223,7 @@ function TrabajadoresPanel() {
     setFacturas([]); setFacturaPaths([]); setFacturaError('')
     draftIdRef.current = crypto.randomUUID()
     setFecha(today()); setHora(nowTime())
+    setFechaInicioTrabajo(''); setFechaTerminoTrabajo('')
     setEditingId(null)
   }
 
@@ -231,6 +234,8 @@ function TrabajadoresPanel() {
     setTipoTrabajo(esOtro ? 'Otro' : (r.tipo_trabajo || ''))
     setTipoTrabajoOtro(esOtro ? r.tipo_trabajo : '')
     setFecha(r.fecha || today())
+    setFechaInicioTrabajo(r.fecha_inicio_trabajo || '')
+    setFechaTerminoTrabajo(r.fecha_termino_trabajo || '')
     setHora(r.hora?.slice(0,5) || nowTime())
     setTarea(r.tarea || '')
     setEquipoIntervenido(r.equipo_intervenido || '')
@@ -462,6 +467,8 @@ function TrabajadoresPanel() {
       planta: planta.trim() || null,
       activo_id: activoId || null,
       ot_id: otId || null,
+      fecha_inicio_trabajo: fechaInicioTrabajo || null,
+      fecha_termino_trabajo: fechaTerminoTrabajo || null,
       tarea: tarea.trim(),
       descripcion: descripcion.trim(),
       material_utilizado: materialUtilizado.trim(),
@@ -725,6 +732,17 @@ function TrabajadoresPanel() {
                 <div className="trab-field">
                   <label htmlFor="t-hora">Hora</label>
                   <input id="t-hora" type="time" value={hora} onChange={e => setHora(e.target.value)} required />
+                </div>
+              </div>
+
+              <div className="trab-row">
+                <div className="trab-field">
+                  <label htmlFor="t-ini">Fecha de inicio del trabajo</label>
+                  <input id="t-ini" type="date" value={fechaInicioTrabajo} onChange={e => setFechaInicioTrabajo(e.target.value)} />
+                </div>
+                <div className="trab-field">
+                  <label htmlFor="t-fin">Fecha de término del trabajo</label>
+                  <input id="t-fin" type="date" value={fechaTerminoTrabajo} onChange={e => setFechaTerminoTrabajo(e.target.value)} />
                 </div>
               </div>
 

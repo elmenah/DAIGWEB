@@ -22,7 +22,7 @@ const ESTADO_COLOR = { abierta: '#f59e0b', en_proceso: '#3b82f6', cerrada: '#22c
 
 const EMPTY_OT = {
   activo_id: '', aviso_sap: '', tipo: 'correctiva', prioridad: 'media', estado: 'abierta',
-  descripcion: '', fecha_aviso: '', fecha_llegada: '', fecha_inicio: '', fecha_termino: '',
+  descripcion: '', n_trabajadores: '', fecha_aviso: '', fecha_llegada: '', fecha_inicio: '', fecha_termino: '',
   fecha_puesta_marcha: '', equipo_detenido: false,
 }
 
@@ -90,6 +90,7 @@ function OtManager() {
         prioridad: edit.prioridad,
         estado: edit.estado,
         descripcion: (edit.descripcion || '').trim() || null,
+        n_trabajadores: edit.n_trabajadores === '' || edit.n_trabajadores == null ? null : parseInt(edit.n_trabajadores, 10),
         fecha_aviso: fromLocalInput(edit.fecha_aviso),
         fecha_llegada: fromLocalInput(edit.fecha_llegada),
         fecha_inicio: fromLocalInput(edit.fecha_inicio),
@@ -130,6 +131,7 @@ function OtManager() {
       activo_id: row.activo_id || '',
       aviso_sap: row.aviso_sap || '',
       descripcion: row.descripcion || '',
+      n_trabajadores: row.n_trabajadores ?? '',
       fecha_aviso: toLocalInput(row.fecha_aviso),
       fecha_llegada: toLocalInput(row.fecha_llegada),
       fecha_inicio: toLocalInput(row.fecha_inicio),
@@ -173,8 +175,12 @@ function OtManager() {
                 </select></div>
             </div>
 
-            <div className="admin-field"><label>Aviso SAP</label>
-              <input type="text" value={edit.aviso_sap} onChange={e => setF('aviso_sap', e.target.value)} placeholder="N° de aviso SAP (único)" /></div>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <div className="admin-field" style={{ flex: 2 }}><label>Aviso SAP</label>
+                <input type="text" value={edit.aviso_sap} onChange={e => setF('aviso_sap', e.target.value)} placeholder="N° de aviso SAP (único)" /></div>
+              <div className="admin-field" style={{ flex: 1 }}><label>N° de trabajadores</label>
+                <input type="number" min="1" step="1" value={edit.n_trabajadores} onChange={e => setF('n_trabajadores', e.target.value)} placeholder="Dotación" /></div>
+            </div>
 
             <div className="admin-field"><label>Descripción</label>
               <textarea rows={2} value={edit.descripcion} onChange={e => setF('descripcion', e.target.value)} placeholder="Síntoma / trabajo a realizar" /></div>
