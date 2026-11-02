@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { loadXLSX, buildStyledSheet } from '../lib/styledExcel'
 
 function Modal({ title, onClose, children }) {
   return (
@@ -52,9 +53,30 @@ const fmtFecha = (iso) => {
   return d.toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
+// Duración en horas entre dos timestamps (null si falta alguno o es negativa)
+const durHoras = (a, b) => {
+  if (!a || !b) return null
+  const ms = new Date(b).getTime() - new Date(a).getTime()
+  if (isNaN(ms) || ms < 0) return null
+  return ms / 3600000
+}
+const fmtDur = (h) => {
+  if (h == null) return '—'
+  if (h < 1) return `${Math.round(h * 60)} min`
+  const hh = Math.floor(h), mm = Math.round((h - hh) * 60)
+  return mm ? `${hh} h ${mm} min` : `${hh} h`
+}
+
+// Orden cronológico esperado de los tiempos de la OT (para validar)
+const ORDEN_TIEMPOS = [
+  ['fecha_aviso', 'Aviso'], ['fecha_llegada', 'Llegada'], ['fecha_inicio', 'Inicio'],
+  ['fecha_termino', 'Término'], ['fecha_puesta_marcha', 'Puesta en marcha'],
+]
+
 function OtManager() {
   const [ots, setOts] = useState([])
   const [activos, setActivos] = useState([])
+  const [regCount, setRegCount] = useState({})   // { ot_id: n° de registros vinculados }
   const [loading, setLoading] = useState(true)
   const [successMsg, setSuccessMsg] = useState('')
   const [deleting, setDeleting] = useState(null)
@@ -62,15 +84,20 @@ function OtManager() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [filtro, setFiltro] = useState('abiertas')  // 'abiertas' | 'todas'
+  const [exporting, setExporting] = useState(false)
 
   const loadData = useCallback(async () => {
     setLoading(true)
-    const [{ data: ot }, { data: act }] = await Promise.all([
+    const [{ data: ot }, { data: act }, { data: regs }] = await Promise.all([
       supabase.from('ot').select('*, activo:activos(codigo, equipo)').order('created_at', { ascending: false }),
       supabase.from('activos').select('id, codigo, equipo, estado').eq('estado', 'activo').order('codigo'),
+      supabase.from('registros_trabajo').select('ot_id').not('ot_id', 'is', null),
     ])
+    const counts = {}
+    for (const r of (regs || [])) counts[r.ot_id] = (counts[r.ot_id] || 0) + 1
     setOts(ot || [])
     setActivos(act || [])
+    setRegCount(counts)
     setLoading(false)
   }, [])
 
@@ -83,6 +110,15 @@ function OtManager() {
     e.preventDefault()
     setSaving(true); setError('')
     try {
+      // Validación: los tiempos deben respetar el orden cronológico
+      const ts = ORDEN_TIEMPOS.map(([k, label]) => ({ label, v: edit[k] ? new Date(edit[k]).getTime() : null }))
+      for (let i = 0; i < ts.length; i++) {
+        for (let j = i + 1; j < ts.length; j++) {
+          if (ts[i].v != null && ts[j].v != null && ts[i].v > ts[j].v) {
+            throw new Error(`"${ts[j].label}" no puede ser anterior a "${ts[i].label}".`)
+          }
+        }
+      }
       const payload = {
         activo_id: edit.activo_id || null,
         aviso_sap: (edit.aviso_sap || '').trim() || null,
@@ -146,6 +182,44 @@ function OtManager() {
 
   const actLabel = (a) => a ? (a.equipo ? `${a.codigo} — ${a.equipo}` : a.codigo) : '—'
 
+  // Exporta las OT visibles a Excel con la marca DAIG (insumo para el tablero
+  // de indicadores de jefatura). Las columnas de tiempo van como fecha y la
+  // duración de reparación / fuera de servicio en horas (numérico).
+  const horasNum = (h) => (h == null ? '' : +h.toFixed(2))
+  const exportar = async () => {
+    setExporting(true)
+    try {
+      const XLSX = await loadXLSX()
+      const headers = [
+        'N° OT', 'Activo', 'Equipo', 'Tipo', 'Prioridad', 'Estado', 'Aviso SAP', 'Dotación',
+        'Aviso', 'Llegada', 'Inicio', 'Término', 'Puesta en marcha',
+        'Reparación (h)', 'Fuera de servicio (h)', 'Equipo detenido', 'N° registros', 'Creada', 'Descripción',
+      ]
+      const rows = visibles.map((o) => [
+        o.numero || '', o.activo?.codigo || '', o.activo?.equipo || '',
+        TIPO[o.tipo] || o.tipo, PRIORIDAD[o.prioridad] || o.prioridad, ESTADO[o.estado] || o.estado,
+        o.aviso_sap || '', o.n_trabajadores ?? '',
+        fmtFecha(o.fecha_aviso), fmtFecha(o.fecha_llegada), fmtFecha(o.fecha_inicio), fmtFecha(o.fecha_termino), fmtFecha(o.fecha_puesta_marcha),
+        horasNum(durHoras(o.fecha_inicio, o.fecha_termino)), horasNum(durHoras(o.fecha_aviso, o.fecha_puesta_marcha)),
+        o.equipo_detenido ? 'Sí' : 'No', regCount[o.id] || 0, fmtFecha(o.created_at), o.descripcion || '',
+      ])
+      const ws = buildStyledSheet(XLSX, {
+        title: 'Órdenes de Trabajo',
+        subtitle: `DAIG SpA · exportado ${new Date().toLocaleDateString('es-CL')} · ${rows.length} OT`,
+        headers, rows,
+        colWidths: [13, 16, 20, 12, 10, 12, 12, 9, 15, 15, 15, 15, 15, 12, 14, 12, 10, 15, 34],
+        centerCols: [7, 13, 14, 15, 16],
+      })
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'OT')
+      XLSX.writeFile(wb, `ordenes_trabajo_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    } catch (err) {
+      alert('No se pudo exportar: ' + (err.message || err))
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <div className="admin-section">
       {edit && (
@@ -197,6 +271,18 @@ function OtManager() {
                 <input type="checkbox" checked={!!edit.equipo_detenido} onChange={e => setF('equipo_detenido', e.target.checked)} style={{ width: 'auto' }} />
                 El equipo quedó / estuvo detenido
               </label>
+
+              {(() => {
+                const rep = durHoras(edit.fecha_inicio, edit.fecha_termino)
+                const fs = durHoras(edit.fecha_aviso, edit.fecha_puesta_marcha)
+                return (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.9rem' }}>
+                    <span style={{ fontSize: '0.78rem', background: 'rgba(232,150,46,0.14)', color: '#E8962E', borderRadius: 999, padding: '4px 10px' }}>Reparación (MTTR): <b>{fmtDur(rep)}</b></span>
+                    <span style={{ fontSize: '0.78rem', background: 'rgba(91,157,255,0.14)', color: '#5b9dff', borderRadius: 999, padding: '4px 10px' }}>Fuera de servicio: <b>{fmtDur(fs)}</b></span>
+                    {edit.id && <span style={{ fontSize: '0.78rem', background: 'rgba(255,255,255,0.06)', color: '#cfd2dc', borderRadius: 999, padding: '4px 10px' }}>Registros vinculados: <b>{regCount[edit.id] || 0}</b></span>}
+                  </div>
+                )
+              })()}
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
@@ -223,7 +309,10 @@ function OtManager() {
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.9rem' }}>
             <span className="admin-badge">{visibles.length} {filtro === 'abiertas' ? 'abiertas / en proceso' : 'en total'}</span>
-            <button className="admin-btn-primary" style={{ fontSize: '0.82rem', width: 'auto', marginTop: 0 }} onClick={() => { setError(''); setEdit({ ...EMPTY_OT }) }}>+ Nueva OT</button>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button className="admin-btn-outline" style={{ fontSize: '0.82rem', width: 'auto', marginTop: 0 }} onClick={exportar} disabled={exporting || visibles.length === 0}>{exporting ? 'Exportando...' : 'Exportar Excel'}</button>
+              <button className="admin-btn-primary" style={{ fontSize: '0.82rem', width: 'auto', marginTop: 0 }} onClick={() => { setError(''); setEdit({ ...EMPTY_OT }) }}>+ Nueva OT</button>
+            </div>
           </div>
           {visibles.length === 0 ? (
             <p style={{ color: '#9a9ab0', fontSize: '0.875rem', textAlign: 'center', padding: '2rem' }}>
@@ -234,7 +323,9 @@ function OtManager() {
               <table className="reg-table">
                 <thead><tr>
                   <th>N° OT</th><th>Activo</th><th>Tipo</th><th style={{ textAlign: 'center' }}>Prioridad</th>
-                  <th style={{ textAlign: 'center' }}>Estado</th><th>Aviso</th><th style={{ textAlign: 'right' }}>Acciones</th>
+                  <th style={{ textAlign: 'center' }}>Estado</th><th>Aviso</th>
+                  <th style={{ textAlign: 'center' }}>Reparación</th><th style={{ textAlign: 'center' }}>Reg.</th>
+                  <th style={{ textAlign: 'right' }}>Acciones</th>
                 </tr></thead>
                 <tbody>
                   {visibles.map(o => (
@@ -245,6 +336,8 @@ function OtManager() {
                       <td style={{ textAlign: 'center' }}>{PRIORIDAD[o.prioridad] || o.prioridad}</td>
                       <td style={{ textAlign: 'center', color: ESTADO_COLOR[o.estado] || '#9a9ab0', fontWeight: 600 }}>{ESTADO[o.estado] || o.estado}</td>
                       <td style={{ fontSize: '0.8rem', color: '#9a9ab0' }}>{fmtFecha(o.fecha_aviso)}</td>
+                      <td style={{ textAlign: 'center', fontSize: '0.8rem' }}>{fmtDur(durHoras(o.fecha_inicio, o.fecha_termino))}</td>
+                      <td style={{ textAlign: 'center' }}>{regCount[o.id] || 0}</td>
                       <td style={{ textAlign: 'right' }}>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                           <button className="admin-btn-outline" style={{ fontSize: '0.78rem', padding: '4px 10px' }} onClick={() => openEdit(o)}>Editar</button>
