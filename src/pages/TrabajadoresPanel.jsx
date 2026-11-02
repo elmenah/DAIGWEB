@@ -14,6 +14,16 @@ import { BrowserQRCodeReader } from '@zxing/browser'
 const today = () => new Date().toISOString().split('T')[0]
 const nowTime = () => new Date().toTimeString().slice(0, 5)
 
+// Distancia en metros entre dos puntos (fórmula de Haversine)
+const distanciaM = (lat1, lng1, lat2, lng2) => {
+  const R = 6371000
+  const rad = (d) => (d * Math.PI) / 180
+  const dLat = rad(lat2 - lat1), dLng = rad(lng2 - lng1)
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(a))
+}
+const UMBRAL_GPS_M = 300  // alerta si el registro está a más de esta distancia del activo
+
 // Overlay con la cámara para escanear el QR pegado en el equipo.
 // Al leer un código llama onDetect(texto); el padre busca el activo y lo selecciona.
 function QrScanModal({ onDetect, onClose }) {
@@ -148,7 +158,7 @@ function TrabajadoresPanel() {
   useEffect(() => {
     if (!user) return
     supabase.from('activos')
-      .select('id, codigo, equipo, sistema, estado, instalacion:instalaciones(nombre)')
+      .select('id, codigo, equipo, sistema, estado, latitud, longitud, instalacion:instalaciones(nombre)')
       .eq('estado', 'activo')
       .order('codigo', { ascending: true })
       .then(({ data }) => { if (data) setActivos(data) })
@@ -448,6 +458,11 @@ function TrabajadoresPanel() {
     if (!tarea.trim()) return
     if (!ubicacionLat) {
       setGpsError('La ubicación es obligatoria. Toca "Capturar ubicación" antes de enviar.')
+      return
+    }
+    if (fotosExistentes.length + fotos.length === 0) {
+      setSendError('Debes adjuntar al menos una foto de evidencia antes de enviar.')
+      setSendStatus('error')
       return
     }
     setSending(true)
@@ -882,6 +897,13 @@ function TrabajadoresPanel() {
                   {gpsLoading ? 'Obteniendo ubicación...' : ubicacionLat ? `✓ Ubicación capturada (${ubicacionLat.toFixed(4)}, ${ubicacionLng.toFixed(4)})` : 'Capturar ubicación actual'}
                 </button>
                 {gpsError && <p className="trab-gps-error">{gpsError}</p>}
+                {(() => {
+                  const a = activos.find(x => x.id === activoId)
+                  if (!a || a.latitud == null || a.longitud == null || !ubicacionLat) return null
+                  const d = distanciaM(ubicacionLat, ubicacionLng, +a.latitud, +a.longitud)
+                  if (d <= UMBRAL_GPS_M) return null
+                  return <p className="trab-gps-error" style={{ marginTop: 6 }}>⚠ Estás a {Math.round(d)} m de {a.codigo}. Verifica que estés en el lugar correcto del activo.</p>
+                })()}
                 {ubicacionLat && (
                   <div style={{ marginTop: 8 }}>
                     <label style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 4 }}>
@@ -899,7 +921,7 @@ function TrabajadoresPanel() {
               </div>
 
               <div className="trab-field">
-                <label>Registro fotográfico</label>
+                <label>Registro fotográfico <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>*</span></label>
 
                 {/* Existing photos (edit mode) */}
                 {fotosExistentes.length > 0 && (

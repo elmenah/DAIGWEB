@@ -81,6 +81,7 @@ function OtManager() {
   const [successMsg, setSuccessMsg] = useState('')
   const [deleting, setDeleting] = useState(null)
   const [edit, setEdit] = useState(null)   // objeto OT en edición (o EMPTY_OT para nueva)
+  const [editRegs, setEditRegs] = useState(null)  // registros vinculados a la OT en edición
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [filtro, setFiltro] = useState('abiertas')  // 'abiertas' | 'todas'
@@ -118,6 +119,10 @@ function OtManager() {
             throw new Error(`"${ts[j].label}" no puede ser anterior a "${ts[i].label}".`)
           }
         }
+      }
+      // Control de calidad: no se puede cerrar una OT sin aviso SAP
+      if (edit.estado === 'cerrada' && !(edit.aviso_sap || '').trim()) {
+        throw new Error('No se puede cerrar una OT sin aviso SAP.')
       }
       const payload = {
         activo_id: edit.activo_id || null,
@@ -160,7 +165,7 @@ function OtManager() {
     } finally { setDeleting(null) }
   }
 
-  const openEdit = (row) => {
+  const openEdit = async (row) => {
     setError('')
     setEdit({
       ...EMPTY_OT, ...row,
@@ -174,6 +179,14 @@ function OtManager() {
       fecha_termino: toLocalInput(row.fecha_termino),
       fecha_puesta_marcha: toLocalInput(row.fecha_puesta_marcha),
     })
+    // Carga los registros vinculados a esta OT para mostrarlos en la ficha
+    setEditRegs(null)
+    const { data } = await supabase.from('registros_trabajo')
+      .select('id, fecha, hora, tarea, trabajador_nombre, horas_trabajadas, estado')
+      .eq('ot_id', row.id)
+      .order('fecha', { ascending: false })
+      .order('hora', { ascending: false })
+    setEditRegs(data || [])
   }
 
   const visibles = filtro === 'abiertas'
@@ -285,6 +298,30 @@ function OtManager() {
               })()}
             </div>
 
+            {edit.id && (
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '0 0 1rem', paddingTop: '1rem' }}>
+                <p style={{ margin: '0 0 0.6rem', fontSize: '0.8rem', color: '#cfd2dc', fontWeight: 600 }}>
+                  Registros vinculados {editRegs ? `(${editRegs.length})` : ''}
+                </p>
+                {editRegs == null ? (
+                  <p style={{ color: '#9a9ab0', fontSize: '0.8rem', margin: 0 }}>Cargando…</p>
+                ) : editRegs.length === 0 ? (
+                  <p style={{ color: '#9a9ab0', fontSize: '0.8rem', margin: 0 }}>Aún no hay registros asociados a esta OT.</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    {editRegs.map(r => (
+                      <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.8rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: '6px 9px' }}>
+                        <span style={{ color: '#9a9ab0', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{r.fecha || '—'}{r.hora ? ` ${String(r.hora).slice(0, 5)}` : ''}</span>
+                        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.tarea || <span style={{ color: '#9a9ab0' }}>(sin tarea)</span>}</span>
+                        <span style={{ color: '#cfd2dc', whiteSpace: 'nowrap' }}>{r.trabajador_nombre || '—'}</span>
+                        {r.horas_trabajadas != null && r.horas_trabajadas !== '' && <span style={{ color: '#9a9ab0', whiteSpace: 'nowrap' }}>{r.horas_trabajadas} h</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
               <button type="button" className="admin-btn-outline" onClick={() => setEdit(null)}>Cancelar</button>
               <button type="submit" className="admin-btn-primary" disabled={saving}>{saving ? 'Guardando...' : 'Guardar'}</button>
@@ -311,7 +348,7 @@ function OtManager() {
             <span className="admin-badge">{visibles.length} {filtro === 'abiertas' ? 'abiertas / en proceso' : 'en total'}</span>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button className="admin-btn-outline" style={{ fontSize: '0.82rem', width: 'auto', marginTop: 0 }} onClick={exportar} disabled={exporting || visibles.length === 0}>{exporting ? 'Exportando...' : 'Exportar Excel'}</button>
-              <button className="admin-btn-primary" style={{ fontSize: '0.82rem', width: 'auto', marginTop: 0 }} onClick={() => { setError(''); setEdit({ ...EMPTY_OT }) }}>+ Nueva OT</button>
+              <button className="admin-btn-primary" style={{ fontSize: '0.82rem', width: 'auto', marginTop: 0 }} onClick={() => { setError(''); setEditRegs(null); setEdit({ ...EMPTY_OT }) }}>+ Nueva OT</button>
             </div>
           </div>
           {visibles.length === 0 ? (
