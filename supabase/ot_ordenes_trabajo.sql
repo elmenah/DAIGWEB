@@ -79,16 +79,20 @@ create index if not exists idx_registros_ot on public.registros_trabajo(ot_id);
 alter table public.ot enable row level security;
 
 -- Lectura: cualquier usuario autenticado (el técnico necesita ver las OT abiertas)
+drop policy if exists "ot_select_auth" on public.ot;
 create policy "ot_select_auth"
   on public.ot for select to authenticated using (true);
 
 -- Escritura: admin / directiva / supervisor gestionan las OT
+drop policy if exists "ot_admin_insert" on public.ot;
 create policy "ot_admin_insert"
   on public.ot for insert to authenticated
   with check (exists (select 1 from profiles where id = auth.uid() and role in ('admin', 'directiva', 'supervisor')));
+drop policy if exists "ot_admin_update" on public.ot;
 create policy "ot_admin_update"
   on public.ot for update to authenticated
   using (exists (select 1 from profiles where id = auth.uid() and role in ('admin', 'directiva', 'supervisor')));
+drop policy if exists "ot_admin_delete" on public.ot;
 create policy "ot_admin_delete"
   on public.ot for delete to authenticated
   using (exists (select 1 from profiles where id = auth.uid() and role in ('admin', 'directiva')));
