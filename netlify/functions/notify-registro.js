@@ -55,7 +55,7 @@ export const handler = async (event) => {
   if (authError || !user) return json(401, { error: 'Sesión inválida' }, corsHeaders)
   // La notificación se construye con datos persistidos y del propio trabajador.
   const { data: record, error: recordError } = await client.from('registros_trabajo')
-    .select('*, activo:activos(codigo, equipo, sistema, criticidad)')
+    .select('*, activo:activos(codigo, equipo, sistema, criticidad), ot_ficha:ot(numero, tipo, estado, n_trabajadores)')
     .eq('id', body.registro_id).eq('trabajador_id', user.id).single()
   if (recordError || !record) return json(404, { error: 'Registro no disponible' }, corsHeaders)
   const r = { ...record, fotos_count: record.fotos?.length || 0 }
@@ -67,14 +67,19 @@ export const handler = async (event) => {
   const activoLabel = activo
     ? [activo.codigo, activo.equipo].filter(Boolean).join(' — ')
     : ''
+  const otFicha = r.ot_ficha || null
 
   const filas = [
     ['Activo (maestro)', activoLabel],
     ['Criticidad', activo?.criticidad],
     ['Sistema', activo?.sistema],
+    ['OT (ficha)', otFicha?.numero],
     ['OT', r.ot],
     ['Aviso SAP', r.aviso_sap],
+    ['N° de trabajadores', otFicha?.n_trabajadores != null ? String(otFicha.n_trabajadores) : ''],
     ['Fecha / hora', [fecha, hora].filter(Boolean).join(' · ')],
+    ['Inicio del trabajo', r.fecha_inicio_trabajo],
+    ['Término del trabajo', r.fecha_termino_trabajo],
     ['Tipo de trabajo', r.tipo_trabajo],
     ['Planta / lugar', r.planta],
     ['Equipo / activo', r.equipo_intervenido],
